@@ -8,7 +8,7 @@ ghost predicate optimalValueEnvasado(A : multiset<nat>, E : nat, k : nat)
 
 ghost predicate isEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>)
 {
-    forall x | x in A :: (exists y | y in I :: x in y) && forall x | x in I :: GSumNat(x) <= E
+    Union(I) == A && forall x | x in I :: x <= A && GSumNat(x) <= E
 }
 
 ghost predicate optimalEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>)
