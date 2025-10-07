@@ -10,11 +10,9 @@ method {:axiom} moptimalVertexCover (graph : Graph) returns (I:set<Node>)
 //We implement a polynomial algorithm for PDCV using moptimalVertexCover
 method mVertexCover (graph:Graph, k:int, I:set<Node>) returns (b:bool)
   requires isValidGraph(graph)
-  ensures b == (I <= graph.0 && |I| <= k && isVertexCover(I,graph))
+  ensures b == VertexCover(graph,k)
 {
   var I := moptimalVertexCover(graph);
-  assert I <= graph.0 && isVertexCover(I,graph);
-  assume false;
+  //assert I <= graph.0 && isVertexCover(I,graph);
   b := |I| <= k;
-  //Ahora hay que demostrar la postcondicion  
 }
