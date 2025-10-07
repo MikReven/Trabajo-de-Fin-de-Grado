@@ -16,8 +16,7 @@ requires I <= graph.0
 
 lemma boundVertexCover(graph:Graph, k:int)
 requires isValidGraph(graph) 
-requires VertexCover(graph,k) && k > |graph.0|
-ensures VertexCover(graph,|graph.0|)
+ensures forall k | k >= |graph.0| :: VertexCover(graph,k)
 {}
 
 
