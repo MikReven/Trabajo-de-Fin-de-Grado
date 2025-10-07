@@ -1,9 +1,10 @@
 include "VertexCover.dfy"
 //predicado de PCV
 ghost predicate optimalValueVertexCover (graph : Graph, k : nat) 
-    requires isValidGraph(graph) && VertexCover(graph, k)
-{  //Duda: 0 <= x <= |graph.1| &&
-    forall x |  VertexCover(graph, x) :: x >= k
+    requires isValidGraph(graph) 
+{  VertexCover(graph, k) //Comentar esto
+    //Duda: 0 <= x <= |graph.1| &&
+   && forall x |  VertexCover(graph, x) :: x >= k
 } 
 
 //predicado de POCV
