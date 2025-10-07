@@ -8,7 +8,7 @@ lemma treductionPCVO_to_PDCV(graph : Graph, I : set<Node>)
 
 method {:axiom} mVertexCover (graph:Graph, k:int, I:set<Node>) returns (b:bool)
   requires isValidGraph(graph)
-  ensures b == (I <= graph.0 && |I| >= k && isVertexCover(I,graph))
+  ensures b == (I <= graph.0 && |I| <= k && isVertexCover(I,graph))
 
 method {:axiom} moptimalValueVertexCover (graph:Graph) returns (k:nat) //Tipo nat comentar
   requires isValidGraph(graph)
