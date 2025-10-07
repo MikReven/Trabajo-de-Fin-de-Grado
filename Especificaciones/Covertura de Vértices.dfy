@@ -1,5 +1,4 @@
-include "../Archivos David Alfonso Starry González/CODIGO/GRAFOS/Problems/VertexCover.dfy"
-
+include "VertexCover.dfy"
 //predicado de PCV
 ghost predicate optimalValueVertexCover (graph : Graph, k : nat) 
     requires isValidGraph(graph) && VertexCover(graph, k)
