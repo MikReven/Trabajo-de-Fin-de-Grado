@@ -18,6 +18,10 @@ ghost predicate Envasar(A:multiset<nat>, E:nat, k:nat)
   exists I:multiset<multiset<nat>> :: |I| <= k && isEnvasado(A,E,I)   
 }
 
+lemma boundEnvasar(A:multiset<nat>, E:nat, k:nat)
+requires Envasar(A,E,k)
+ensures k > |A| ==> Envasar(A,E,|A|)
+//{}
 
 method pick<T>(S:multiset<T>) returns (r:T)
   requires S != multiset{} //&& |S| > 0

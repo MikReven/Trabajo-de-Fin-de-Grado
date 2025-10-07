@@ -14,6 +14,12 @@ requires I <= graph.0
   forall e | e in graph.1 :: |I * e| > 0
 }
 
+lemma boundVertexCover(graph:Graph, k:int)
+requires isValidGraph(graph) 
+requires VertexCover(graph,k)
+ensures k <= |graph.0|
+//{}
+
 
 method checkVertexCover (graph:Graph, k:int, I:set<Node>) returns (b:bool)
   requires isValidGraph(graph)

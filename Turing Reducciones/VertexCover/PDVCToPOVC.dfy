@@ -8,7 +8,7 @@ method {:axiom} moptimalVertexCover (graph : Graph) returns (I:set<Node>)
   ensures optimalVertexCover(graph,I)
 
 //We implement a polynomial algorithm for PDCV using moptimalVertexCover
-method mVertexCover (graph:Graph, k:int, I:set<Node>) returns (b:bool)
+method mVertexCover (graph:Graph, k:int) returns (b:bool)
   requires isValidGraph(graph)
   ensures b == VertexCover(graph,k)
 {
