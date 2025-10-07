@@ -14,3 +14,5 @@ ghost predicate optimalVertexCover (graph : Graph, I:set<Node>)
     && isVertexCover(I, graph) 
     && forall x | x <= graph.0 && isVertexCover(x, graph) :: |x| >= |I|
 }
+
+//Comentarios similares a los de EnvasadoOpt (ver)
