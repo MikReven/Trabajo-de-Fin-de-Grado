@@ -192,6 +192,14 @@ lemma GSumIntPartes(A:multiset<int>, P1:multiset<int>, P2:multiset<int>)
   }
 }
 
+lemma GSumNatElemIn(A:multiset<nat>,i:nat)
+requires i in A
+ensures GSumNat(A) == i + GSumNat(A-multiset{i})
+{
+  GSumPositiveIntNat(A);
+  GSumPositiveIntNat(A-multiset{i});
+  GSumIntElemIn(A,i);
+}
 
 method {:verify true} mSumaNat(A:multiset<nat>) returns (s:nat)
 ensures s == GSumNat(A)
