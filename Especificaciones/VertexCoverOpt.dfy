@@ -32,3 +32,9 @@ ghost predicate optimalVertexCover (graph : Graph, I : set<Node>)
     && forall S | S <= graph.0 && isVertexCover(S, graph) :: |S| >= |I|
 }
 
+lemma boundoptimalVertexCover(graph : Graph, I : set<Node>) 
+requires isValidGraph(graph)
+requires optimalVertexCover(graph,I)
+ensures |I| <= |graph.0|
+ensures optimalValueVertexCover(graph,|I|)
+{  }
