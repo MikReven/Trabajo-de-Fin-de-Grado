@@ -39,6 +39,12 @@ ghost function Union (I:multiset<multiset<nat>>) : multiset<nat>
   else var i :| i in I; i + Union(I-multiset{i})
 }
 
+lemma inOneUnion(I:multiset<multiset<nat>>, a:nat)
+requires a in Union(I)
+ensures exists i :: i in I && a in i
+{}
+
+
 lemma UnionOne(C: multiset<multiset<nat>>, P1:multiset<nat>)
 requires P1 in C
 ensures Union(C) == P1 + Union(C-multiset{P1})

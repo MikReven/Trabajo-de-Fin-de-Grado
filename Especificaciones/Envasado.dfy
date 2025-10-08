@@ -19,8 +19,9 @@ requires a in A && isEnvasado(A,E,I)
 ensures exists i :: i in I && a in i
 {
   if (!exists i :: i in I && a in i)
-  { assert Union(I) == A;
-    assume a !in Union(I);
+  { //assert Union(I) == A;
+    inOneUnion(I,a);
+    //assert !(a in A); //contradiction
   }
 }
 
