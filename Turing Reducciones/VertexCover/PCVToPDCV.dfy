@@ -14,14 +14,14 @@ method mOptimalValueVertexCover (graph : Graph) returns (k : nat)
 {
   //If the graph is empty, the best cover is an empty set
   if graph.0 == {} {
-    return 0;
+    k := 0;
   }
   else{
-    //We iterante from 0 to the number of vertices looking for the smallest Vertex Cover we can find
+    //We iterate from 0 to the number of vertices looking for the smallest Vertex Cover we can find
     var idx : nat := 0;
     var done : bool := false;
     while (idx <= |graph.0| && !done) 
-        invariant idx == 0 ==> !done
+      //  invariant idx == 0 ==> !done
         invariant idx <= |graph.0| + 1
         invariant (idx > 0 && VertexCover(graph, idx - 1)) <==> done 
         invariant forall x : nat | x < idx - 1 :: !(VertexCover(graph, x)) 
