@@ -1,9 +1,10 @@
 include "Envasado.dfy"
 
 ghost predicate optimalValueEnvasado(A : multiset<nat>, E : nat, k : nat)
-    requires Envasar(A, E, k)
+    //requires Envasar(A, E, k)
 {
-    forall x : nat | x <= |A| && Envasar(A, E, x) :: x >= k 
+    (Envasar(A, E, k)) &&
+    (forall x : nat | x <= |A| && Envasar(A, E, x) :: x >= k)
 }
 
 //M to denote multisets
