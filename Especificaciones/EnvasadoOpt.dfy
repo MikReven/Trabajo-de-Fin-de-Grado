@@ -1,5 +1,6 @@
 include "Envasado.dfy"
 
+//Predicado de POE
 ghost predicate optimalValueEnvasado(A : multiset<nat>, E : nat, k : nat)
     //requires Envasar(A, E, k)
 {
@@ -8,6 +9,7 @@ ghost predicate optimalValueEnvasado(A : multiset<nat>, E : nat, k : nat)
 }
 
 //M to denote multisets
+//Predicado de PE
 ghost predicate optimalEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>) 
 {      isEnvasado(A, E, I)
     && forall M : multiset<multiset<nat>> | isEnvasado(A, E, M) :: |M| >= |I|
