@@ -2,7 +2,7 @@ include "../../Especificaciones/VertexCoverOpt.dfy"
 
 
 
-//We assume a polynomial algorithm for POVC
+//We assume a polynomial algorithm for POCV
 method {:axiom} moptimalVertexCover (graph : Graph) returns (I:set<Node>)
   requires isValidGraph(graph)
   ensures optimalVertexCover(graph,I)

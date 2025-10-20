@@ -14,7 +14,6 @@ method mVertexCover (graph:Graph, k:int, I:set<Node>) returns (b:bool)
 {
   var I := moptimalVertexCover(graph);
   assert I <= graph.0 && isVertexCover(I,graph);
-  assume false;
   b := |I| <= k;
   //Ahora hay que demostrar la postcondicion  
 }
