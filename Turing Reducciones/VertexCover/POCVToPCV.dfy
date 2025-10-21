@@ -68,8 +68,11 @@ while (g.1 != {})//Paramos cuando todas las aristas estan cubiertas
   invariant I <= graph.0
   invariant I * g.0 == {}
   invariant g.0 + I == graph.0
-  invariant g.1 + la union de las aristas cubiertas por cada uno de los que estan en I == graph.1
+  invariant g.1 + (set edge:Edge, node:Node | edge in graph.1 && node in I && node in edge :: edge) == graph.1
+  //la union de las aristas cubiertas por cada uno de los que estan en I == graph.1
   //Al final, cuando g.1 es vacio todas las aristas estan cubiertas por elementos de I
+  //trivialmente I es cobertura de (set edge:Edge, node:Node | edge in graph.1 && node in I && node in edge :: edge)
+
 
   invariant optimalValueVertexCover(g,kg)
   invariant optimalValueVertexCover(graph,okg)
