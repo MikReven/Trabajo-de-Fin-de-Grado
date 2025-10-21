@@ -36,3 +36,59 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
     g := (g.0 - {node}, g.1 - incidentEdges(g, node));
   }
 }
+/*
+
+
+I := {};
+var vertex := graph.0; 
+//el conjunto inicial de vertices, del que iremos sacando vertices
+
+var g := graph; 
+var okg :=  moptimalValueVertexCover(g);
+var kg := okg;
+//el grafo en curso, del que se van a ir eliminando los vértices de la cobertura
+//hasta que todas las aristas estén cubiertas
+
+
+while (g.1 != {})//Paramos cuando todas las aristas estan cubiertas
+decreases vertex
+invariant I <= vertex <= graph.0 
+invariant isValidGraph(g) 
+
+//I es un conjunto de vertices que hemos eliminado del grafo 
+//junto con todas sus aristas incidentes
+//El resto de vertices permanecen en el grafo
+invariant I + g.0 == graph.0
+invariant g.0 == graph.0 - I
+invariant g.1 == graph.1 - la union de las aristas cubiertas por cada uno de los que estan en I
+//Al final, cuando g.1 es vacio todas las aristas estan cubiertas por elementos de I
+
+invariant optimalValueVertexCover(g,kg)
+invariant optimalValueVertexCover(graph,okg)
+invariant kg + |I| == okg 
+//Al final kg = 0 porque g no tiene aristas y |I| = okg
+{
+ var v: Node := pick(vertex);
+ vertex := vertex - {v};
+
+//Quitamos el vétice 
+ var g' := (g.0 - {v}, g.1 - incidentEdges(g, v));
+ var kg': nat := moptimalValueVertexCover(g');
+ if kg' < kg // kg' == kg - 1
+  // se incluye node en la cobertura 
+  // y se eliminan todas las aristas cubiertas por dicho vértice
+   { I := I + {v};
+     g := g';
+     kg := kg';   
+   }
+  //en caso contrario el node y sus aristas se dejan en el grafo porque
+  //se van a cubrir con otros vertices que aun no se han procesado
+  
+
+}
+
+
+
+
+
+*/
