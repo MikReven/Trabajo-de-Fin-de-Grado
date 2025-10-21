@@ -6,12 +6,12 @@ include "../../Especificaciones/EnvasadoOpt.dfy"
 method {:axiom} mEnvasar (A : multiset<nat>, E : nat, k : nat) returns (b : bool)
   ensures b == Envasar(A, E, k)
 
-//We implement a polynomial algorithm for PE using mVertexCover
+//We implement a polynomial algorithm for PE using mEnvasar
 method mOptimalValueEnvasado (A : multiset<nat>, E : nat) returns (k : nat)
   requires forall a : nat | a in A :: a <= E
   ensures optimalValueEnvasado(A, E, k)
 {
-  //If the Multiset is empty, the best envasado is an empty set
+  //If the Multiset is empty, the best Bin Packing is an empty set
   if A == multiset{} {
     k := 0;
     assert optimalValueEnvasado(A, E, k) by {
@@ -19,7 +19,7 @@ method mOptimalValueEnvasado (A : multiset<nat>, E : nat) returns (k : nat)
     }
   }
   else{
-    //We iterante from 0 to the number of vertices looking for the smallest Vertex Cover we can find
+    //We iterante from 0 to the cardinality of multiset A looking for the smallest Bin Packing we can find
     var idx : nat := 0;
     var done : bool := false;
     while (idx <= |A| && !done) 
@@ -36,14 +36,5 @@ method mOptimalValueEnvasado (A : multiset<nat>, E : nat) returns (k : nat)
     assert Envasar(A, E, |A|) by {
       boundEnvasar(A, E);
     }
-    /*
-    assert done;
-    assert Envasar(A, E, idx - 1);
-    assert exists I:multiset<multiset<nat>> :: |I| <= k && isEnvasado(A,E,I);
-    assert  optimalValueEnvasado(A, E, k);
-    assert idx > 0;
-    assert  optimalValueEnvasado(A, E, k);
-    */
   }
-  assert optimalValueEnvasado(A, E, k);
 }
