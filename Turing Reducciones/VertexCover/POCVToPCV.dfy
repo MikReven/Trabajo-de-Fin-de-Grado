@@ -2,12 +2,12 @@ include "../../Especificaciones/VertexCoverOpt.dfy"
 
 
 
-//We assume a polynomial algorithm for PCV
+//We assume a polynomial algorithm for PVC
 method {:axiom} moptimalValueVertexCover (graph : Graph) returns (k: nat)
   requires isValidGraph(graph)
   ensures optimalValueVertexCover(graph,k)
 
-//We implement a polynomial algorithm for PDCV using moptimalVertexCover
+//We implement a polynomial algorithm for PDVC using moptimalVertexCover
 method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
   requires isValidGraph(graph)
   ensures optimalVertexCover(graph, I)
@@ -25,14 +25,11 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
     var node: Node := pick(g.0);
     assert node in g.0;
     var valueWith: nat := moptimalValueVertexCover(g);
-    //var gSplit := splitVertexIn();
     var g': Graph := splitVertex(g, node);
     var valueWithout := moptimalValueVertexCover(g');
-    //Si valueWithout es mayor, la covertura óptima tiene que contener al vértice node
+    //If valueWithout is greater, the optimal Vertex Cover has to contain node 
     if valueWithout > valueWith {I := I + {node}; }
-    //Si son iguales, existe una covertura óptima que no incluye a este vértice, por lo que también se puede eliminar
-    //Si era necesario para la covertura óptima, ya está incluido en I, 
-    //por lo que no necesitaremos volver a comprobar nada para este vértice
+    //If they are equal, there exists an optimal Vertex Cover that does not include vertex node, so it can be eliminated
     g := (g.0 - {node}, g.1 - incidentEdges(g, node));
   }
 }
