@@ -66,8 +66,9 @@ while (g.1 != {})//Paramos cuando todas las aristas estan cubiertas
   //junto con todas sus aristas incidentes
   //El resto de vertices permanecen en el grafo
   invariant I <= graph.0
-  invariant g.0 == graph.0 - I
-  invariant g.1 == graph.1 - la union de las aristas cubiertas por cada uno de los que estan en I
+  invariant I * g.0 == {}
+  invariant g.0 + I == graph.0
+  invariant g.1 + la union de las aristas cubiertas por cada uno de los que estan en I == graph.1
   //Al final, cuando g.1 es vacio todas las aristas estan cubiertas por elementos de I
 
   invariant optimalValueVertexCover(g,kg)
