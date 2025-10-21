@@ -99,6 +99,7 @@ function incidentEdges(graph: Graph, node: Node) : (S: set<Edge>)
     (set edge: Edge | edge in graph.1 && node in edge :: edge)
 }
 
+
 //Dado un grafo y un vertice, si el vértice no pertenece al grafo, no hace nada
 function splitVertex(graph: Graph, v: Node): (r: Graph)
 requires isValidGraph(graph) 
