@@ -171,14 +171,14 @@ lemma GSumIntPartes(A:multiset<int>, P1:multiset<int>, P2:multiset<int>)
   else {
     var i :| i in A;
     if (i in P1) {
-      // Demostracion 1 : Sum(A-i) == Sum(P1-i) + Sum(P2)  Quitamos i para el paso inductivo
+      // Proof 1 : Sum(A-i) == Sum(P1-i) + Sum(P2)  We delete i for the inductive step
       GSumIntPartes(A - multiset{i}, P1 - multiset{i}, P2);
       assert GSumInt(A - multiset{i}) == GSumInt(P1 - multiset{i}) + GSumInt(P2);
 
-      // Demostracion 2 : Sum(A) == i + Sum(A-i) 
+      // Proof 2 : Sum(A) == i + Sum(A-i) 
       GSumIntElemIn(A,i);
       
-      // Demostracion 3 : Sum(P1) == i + Sum(P1-i) 
+      // Proof 3 : Sum(P1) == i + Sum(P1-i) 
       GSumIntElemIn(P1,i);
 
       assert GSumInt(A) == GSumInt(P1) + GSumInt(P2);

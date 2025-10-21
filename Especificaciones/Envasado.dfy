@@ -2,11 +2,11 @@ include "Auxiliar/Sum.dfy"
 include "Auxiliar/MultisetFacts.dfy"
 
 
-// DEFINICION DEL PROBLEMA ENVASAR
+// DEFINITION OF BIN PACKING PROBLEM
 
-// El problema Envasar consiste en dado un vector de enteros A, E y k decidir 
-// si es posible dividir los elementos en un número menor o igual que k de subconjuntos disjuntos 
-// tales que la suma de los elementos de cada subconjunto sea a lo sumo E
+// The Bin Packing problem consists of given a multiset of integers A, E y k deciding 
+// if it is possible to divide the multiset elements in a number no larger than k submultisets 
+// sucha that the sum of elements of each submultiset is no larger than E
 ghost predicate isEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>)
 {
        Union(I) == A 

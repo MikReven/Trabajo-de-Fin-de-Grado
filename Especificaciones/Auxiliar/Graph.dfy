@@ -24,7 +24,7 @@ predicate isValidGraph(graph: Graph)
     )
 }
 
-//Devuelve true sii graph1 es subgrafo de graph2
+//Returns true iff A is a subgraph of B
 predicate isSubGraph(A: Graph, B: Graph)
 requires isValidGraph(A)
 requires isValidGraph(B)
@@ -100,20 +100,22 @@ function incidentEdges(graph: Graph, node: Node) : (S: set<Edge>)
 }
 
 
-//Dado un grafo y un vertice, si el vértice no pertenece al grafo, no hace nada
+//Given a graph and a vertex
 function splitVertex(graph: Graph, v: Node): (r: Graph)
 requires isValidGraph(graph) 
 {
-    //Si el nodo que queremos partir pertenece al grafo
+    //If it belongs to the graph
     if v in graph.0 then 
-        //Si tiene aristas conectadas 
+        //If there are edges incident of it 
         if (exists e: Edge | e in graph.1 :: v in e ) then
+            //The vertex is "split" such that all those edges still exist but connect to different new nodes
             var edgesToChange: set<Edge> := incidentEdges(graph, v);
             var newNodes: set<Node> := addMultipleGreater(graph.0, |edgesToChange|); 
             assert(|newNodes| == |edgesToChange|);
             var setNewEdges: set<Edge> := newSplitEdges(newNodes, edgesToChange, v);
             (graph.0 - {v} + newNodes, graph.1 - edgesToChange + setNewEdges)
+        //If no edges are incident on it, the vertex is removed
         else (graph.0 - {v}, graph.1)
-    //Si no pertenece el grafo se queda igual
+    //If the vertex does not belong to the graph, it remains unchanged
     else graph
 }

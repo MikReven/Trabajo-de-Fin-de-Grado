@@ -28,14 +28,14 @@ lemma cardinalityLemma1()
 ensures forall A, B: set<nat> :: (A >= B ==> |A - B| == |A| - |B|)
 {}
 
-lemma cardinalityLemma2(/*A: set<nat>, B: set<nat>*/)
+lemma cardinalityLemma2()
 ensures forall A, B: set<nat> :: ( A >= B && |A| == |B| ) ==> A == B
 {
   cardinalityLemma1();
 }
 
 
-//Todo conjunto de naturales contiene un máximo
+//All sets of naturals contain a maximum
 lemma hasAMaximum(S: set<nat>)
   requires |S| > 0
   ensures exists x: nat :: (x in S && forall y: nat | y in S :: x >= y)
@@ -63,14 +63,10 @@ lemma hasAMaximum(S: set<nat>)
       S' := S' - {n};
       Comp := Comp + {n};
     }
-    //assert maxElem in S;
-    //assert forall x: nat | x in Comp :: maxElem >= x;
-    //assert Comp == S;
-    //assert forall x: nat | x in S :: maxElem >= x;
   }
 }
 
-//Todo conjunto de naturales contiene un mínimo
+//All sets of naturals contain a minimum
 lemma hasAMinimum(S: set<nat>)
   requires |S| > 0
   ensures exists x: nat :: (x in S && forall y: nat | y in S :: x <= y)
@@ -98,14 +94,10 @@ lemma hasAMinimum(S: set<nat>)
       S' := S' - {n};
       Comp := Comp + {n};
     }
-    //assert minElem in S;
-    //assert forall x: nat | x in Comp :: minElem <= x;
-    //assert Comp == S;
-    //assert forall x: nat | x in S :: minElem <= x;
   }
 }
 
-//Devuelve el valor máximo del conjunto
+//Returns the maximum of a given set, or 0 if it is empty
 function pickMax(S:set<nat>): (r: nat)
 ensures |S| > 0 ==> r in S
 {
@@ -116,7 +108,7 @@ ensures |S| > 0 ==> r in S
     v
 }
 
-//Devuelve el valor máximo del conjunto
+//Returns the minimum of a given set, or 0 if it is empty
 function pickMin(S:set<nat>): (r: nat)
 ensures |S| > 0 ==> r in S
 {
