@@ -42,31 +42,38 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
 I := {};
 var vertex := graph.0; 
 //el conjunto inicial de vertices, del que iremos sacando vertices
+//no necesariamente los sacaremos todos, nos pararemos cuando las aristas ya esten cubiertas
+//necesitamos un conjunto aparte para no pasar dos veces por el mismo vertice
 
 var g := graph; 
 var okg :=  moptimalValueVertexCover(g);
 var kg := okg;
-//el grafo en curso, del que se van a ir eliminando los vértices de la cobertura
+//el grafo g en curso, del que se van a ir eliminando los vértices de la cobertura
 //hasta que todas las aristas estén cubiertas
 
 
 while (g.1 != {})//Paramos cuando todas las aristas estan cubiertas
-decreases vertex
-invariant I <= vertex <= graph.0 
-invariant isValidGraph(g) 
+  decreases vertex
+  invariant isValidGraph(g) 
 
-//I es un conjunto de vertices que hemos eliminado del grafo 
-//junto con todas sus aristas incidentes
-//El resto de vertices permanecen en el grafo
-invariant I + g.0 == graph.0
-invariant g.0 == graph.0 - I
-invariant g.1 == graph.1 - la union de las aristas cubiertas por cada uno de los que estan en I
-//Al final, cuando g.1 es vacio todas las aristas estan cubiertas por elementos de I
+  invariant vertex <= g.0 
+  //los vertices que aun no hemos procesado se mantienen en el grafo en curso g
+  invariant I <= graph.0 - vertex
+  //los elegidos para la cobertura ya los hemos procesado
 
-invariant optimalValueVertexCover(g,kg)
-invariant optimalValueVertexCover(graph,okg)
-invariant kg + |I| == okg 
-//Al final kg = 0 porque g no tiene aristas y |I| = okg
+
+  //I es un conjunto de vertices que hemos eliminado del grafo 
+  //junto con todas sus aristas incidentes
+  //El resto de vertices permanecen en el grafo
+  invariant I <= graph.0
+  invariant g.0 == graph.0 - I
+  invariant g.1 == graph.1 - la union de las aristas cubiertas por cada uno de los que estan en I
+  //Al final, cuando g.1 es vacio todas las aristas estan cubiertas por elementos de I
+
+  invariant optimalValueVertexCover(g,kg)
+  invariant optimalValueVertexCover(graph,okg)
+  invariant kg + |I| == okg 
+  //Al final kg = 0 porque g no tiene aristas y |I| = okg
 {
  var v: Node := pick(vertex);
  vertex := vertex - {v};
