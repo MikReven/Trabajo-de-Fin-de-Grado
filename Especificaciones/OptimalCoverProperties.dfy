@@ -16,8 +16,14 @@ ensures k == k'
 
 }
 
+lemma biggerOptimalVertexCover(graph : Graph, k : nat, k':nat)
+requires isValidGraph(graph) 
+requires optimalValueVertexCover(graph,k)
+requires  VertexCover(graph, k') && k' <= |graph.0|
+ensures k' >= k
+{}
+
 //The optimal value vertex cover of a subgraph is smaller
-//TO DO
 lemma containedOptimalVertexCover(graph : Graph, graph' : Graph, k : nat, k': nat)
 requires isValidGraph(graph) && isValidGraph(graph')
 requires graph'.0 <= graph.0
@@ -28,14 +34,15 @@ ensures k' <= k
 {
   var S :| S <= graph.0 && isVertexCover(S, graph) && |S| <= k;
   var S' := S * graph'.0;
-  boundoptimalValueVertexCover(graph,k);
-  assert k <= |graph.0|;
-  assume isVertexCover(S',graph');
-  assume |S'| <= k;
-  assume |S'| <= |graph'.0|;
-  assert VertexCover(graph',k);
-  // if (k' > k)
-  assume false;
+
+  cardinalityLemma3(S',S);
+  assert |S'| <= |S| <= k;
+  cardinalityLemma3(S',graph'.0);
+  assert |S'| <= |graph'.0|;
+
+  assert isVertexCover(S',graph');
+  biggerOptimalVertexCover(graph',k',|S'|);
+  assert k >= |S'| >= k';
 }
 
 
@@ -176,9 +183,15 @@ ensures k' == k || k' == k - 1
         oneoptimalValueVertexCover(graph',k,k');
         assert k' == k ;
      }
+    else 
+    {
 
+      containedOptimalVertexCover(graph,graph',k,k');
+      assert k' <= k;
+      assume false;
+    }
     
-    assume false;
+    //assume false;
     }
 
 
