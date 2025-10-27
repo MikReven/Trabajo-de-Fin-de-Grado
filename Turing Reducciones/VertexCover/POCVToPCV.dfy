@@ -13,26 +13,47 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
   ensures optimalVertexCover(graph, I)
 {
   I := {};
-  var g := graph;
-  assert isVertexCover(g.0, g);
-  assert I <= g.0;
-  while(g.0 > {})
-    decreases g.0
-    invariant isValidGraph(g)
-    invariant isSubGraph(g, graph)
-    invariant exists S: set<Node> | I <= S :: optimalVertexCover(graph, I)
+  var vertex := graph.0;  var g := graph; 
+  var okg :=  moptimalValueVertexCover(g);
+  var kg: nat := okg;
+  var setEdges: set<Edge> := {};
+
+  while (g.1 != {})
+    decreases vertex
+    invariant isValidGraph(g) 
+    invariant vertex <= g.0 
+    invariant I <= graph.0 - vertex
+    invariant I <= graph.0
+    invariant I * g.0 == {}
+    invariant g.0 + I == graph.0
+    invariant forall e: Edge | e in setEdges :: exists n: Node :: n in I && n in e
+    invariant g.1 + setEdges == graph.1
+    invariant kg >= 0
+    invariant optimalValueVertexCover(g,kg)
+    invariant kg + |I| == okg 
+    invariant vertex == {} ==> g.1 == {}
   {
-    var node: Node := pick(g.0);
-    assert node in g.0;
-    var valueWith: nat := moptimalValueVertexCover(g);
-    var g': Graph := splitVertex(g, node);
-    var valueWithout := moptimalValueVertexCover(g');
-    //If valueWithout is greater, the optimal Vertex Cover has to contain node 
-    if valueWithout > valueWith {I := I + {node}; }
-    //If they are equal, there exists an optimal Vertex Cover that does not include vertex node, so it can be eliminated
-    g := (g.0 - {node}, g.1 - incidentEdges(g, node));
+    var v: Node := pick(vertex);
+    vertex := vertex - {v};
+    var g': Graph := splitVertex(g, v);
+    var kg': nat := moptimalValueVertexCover(g');
+    if kg' > kg 
+    { 
+      I := I + {v};
+      setEdges := setEdges + incidentEdges(g, v);
+      g := (g.0 - {v}, g.1 - incidentEdges(g, v));
+      kg := kg';   
+    }
   }
+  //assert g.1 == {};
+  //emptyOptimalValueVertexCover(g);
+  //assert kg == 0;
+  //assert |I| == okg;
+  //boundoptimalValueVertexCover(graph, |I|);
+  translationVertexCover(graph, okg);
+  assert optimalVertexCover(graph, I);
 }
+
 /*
 
 
