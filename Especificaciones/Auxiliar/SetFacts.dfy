@@ -26,7 +26,7 @@ ensures forall S: set<nat> | S in embeddedSet :: S <= flatten(embeddedSet)
 
 lemma cardinalityLemma1()
 ensures forall A, B: set<nat> :: (A >= B ==> |A - B| == |A| - |B|)
-{}
+{ }
 
 lemma cardinalityLemma2()
 ensures forall A, B: set<nat> :: ( A >= B && |A| == |B| ) ==> A == B
@@ -34,6 +34,16 @@ ensures forall A, B: set<nat> :: ( A >= B && |A| == |B| ) ==> A == B
   cardinalityLemma1();
 }
 
+lemma cardinalityLemma3(A: set<nat>, B: set<nat>)
+requires A <= B
+ensures |A| <= |B|
+{
+  if A == {} {} 
+  else {
+    ghost var x: nat :| x in A;
+    cardinalityLemma3(A - {x}, B - {x}); 
+  } 
+}
 
 //All sets of naturals contain a maximum
 lemma hasAMaximum(S: set<nat>)
