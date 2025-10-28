@@ -169,8 +169,54 @@ requires optimalValueVertexCover(graph',k')
 requires graph'.0 == graph.0 - { v }
 requires graph'.1 == graph.1 - incidentEdges(graph,v)
 ensures k' == k || k' == k - 1
-{
-  if (k == 0) { //k' == k == 0
+{ containedOptimalVertexCover(graph,graph',k,k');
+  assert k' <= k;
+  
+  translationVertexCover(graph',k');
+   var S' :| S' <= graph'.0 && optimalVertexCover(graph', S') && |S'| == k';
+  assert v !in graph'.0 && v !in S';
+  var S := S' + {v};
+  assert |S| == |S'|+ 1;
+  
+  if (forall u:Node | {u,v} in graph.1 :: u in S')
+  { 
+    assert isVertexCover(S',graph) by{
+       forall e | e in graph.1 
+       ensures |S' * e| > 0
+      {
+        if (e !in incidentEdges(graph,v)){}
+        else { 
+          var u :| e == {u,v};
+          assert S' * e == {u};
+          assert |S'* e| == 1 > 0;}
+      }
+    }
+    assert |S'| == k' <= k;
+    boundVertexCoverIsOptimal(graph,S',k);
+    assert optimalVertexCover(graph,S');
+    assert optimalValueVertexCover(graph,k');
+    assert k == k';
+  }
+  else 
+  { 
+    assert isVertexCover(S,graph) by{
+       forall e | e in graph.1 
+       ensures |S * e| > 0
+      {
+        if (e !in incidentEdges(graph,v)){}
+        else { 
+          assert v in S * e;
+          assert |S * e| > 0;}
+      }
+
+    }
+    assume optimalVertexCover(graph,S);
+    assert optimalValueVertexCover(graph,k'+ 1);
+    assert k == k' + 1;
+  }
+
+
+  /*if (k == 0) { //k' == k == 0
     zeroOptimalVertexCover(graph);
     assert graph'.1 == {}; 
     OptimalVertexCoverNoEdges(graph');
@@ -188,16 +234,14 @@ ensures k' == k || k' == k - 1
 
       containedOptimalVertexCover(graph,graph',k,k');
       assert k' <= k;
-      if (k' < k - 1)
-      {
-        var S :| S <= graph'.0 && isVertexCover(S, graph') && |S| == k' < k - 1;
-
-      }
+               
       assume false;
-    }
+      }
+      
+      
+    }*/
     
     //assume false;
-    }
 
 
 }
