@@ -188,6 +188,11 @@ ensures k' == k || k' == k - 1
 
       containedOptimalVertexCover(graph,graph',k,k');
       assert k' <= k;
+      if (k' < k - 1)
+      {
+        var S :| S <= graph'.0 && isVertexCover(S, graph') && |S| == k' < k - 1;
+
+      }
       assume false;
     }
     
