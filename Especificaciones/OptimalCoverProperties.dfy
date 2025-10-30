@@ -287,10 +287,10 @@ ensures exists S :: v !in S && optimalVertexCover(graph,S) && optimalVertexCover
       assert optimalVertexCover(graph',S);
     } 
    else { //This is not compatible with k == k'
-    var S' := (S - {v});
-       assert |S'| == k - 1 < k;
-       translationVertexCover(graph',k);
-       assert false;
+      var S' := (S - {v});
+      assert |S'| == k - 1 < k;
+      translationVertexCover(graph',k);
+      assert false;
     }
 }
 
@@ -303,3 +303,11 @@ requires graph'.0 == graph.0 - { v }
 requires graph'.1 == graph.1 - incidentEdges(graph,v)
 requires k == k' + 1
 ensures exists S, S' :: S == S' + {v} && optimalVertexCover(graph,S) && optimalVertexCover(graph',S')
+{
+  translationVertexCover(graph',k');
+  var S' :| S' <= graph'.0 && optimalVertexCover(graph',S') && |S'| == k';
+  var S := S' + {v};
+  assert |S| == k' + 1 == k;
+  assert isVertexCover(S,graph);
+  boundVertexCoverIsOptimal(graph,S,k);
+}
