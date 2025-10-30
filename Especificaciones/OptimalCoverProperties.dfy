@@ -267,3 +267,32 @@ requires graph.1 == (set edge:Edge, node:Node | edge in graph.1 && node in I && 
 ensures isVertexCover(I,graph)
 {
 }
+
+ghost predicate necessaryVertex(graph : Graph,v : Node)
+requires isValidGraph(graph)
+{
+  forall S : set<Node> | S <= graph.0 && optimalVertexCover(graph,S) :: v in S
+
+
+}
+lemma donotIncludeVertexCoverCase2(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat)
+requires isValidGraph(graph)  && isValidGraph(graph')
+requires v in graph.0
+requires optimalValueVertexCover(graph,k)   
+requires optimalValueVertexCover(graph',k')
+requires graph'.0 == graph.0 - { v }
+requires graph'.1 == graph.1 - incidentEdges(graph,v)
+requires k == k'
+ensures !necessaryVertex(graph,v)
+//ensures exists S :: v !in S && optimalVertexCover(graph,S) && optimalVertexCover(graph',S)
+
+
+lemma includeVertexCoverCase2(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat)
+requires isValidGraph(graph)  && isValidGraph(graph')
+requires v in graph.0
+requires optimalValueVertexCover(graph,k)   
+requires optimalValueVertexCover(graph',k')
+requires graph'.0 == graph.0 - { v }
+requires graph'.1 == graph.1 - incidentEdges(graph,v)
+requires k == k' + 1
+ensures necessaryVertex(graph,v)
