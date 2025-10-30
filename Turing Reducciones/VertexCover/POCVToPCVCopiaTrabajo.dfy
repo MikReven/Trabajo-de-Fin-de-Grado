@@ -17,18 +17,16 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
  I := {};
  var vertex := graph.0; 
  //this is the initial set of vertex
-//el conjunto inicial de vertices, del que iremos sacando vertices
-//no necesariamente los sacaremos todos, nos pararemos cuando las aristas ya esten cubiertas
-//necesitamos un conjunto aparte para no pasar dos veces por el mismo vertice
+ //used to traverse the graph vertices
 
  var g := graph; 
  var okg :=  moptimalValueVertexCover(g);
  var kg := okg;
-//el grafo g en curso, del que se van a ir eliminando los vértices de la cobertura
-//hasta que todas las aristas estén cubiertas
- ghost var setEdges:set<Edge> := {};
 
- while (g.1 != {})//Paramos cuando todas las aristas estan cubiertas
+//stop when all the edges are covered by the vertex in I
+//maybe vertex != {}
+//But it cannot happen vertex == {} and g.1 != {}
+ while (g.1 != {})
   decreases vertex
   invariant isValidGraph(g) 
 
@@ -41,22 +39,22 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
   //los elegidos para la cobertura ya los hemos procesado
 
 
-  //I es un conjunto de vertices que hemos eliminado del grafo 
-  //junto con todas sus aristas incidentes
-  //El resto de vertices permanecen en el grafo
+  //I is disjoint from vertex and from g
+  //Vertex in g either have not been visited, so they belong to vertex
+  //or have a non-covered edge  
   invariant I <= graph.0 - vertex <= I + g.0 == graph.0
   invariant I * g.0 == {} && I * vertex == {}
   invariant g.1 +  (set edge:Edge, node:Node | edge in graph.1 && node in I && node in edge :: edge) == graph.1
-  //la union de las aristas cubiertas por cada uno de los que estan en I == graph.1
-  //Al final, cuando g.1 es vacio todas las aristas estan cubiertas por elementos de I
-  //trivialmente I es cobertura de (set edge:Edge, node:Node | edge in graph.1 && node in I && node in edge :: edge)
-
+  //the union of all the edges covered by I and those in g.1 are 
+  //the edges in the original graph
+  //So at the end, when g.1 is empty, all the edges in graph are covered by I
+  
 
   invariant kg >= 0 && optimalValueVertexCover(g,kg) 
   //invariant g.1 != {} ==> kg > 0
   //invariant optimalValueVertexCover(graph,okg)
   invariant kg + |I| == okg 
-  //Al final kg = 0 porque g no tiene aristas y |I| = okg
+  //At the end kg = 0 and |I| = okg, so I is optimal
  { assume vertex != {} ;
   var v: Node := pick(vertex);
   vertex := vertex - {v};
@@ -77,12 +75,10 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
       I := I + {v};
       g := g';
       kg := kg'; 
-      //assume optimalValueVertexCover(g,kg);
       //assert forall v1,v2 | {v1,v2} in g.1 :: (v1 in vertex || v2 in vertex);        
     }
     //else {assume optimalValueVertexCover(g,kg);}
 
-    //assume  optimalValueVertexCover(g,kg);
    
   //en caso contrario el node y sus aristas se dejan en el grafo porque
   //se van a cubrir con otros vertices que aun no se han procesado
