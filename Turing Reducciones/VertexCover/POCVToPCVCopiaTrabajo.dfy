@@ -32,12 +32,9 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
 
   //invariant vertex == {} ==> g.1 == {} //no puede ser vertex == {} && g.1 != {}
   invariant vertex <= g.0 
-  
-  
+  // TO DO
   //invariant forall v1,v2 | {v1,v2} in g.1 :: (v1 in vertex || v2 in vertex)
-  //invariant forall v1,v2 | {v1,v2} in graph.1 && v1 !in I && v2 !in I :: v1 in vertex || v2 in vertex 
-  //los elegidos para la cobertura ya los hemos procesado
-
+  //invariant exists V : set<Node> :: V <= vertex && isVertexCover(V,g) && |V| == okg - |I|
 
   //I is disjoint from vertex and from g
   //Vertex in g either have not been visited, so they belong to vertex
@@ -60,6 +57,7 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
   vertex := vertex - {v};
   assert v !in I;
 
+   ghost var V :| V <= vertex && isVertexCover(V,g) && |V| == okg - |I|;
   //Quitamos el vértice 
   var g' := (g.0 - {v}, g.1 - incidentEdges(g, v));
   var kg': nat := moptimalValueVertexCover(g');
@@ -69,14 +67,17 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
     delVertexCover(g,v,kg,g',kg');
   } 
   if kg == kg' + 1 // kg == kg' + 1
-   // se incluye node en la cobertura 
-   // y se eliminan todas las aristas cubiertas por dicho vértice
+    //We know that there exists an optimal cover consisting in v 
+    // and and optimal cover for g' 
     { 
       I := I + {v};
       g := g';
       kg := kg'; 
-      //assert forall v1,v2 | {v1,v2} in g.1 :: (v1 in vertex || v2 in vertex);        
+    //assert forall v1,v2 | {v1,v2} in g.1 :: (v1 in vertex || v2 in vertex);        
     }
+  //  else {assume false;}
+    //else we know that there exists an optimal cover
+    //not including v that is aso optimal for g'
     //else {assume optimalValueVertexCover(g,kg);}
 
    
