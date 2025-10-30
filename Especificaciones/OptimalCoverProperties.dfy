@@ -275,7 +275,7 @@ requires isValidGraph(graph)
 
 
 }
-lemma donotIncludeVertexCoverCase2(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat)
+lemma donotIncludeVertexCover(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat)
 requires isValidGraph(graph)  && isValidGraph(graph')
 requires v in graph.0
 requires optimalValueVertexCover(graph,k)   
@@ -287,7 +287,7 @@ ensures !necessaryVertex(graph,v)
 //ensures exists S :: v !in S && optimalVertexCover(graph,S) && optimalVertexCover(graph',S)
 
 
-lemma includeVertexCoverCase2(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat)
+lemma includeVertexCover(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat)
 requires isValidGraph(graph)  && isValidGraph(graph')
 requires v in graph.0
 requires optimalValueVertexCover(graph,k)   
