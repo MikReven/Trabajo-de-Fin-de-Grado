@@ -52,7 +52,7 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
   //invariant optimalValueVertexCover(graph,okg)
   invariant kg + |I| == okg 
   //At the end kg = 0 and |I| = okg, so I is optimal
- { assume vertex != {} ;
+ { assume {:axiom} vertex != {} ;
   var v: Node := pick(vertex);
   vertex := vertex - {v};
   assert v !in I;

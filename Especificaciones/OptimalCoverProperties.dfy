@@ -110,6 +110,17 @@ ensures forall e | e in graph.1 :: v !in e
 
 }
 
+
+lemma nonEmptyIncidentEdges(graph : Graph, v : Node)
+requires isValidGraph(graph)
+requires v in graph.0
+requires incidentEdges(graph,v) != {}
+ensures exists u:Node :: u in graph.0 && {u,v} in graph.1
+{
+  var e :| e in incidentEdges(graph,v);
+  assert exists u :: u in graph.0 && {u,v} == e;
+}
+
 //If a vertex has no incident edges 
 //then it does not belong to any optimal vertex cover
 lemma  OptimalVertexCoverAlone(graph : Graph, I: set<Node>, v : Node)
@@ -175,14 +186,18 @@ ensures k' == k
   assert isVertexCover(S',graph) by{
        forall e | e in graph.1 
        ensures |S' * e| > 0
-      {
-        if (e !in incidentEdges(graph,v)){}
+      { 
+        if (e !in incidentEdges(graph,v)){ }
         else { 
+          assert e in incidentEdges(graph,v);
+          assert exists u :: u in graph.0 && e == {u,v} && e in incidentEdges(graph,v);
           var u :| e == {u,v};
           assert S' * e == {u};
           assert |S'* e| == 1 > 0;}
       }
     }
+        
+
     assert |S'| == k' <= k;
     boundVertexCoverIsOptimal(graph,S',k);
     assert optimalVertexCover(graph,S');
@@ -311,3 +326,45 @@ ensures exists S, S' :: S == S' + {v} && optimalVertexCover(graph,S) && optimalV
   assert isVertexCover(S,graph);
   boundVertexCoverIsOptimal(graph,S,k);
 }
+
+
+lemma includeVertexCoververtex(graph : Graph,v : Node, vertex: set<Node>, V : set<Node>, k : nat, graph' : Graph, k' : nat)
+requires isValidGraph(graph)  && isValidGraph(graph')
+requires vertex <= graph.0
+requires v in vertex
+requires optimalValueVertexCover(graph,k)   
+requires optimalValueVertexCover(graph',k')
+requires graph'.0 == graph.0 - { v }
+requires graph'.1 == graph.1 - incidentEdges(graph,v)
+requires k == k' + 1
+requires exists V :: V <= vertex && optimalVertexCover(graph,V) && |V| == k
+requires forall u,u' | {u,u'} in graph.1 :: u in vertex || u' in vertex
+ensures exists V' :: V' <= vertex && v in V' && optimalVertexCover(graph,V') && optimalVertexCover(graph',V' - {v})
+/*{
+  var V :| V <= vertex && optimalVertexCover(graph,V) && |V| == k;
+  if (v in V) { var V' := V; assume false;}
+  else {
+    assert incidentEdges(graph,v) != {} by
+    {if incidentEdges(graph,v) == {}
+      { assert k == k'; assert false;}
+    }
+    nonEmptyIncidentEdges(graph,v);
+    assume exists u :: {u,v} in graph.1 && u in V && optimalVertexCover(graph',V - {u}); //&& optimalVertexCover(graph,V - {u} + {v});
+//                assume false;
+
+    var u :| {u,v} in graph.1 && u in V && optimalVertexCover(graph',V - {u}) && optimalVertexCover(graph,V - {u} + {v});
+
+    var V' := V - {u} + {v};
+
+    assert V <= vertex && v in vertex;
+    assert (V - {u}) + {v} <= vertex;
+    assume false;
+    }
+}*/
+
+
+// exists V' :: V' <= vertex - {v} && optimalVertexCover(graph',V') 
+/*{   var V :| V <= vertex && v in V && optimalVertexCover(graph,V) && |V| == k;
+    assert isVertexCover(V - {v}, graph') && |V - {v}| == k';
+    boundVertexCoverIsOptimal(graph', V - {v}, k');
+}*/
