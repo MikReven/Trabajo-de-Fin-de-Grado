@@ -385,7 +385,18 @@ ensures exists V' :: V' <= vertex - {v} && isVertexCover(V',graph') && |V'| == k
       assert false;
     }
     else 
-     {assume false;}
+     {
+      if (exists u :: {u,v} in graph.1 && isVertexCover(V-{u},graph'))
+      {}//just exchange u and v Example 1 - 2* -3* - 4; v = 1, u = 2, exchange 1 and 2 
+      else //this cannot happen, v must be in the vertex cover, otherwise we need more vertex  
+      { assert forall u | {u,v} in graph.1 :: !isVertexCover(V-{u},graph');
+        assert isVertexCover(V,graph');
+        forall u | {u,v} in graph.1 
+        ensures (exists w :: {u,w} in graph'.1 && w !in V)
+        { assume false; }
+        assume false;}
+      
+    }
   }
 }
 
