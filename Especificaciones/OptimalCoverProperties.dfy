@@ -332,7 +332,7 @@ ensures exists S, S' :: S == S' + {v} && optimalVertexCover(graph,S) && optimalV
 
 
 
-lemma {:only} donotIncludeVertexCoververtex(graph : Graph,v : Node, vertex: set<Node>, V : set<Node>, k : nat, graph' : Graph, k' : nat)
+lemma donotIncludeVertexCoververtex(graph : Graph,v : Node, vertex: set<Node>, V : set<Node>, k : nat, graph' : Graph, k' : nat)
 requires isValidGraph(graph)  && isValidGraph(graph')
 requires vertex <= graph.0
 requires v in vertex
@@ -357,7 +357,7 @@ ensures exists V' :: V' <= vertex - {v} && isVertexCover(V',graph) && |V'| == k 
   }
 }
 
-lemma includeVertexCoververtex(graph : Graph,v : Node, vertex: set<Node>, V : set<Node>, k : nat, graph' : Graph, k' : nat)
+lemma {:only} includeVertexCoververtex(graph : Graph,v : Node, vertex: set<Node>, V : set<Node>, k : nat, graph' : Graph, k' : nat)
 requires isValidGraph(graph)  && isValidGraph(graph')
 requires vertex <= graph.0
 requires v in vertex
@@ -366,9 +366,30 @@ requires optimalValueVertexCover(graph',k')
 requires graph'.0 == graph.0 - { v }
 requires graph'.1 == graph.1 - incidentEdges(graph,v)
 requires k == k' + 1
-requires exists V :: V <= vertex && optimalVertexCover(graph,V) && |V| == k
+requires exists V :: V <= vertex && isVertexCover(V,graph) && |V| == k
 requires forall u,u' | {u,u'} in graph.1 :: u in vertex || u' in vertex
-ensures exists V' :: V' <= vertex && v in V' && optimalVertexCover(graph,V') && optimalVertexCover(graph',V' - {v})
+ensures exists V' :: V' <= vertex - {v} && isVertexCover(V',graph') && |V'| == k'
+{
+  var V :| V <= vertex && isVertexCover(V,graph) && |V| == k;
+  if (v in V) {
+    var V' := V - {v};
+    assert isVertexCover(V',graph');
+  }
+  else {
+    assert forall u:Node | {u,v} in graph.1 :: u in V;
+    if (incidentEdges(graph,v) == {})
+    {
+      OptimalVertexCoverNoIncidentEdges(graph,v,k,graph');
+      oneoptimalValueVertexCover(graph',k,k');
+      assert k == k';
+      assert false;
+    }
+    else 
+     {assume false;}
+  }
+}
+
+
 /*{
   var V :| V <= vertex && optimalVertexCover(graph,V) && |V| == k;
   if (v in V) { var V' := V; assume false;}
