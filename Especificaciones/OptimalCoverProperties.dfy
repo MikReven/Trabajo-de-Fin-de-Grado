@@ -309,6 +309,9 @@ ensures exists S :: v !in S && optimalVertexCover(graph,S) && optimalVertexCover
     }
 }
 
+
+
+
 lemma includeVertexCover(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat)
 requires isValidGraph(graph)  && isValidGraph(graph')
 requires v in graph.0
@@ -327,6 +330,32 @@ ensures exists S, S' :: S == S' + {v} && optimalVertexCover(graph,S) && optimalV
   boundVertexCoverIsOptimal(graph,S,k);
 }
 
+
+
+lemma {:only} donotIncludeVertexCoververtex(graph : Graph,v : Node, vertex: set<Node>, V : set<Node>, k : nat, graph' : Graph, k' : nat)
+requires isValidGraph(graph)  && isValidGraph(graph')
+requires vertex <= graph.0
+requires v in vertex
+requires optimalValueVertexCover(graph,k)   
+requires optimalValueVertexCover(graph',k')
+requires graph'.0 == graph.0 - { v }
+requires graph'.1 == graph.1 - incidentEdges(graph,v)
+requires k == k'
+
+requires exists V :: V <= vertex && isVertexCover(V,graph) && |V| == k //loop invariant
+ensures exists V' :: V' <= vertex - {v} && isVertexCover(V',graph) && |V'| == k //loop invariant maintains
+{
+  var V :| V <= vertex && isVertexCover(V,graph) && |V| == k;
+  if (v !in V) {}
+  else { //this is not possible
+    var V' := V - {v};
+    assert isVertexCover(V',graph');
+    assert |V'| == k - 1 < k';
+    translationVertexCover(graph',k');
+    assert !optimalValueVertexCover(graph',k');
+     assert false;
+  }
+}
 
 lemma includeVertexCoververtex(graph : Graph,v : Node, vertex: set<Node>, V : set<Node>, k : nat, graph' : Graph, k' : nat)
 requires isValidGraph(graph)  && isValidGraph(graph')

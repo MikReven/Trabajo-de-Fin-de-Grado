@@ -39,7 +39,7 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
   //I is disjoint from vertex and from g
   //Vertex in g either have not been visited, so they belong to vertex
   //or have a non-covered edge  
-  invariant I <= graph.0 - vertex <= I + g.0 == graph.0
+  invariant I <= graph.0 - vertex <= I + g.0 == graph.0 
   invariant I * g.0 == {} && I * vertex == {}
   invariant g.1 +  (set edge:Edge, node:Node | edge in graph.1 && node in I && node in edge :: edge) == graph.1
   //the union of all the edges covered by I and those in g.1 are 
@@ -56,8 +56,10 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
   var v: Node := pick(vertex);
   vertex := vertex - {v};
   assert v !in I;
+  
+  //ghost var V :| V <= vertex && isVertexCover(V,g) && |V| == okg - |I|;
+  
 
-   ghost var V :| V <= vertex && isVertexCover(V,g) && |V| == okg - |I|;
   //Quitamos el vértice 
   var g' := (g.0 - {v}, g.1 - incidentEdges(g, v));
   var kg': nat := moptimalValueVertexCover(g');
@@ -66,6 +68,7 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
   {
     delVertexCover(g,v,kg,g',kg');
   } 
+  
   if kg == kg' + 1 // kg == kg' + 1
     //We know that there exists an optimal cover consisting in v 
     // and and optimal cover for g' 
