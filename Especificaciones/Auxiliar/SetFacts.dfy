@@ -141,8 +141,3 @@ decreases k
     {pickMax(S) + 1} + addMultipleGreater({pickMax(S) + 1}, k - 1) 
 }
 
-lemma UnionPlusLessElement<T>(A: set<T>, B:set<T>, v:T)
-requires A * B == {}
-requires v !in A && v in B
-ensures (A + {v} ) + (B - {v}) == A + B
-{}
