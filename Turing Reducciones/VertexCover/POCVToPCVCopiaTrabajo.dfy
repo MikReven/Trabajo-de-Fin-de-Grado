@@ -1,13 +1,103 @@
 include "../../Especificaciones/VertexCoverOpt.dfy"
 include "../../Especificaciones/OptimalCoverProperties.dfy"
 
+ghost predicate invariantLoop(
+  graph : Graph, okg : nat,
+  vertex : set<Node>,//remaining vertex
+  I : set<Node>, //up to now vertex cover
+  g : Graph, kg : nat//current graph
+)
+requires isValidGraph(graph)
+{
+ isValidGraph(g) &&
+ vertex <= g.0 &&
+//I is disjoint from vertex and from g
+//Vertex in g either have not been visited, so they belong to vertex
+//or have a non-covered edge  
+ I <= graph.0 - vertex && I + g.0 == graph.0 &&
+ I * g.0 == {} && I * vertex == {} &&
 
+//the union of all the edges covered by I and those in g.1 are 
+//the edges in the original graph
+//So at the end, when g.1 is empty, all the edges in graph are covered by I
 
+ g.1 +  (set edge:Edge, node:Node | edge in graph.1 && node in I && node in edge :: edge) == graph.1 &&
+ 
+//At the end kg = 0 and |I| = okg, so I is optimal
+ kg >= 0 && optimalValueVertexCover(g,kg) &&
+ kg + |I| == okg &&
+
+ (forall u, O | u in g.0 && u !in vertex &&  I <= O <= graph.0 && isVertexCover(O,graph) && |O| == okg :: u !in O) &&
+ (exists V : set<Node> :: V <= g.0 && V <= vertex && optimalVertexCover(g,V) && optimalVertexCover(graph, I + V))
+}
 
 //We assume a polynomial algorithm for PCV
 method {:axiom} moptimalValueVertexCover (graph : Graph) returns (k: nat)
   requires isValidGraph(graph)
   ensures optimalValueVertexCover(graph,k)
+
+
+method bodyLoop(
+  ghost graph : Graph, ghost okg : nat,
+  vertex : set<Node>,//remaining vertex
+  I : set<Node>, //up to now vertex cover
+  g : Graph, kg : nat//current graph
+) returns 
+(
+  vertexn : set<Node>,//remaining vertex
+  In : set<Node>, //up to now vertex cover
+  gn : Graph, kgn : nat//current graph
+)
+requires isValidGraph(graph) && optimalValueVertexCover(graph,okg)
+requires g.1 != {} //loop condition
+requires invariantLoop(graph,okg,vertex,I,g,kg)
+ensures invariantLoop(graph,okg,vertexn,In,gn,kgn)
+ensures vertexn < vertex //in order to prove termination
+{ 
+  //vertex is non-empty        
+  remainingEdgesImpliesNonEmptyVertex(graph,okg,vertex,I,g,kg);
+  var v: Node := pick(vertex);
+  vertexn := vertex - {v};  
+
+  //Remove vertex v
+  var g' := (g.0 - {v}, g.1 - incidentEdges(g, v)); 
+  validSubgraph(g,v,g');
+  var kg': nat := moptimalValueVertexCover(g');
+
+  //Only two options are possible
+  assert kg' == kg || kg == kg' + 1 by 
+  {
+    delVertexCover(g,v,kg,g',kg');
+  } 
+  if kg == kg' + 1 
+    //We know that there exists an optimal cover consisting in v 
+    // and and optimal cover for g' 
+    { 
+      includeVertexCoverExists(graph,okg,vertex,I,v,g,kg,g',kg');
+      //ghost var S':set<Node> :| S' <= g'.0 && S' <= vertex - {v} && optimalVertexCover(g',S') && optimalVertexCover(g, S' + {v}) && optimalVertexCover(graph, I + {v} + S');
+      includeVertexAndEdgesProperty(graph,I,v,g,g');
+
+      In := I + {v};
+      gn := g';
+      kgn := kg';  
+      /* assert S' <= gn.0 && S' <= vertexn && optimalVertexCover(gn,S')&& optimalVertexCover(graph, In + S');
+      forall u, O | u in gn.0 && u !in vertexn &&  In <= O <= graph.0 && isVertexCover(O,graph) && |O| == okg 
+      ensures u !in O
+      { if (u != v) {}
+        else { assert v !in gn.0; }
+      }*/
+      
+    }
+    else { //kg == kg'
+      donotIncludeVertexCoverFullForall(graph,okg,vertex,I,v,g,kg,g',kg');
+      donotIncludeVertexCoverExists(graph,okg,vertex,I,v,g,kg,g',kg');
+      In := I;
+      gn := g;
+      kgn := kg;  
+    }
+}
+
+
 
 //We implement a polynomial algorithm for PDCV using moptimalVertexCover
 method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
@@ -22,72 +112,18 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
  var g := graph; 
  var okg :=  moptimalValueVertexCover(g);
  var kg := okg;
-
+ translationVertexCover(graph,okg);
 //stop when all the edges are covered by the vertex in I
 //maybe vertex != {}
 //But it cannot happen vertex == {} and g.1 != {}
  while (g.1 != {})
   decreases vertex
-  invariant isValidGraph(g) 
+  invariant invariantLoop(graph,okg,vertex,I,g,kg)
+ {  
+  vertex,I,g,kg := bodyLoop(graph,okg,vertex,I,g,kg);  
+ }
 
-  //invariant vertex == {} ==> g.1 == {} //no puede ser vertex == {} && g.1 != {}
-  invariant vertex <= g.0 
-  // TO DO
-  //invariant forall v1,v2 | {v1,v2} in g.1 :: (v1 in vertex || v2 in vertex)
-  //invariant exists V : set<Node> :: V <= vertex && isVertexCover(V,g) && |V| == okg - |I|
-
-  //I is disjoint from vertex and from g
-  //Vertex in g either have not been visited, so they belong to vertex
-  //or have a non-covered edge  
-  invariant I <= graph.0 - vertex <= I + g.0 == graph.0 
-  invariant I * g.0 == {} && I * vertex == {}
-  invariant g.1 +  (set edge:Edge, node:Node | edge in graph.1 && node in I && node in edge :: edge) == graph.1
-  //the union of all the edges covered by I and those in g.1 are 
-  //the edges in the original graph
-  //So at the end, when g.1 is empty, all the edges in graph are covered by I
-  
-
-  invariant kg >= 0 && optimalValueVertexCover(g,kg) 
-  //invariant g.1 != {} ==> kg > 0
-  //invariant optimalValueVertexCover(graph,okg)
-  invariant kg + |I| == okg 
-  //At the end kg = 0 and |I| = okg, so I is optimal
- { assume {:axiom} vertex != {} ;
-  var v: Node := pick(vertex);
-  vertex := vertex - {v};
-  assert v !in I;
-  
-  //ghost var V :| V <= vertex && isVertexCover(V,g) && |V| == okg - |I|;
-  
-
-  //Quitamos el vértice 
-  var g' := (g.0 - {v}, g.1 - incidentEdges(g, v));
-  var kg': nat := moptimalValueVertexCover(g');
-  
-  assert kg' == kg || kg == kg' + 1 by
-  {
-    delVertexCover(g,v,kg,g',kg');
-  } 
-  
-  if kg == kg' + 1 // kg == kg' + 1
-    //We know that there exists an optimal cover consisting in v 
-    // and and optimal cover for g' 
-    { 
-      I := I + {v};
-      g := g';
-      kg := kg'; 
-    //assert forall v1,v2 | {v1,v2} in g.1 :: (v1 in vertex || v2 in vertex);        
-    }
-  //  else {assume false;}
-    //else we know that there exists an optimal cover
-    //not including v that is aso optimal for g'
-    //else {assume optimalValueVertexCover(g,kg);}
-
-   
-  //en caso contrario el node y sus aristas se dejan en el grafo porque
-  //se van a cubrir con otros vertices que aun no se han procesado
-  //else {assert forall u,v | {u,v} in g.1 :: (u in vertex || v in vertex);}
-  }
+  //At the end g.1 == {} so I is an optimal vertex cover
   assert isVertexCover(I,graph) by{
     assert g.1 == {};
     setOfIncidentEdges(graph,I);
@@ -102,4 +138,11 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
 
 
 
+/*
+NOTA:
+-Los vertices que estan en en grafo en curso pero que ya no estan en vertex, se quedan en el grafo para siempre
+Son vertices que podrían formar parte de cobertura optima del grafo inicial pero ya no junto con los  seleccionados I
+Toda cobertura optima que contiene a I no contiene a esos vertices 
 
+
+*/ 
