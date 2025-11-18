@@ -1,5 +1,5 @@
 include "../../Especificaciones/VertexCoverOpt.dfy"
-include "../../Especificaciones/OptimalCoverProperties.dfy"
+include "../../Especificaciones/OptimalCoverPropertiesRemoveVertex.dfy"
 
 ghost predicate invariantLoop(
   graph : Graph, okg : nat,
