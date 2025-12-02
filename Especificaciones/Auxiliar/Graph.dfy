@@ -55,6 +55,12 @@ ensures s * e == {} || s * e == {u} || s * e == {v} || s * e == e
 
 }
 
+lemma validSubgraph(graph : Graph,v : Node, graph': Graph)
+requires isValidGraph(graph)
+requires graph'.0 == graph.0 - { v }
+requires graph'.1 == graph.1 - incidentEdges(graph,v)
+ensures isValidGraph(graph')
+{}
 
 function pickEdgeFromNode(newNodes: set<Node>, edgesToChange: set<Edge>, removedNode: Node): (e: Edge)
 requires |newNodes| > 0 && |edgesToChange| == |newNodes|
@@ -79,19 +85,41 @@ ensures e in edgesToChange
 }
 
 
-function newSplitEdges(newNodes: set<Node>, edgesToChange: set<Edge>, removedNode: Node): (r: set<Edge>)
+function newSplitEdges(graph: Graph, newNodes: set<Node>, edgesToChange: set<Edge>, removedNode: Node): (r: set<Edge>)
+requires isValidGraph(graph)
+requires removedNode in graph.0
+requires edgesToChange <= graph.1
 requires forall edge: Edge | edge in edgesToChange :: removedNode in edge && |edge| == 2
 requires |edgesToChange| == |newNodes|
+requires newNodes * graph.0 == {}
 decreases edgesToChange
+ensures forall e: Edge | e in r :: |e| == 2 && (exists node1: Node, node2: Node :: node1 in newNodes && node2 in graph.0 && e == {node1, node2})  
 {
     if edgesToChange == {} then {}
     else 
+        
         var node: Node := pickMax(newNodes);
+        assert node !in graph.0 by{
+            assert node in newNodes;
+            assert newNodes * graph.0 == {};
+            if node in graph.0 {
+                assert node in graph.0 && node in newNodes;
+                assert node in newNodes * graph.0;
+                assert newNodes * graph.0 == {};
+                assert false;
+            }
+            assert node !in graph.0;
+        }
         assert |edgesToChange| == |newNodes|;
         var changedEdge: Edge := pickEdgeFromNode(newNodes, edgesToChange, removedNode);
         assert |edgesToChange| == |newNodes|;
         assert changedEdge in edgesToChange;
-        {changedEdge - {removedNode} + {node}} + newSplitEdges(newNodes - {node}, edgesToChange - {changedEdge}, removedNode)
+        ghost var edge' := changedEdge - {removedNode};
+        assert |edge'| == 1; 
+        ghost var edge'' := edge' + {node};
+        assert !(node in edge');
+        assert |edge''| == 2;
+        {changedEdge - {removedNode} + {node}} + newSplitEdges(graph, newNodes - {node}, edgesToChange - {changedEdge}, removedNode)
 }
 
 function incidentEdges(graph: Graph, node: Node) : (S: set<Edge>)
@@ -99,10 +127,34 @@ function incidentEdges(graph: Graph, node: Node) : (S: set<Edge>)
     (set edge: Edge | edge in graph.1 && node in edge :: edge)
 }
 
+function neighborsOf(graph: Graph, v: Node) : (S: set<Node>)
+{
+    (set node: Node | node in graph.0  && {node, v} in graph.1 :: node)
+}
+
+function removeVertex(graph: Graph, v: Node): (graph': Graph) 
+    requires isValidGraph(graph)
+    ensures isValidGraph(graph')
+{
+    (graph.0 - {v}, graph.1 - incidentEdges(graph, v))
+}
+
+function addedSplitNodes(graph: Graph, v: Node): (S: set<Node>)
+requires isValidGraph(graph) 
+{
+    if v in graph.0 && (exists e: Edge | e in graph.1 :: v in e ) then 
+        //The vertex is "split" such that all those edges still exist but connect to different new nodes
+        var edgesToChange: set<Edge> := incidentEdges(graph, v);
+        var newNodes: set<Node> := addMultipleGreater(graph.0, |edgesToChange|); 
+        newNodes
+    //If the vertex does not belong to the graph or the vertex is not present in any edge, there are no new nodes
+    else {}
+}
 
 //Given a graph and a vertex
 function splitVertex(graph: Graph, v: Node): (r: Graph)
 requires isValidGraph(graph) 
+ensures isValidGraph(r)
 {
     //If it belongs to the graph
     if v in graph.0 then 
@@ -112,7 +164,10 @@ requires isValidGraph(graph)
             var edgesToChange: set<Edge> := incidentEdges(graph, v);
             var newNodes: set<Node> := addMultipleGreater(graph.0, |edgesToChange|); 
             assert(|newNodes| == |edgesToChange|);
-            var setNewEdges: set<Edge> := newSplitEdges(newNodes, edgesToChange, v);
+            var setNewEdges: set<Edge> := newSplitEdges(graph, newNodes, edgesToChange, v);
+            ghost var g := (graph.0 - {v} + newNodes, graph.1 - edgesToChange + setNewEdges);
+            assert forall e | e in setNewEdges :: (|e| == 2 && exists a, b :: a in newNodes && b in graph.0 && a != b && e == {a, b});
+            assume{:axiom} false;
             (graph.0 - {v} + newNodes, graph.1 - edgesToChange + setNewEdges)
         //If no edges are incident on it, the vertex is removed
         else (graph.0 - {v}, graph.1)

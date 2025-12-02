@@ -45,6 +45,36 @@ ensures |A| <= |B|
   } 
 }
 
+lemma cardinalityLemma4(A: set<nat>, B: set<nat>)
+  requires |A| > |B|
+  ensures !(A <= B)
+{ 
+  var elem: nat :| elem in (A);
+  if(elem in B){
+    cardinalityLemma4(A - {elem}, B - {elem});
+  }
+  else{ }
+}
+
+lemma cardinalityLemma5(A: set<nat>)
+  ensures forall B: set<nat> | |B| > |A| :: !(B <= A)
+{ 
+  if (exists B: set<nat> :: |B| > |A| && (B <= A))
+  {
+    var B: set<nat> :| |B| > |A| && (B <= A);
+    cardinalityLemma4(B, A);
+    assert false;
+  }
+}
+
+lemma alwaysALargerSet(A: set<nat>)
+  ensures exists B: set<nat> :: |B| > |A|
+{
+  var B: set<nat> := A;
+  var elem: nat := pickMax(A) + 1;
+  assert |B + {elem}| > |A|;
+}
+
 //All sets of naturals contain a maximum
 lemma hasAMaximum(S: set<nat>)
   requires |S| > 0
@@ -140,4 +170,3 @@ decreases k
     //assert !((pickMax(S) + 1) in S);
     {pickMax(S) + 1} + addMultipleGreater({pickMax(S) + 1}, k - 1) 
 }
-
