@@ -16,6 +16,7 @@ method mOptimalValueClique (graph : Graph) returns (k : nat)
   //If the graph is empty, the largest clique is an empty set
   if graph.0 == {} {
     k := 0;
+    assert isClique(graph, {});
   }
   else{
     //We iterate from 0 to the number of vertices looking for the largest Clique we can find

@@ -10,6 +10,7 @@ ghost predicate invariantLoop(
 { true }
 */
 
+ghost predicate containedInAllSolutions()
 
 ghost predicate invariantLoop(
   graph : Graph, okg : nat,
@@ -35,10 +36,9 @@ requires isValidGraph(graph)
   //all vertices in the partial solution have been analyzed
   I == g.0 - vertex &&
   //TODO expresar esto de una mejor manera
-  //forall node: Node | node in I :: optimalValueClique(removeVertex(g, node), kg - 1)  &&
+  (forall i: Node | i in I :: (forall G: Graph | isValidGraph(G) && isSubGraph(G, g) && optimalValueClique(G, kg) :: (forall S: set<Node> | S <= G.0 && optimalClique(G, S) :: i in S)))  &&
   optimalValueClique(g, okg) && 
   //I is a prtial solution
-  //DEJAR SIN COMENTAR
   (exists S: set<Node> :: S <= g.0 && optimalClique(graph, S) && I <= S) 
 
   //g.1 +  (set edge:Edge, node:Node | edge in graph.1 && node in I && node in edge :: edge) == graph.1 &&
@@ -98,30 +98,7 @@ method mOptimalClique (graph:Graph) returns (I:set<Node>)
       if kg == kg' + 1 
       { 
         //any optimal clique for g must include v
-        
-        isPartialSolutionWith1(g, g', v, kg, kg', I);
-        assert forall S: set<Node> | S <= g.0 && optimalClique(g, S) :: v in S;
-        //esta demostración noes trivial
-        
-        /*
-        ///////////
-        var fooNode: Node := pick(I);
-        var fooGraph: Graph := removeVertex(g, fooNode);
-        var fooNat: nat := moptimalValueClique(fooGraph);
-        assert fooNat + 1== kg;
-        assume{:axiom} false;
-        ///////////
-      */
-
-        assert forall node: Node | node in I :: (forall S: set<Node> | S <= g.0 && optimalClique(g, S) :: node in S);
-        assume{:axiom} false;
-        assert isClique(g, I) by 
-        {
-          assert exists S: set<Node> :: S <= g.0 && optimalClique(g, S);
-          var S: set<Node> :| S <= g.0 && optimalClique(g, S);
-          assert forall node: Node | node in I :: node in S;
-        }
-        
+        isPartialSolutionWith2(g, g', v, kg, kg');
         isPartialSolutionWith(g, g', v, kg, kg', I);
         I := I + {v};
         

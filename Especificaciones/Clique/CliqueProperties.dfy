@@ -156,7 +156,7 @@ lemma CliqueInSubgraph(g: Graph, g': Graph, k: nat, S: set<Node>)
     CliqueTranslation(g, k);
 }
 
-lemma isPartialSolutionWith1(g: Graph, g': Graph, v: Node, kg: nat, kg': nat, I: set<Node>)
+lemma isPartialSolutionWith1(g: Graph, g': Graph, v: Node, kg: nat, kg': nat)
     requires isValidGraph(g)
     requires isValidGraph(g')
     requires g' == removeVertex(g, v)
@@ -164,8 +164,6 @@ lemma isPartialSolutionWith1(g: Graph, g': Graph, v: Node, kg: nat, kg': nat, I:
     requires optimalValueClique(g, kg)
     requires optimalValueClique(g', kg')
     requires kg' < kg
-    requires I <= g.0
-    requires |I| <= kg
     ensures forall S: set<Node> | S <= g.0 && optimalClique(g, S) :: v in S
 {
     //all optimal cliques in g must contain v
@@ -181,24 +179,32 @@ lemma isPartialSolutionWith1(g: Graph, g': Graph, v: Node, kg: nat, kg': nat, I:
     }
 }
 
-lemma isPartialSolutionWith2(g: Graph, v: Node, kg: nat, I: set<Node>)
+lemma isPartialSolutionWith2(g: Graph, g': Graph, v: Node, kg: nat, kg': nat)
     requires isValidGraph(g)
+    requires isValidGraph(g')
+    requires g' == removeVertex(g, v)
     requires optimalValueClique(g, kg)
-    requires I <= g.0
-    requires |I| <= kg
+    requires optimalValueClique(g', kg')
+    requires kg' + 1 == kg
     ensures forall G: Graph | isValidGraph(G) && isSubGraph(G, g) && optimalValueClique(G, kg) :: (forall S: set<Node> | S <= G.0 && optimalClique(G, S) :: v in S)
 {
-    if exists G: Graph :: isValidGraph(G) && isSubGraph(g, g) && optimalValueClique(G, kg) && (exists S: set<Node> :: S <= G.0 && optimalClique(G, S) && v !in S)
+    //if there exists a subgraph whose optimal clique does not include v
+    if exists G: Graph :: isValidGraph(G) && isSubGraph(G, g) && optimalValueClique(G, kg) && (exists S: set<Node> :: S <= G.0 && optimalClique(G, S) && v !in S)
     {
-        var G: Graph :| isValidGraph(G) && isSubGraph(g, g) && optimalValueClique(G, kg) && (exists S: set<Node> :: S <= G.0 && optimalClique(G, S) && v !in S);
+        //instantiate the graph
+        var G: Graph :| isValidGraph(G) && isSubGraph(G, g) && optimalValueClique(G, kg) && (exists S: set<Node> :: S <= G.0 && optimalClique(G, S) && v !in S);
+        //instantiate the clique
         var S: set<Node> :| S <= G.0 && optimalClique(G, S) && v !in S; 
-        
-        assume{:axiom} false;
+        //that clique must actually contain v, since it would be an optimal clique in g
+        CliqueTranslation2(G, S);
+        assert |S| == kg;
+        CliqueInSubgraph(g, G, |S|, S);
+        assert optimalClique(g, S);
+        isPartialSolutionWith1(g, g', v, kg, kg');
     }
-    assume{:axiom} false;
 }
 
-lemma{:axiom} isPartialSolutionWith(g: Graph, g': Graph, v: Node, kg: nat, kg': nat, I: set<Node>)
+lemma isPartialSolutionWith(g: Graph, g': Graph, v: Node, kg: nat, kg': nat, I: set<Node>)
     decreases I
     requires isValidGraph(g)
     requires isValidGraph(g')
@@ -208,8 +214,8 @@ lemma{:axiom} isPartialSolutionWith(g: Graph, g': Graph, v: Node, kg: nat, kg': 
     requires kg' + 1 == kg
     requires I <= g.0
     requires |I| <= kg
+    requires forall i: Node | i in I :: (forall G: Graph | isValidGraph(G) && isSubGraph(G, g) && optimalValueClique(G, kg) :: (forall S: set<Node> | S <= G.0 && optimalClique(G, S) :: i in S));
     ensures exists S: set<Node> :: S <= g.0 && I <= S && optimalClique(g, S) && v in S
-    /*
 {
     //all optimal cliques in g must contain v
     assert (forall A: set<Node> | optimalClique(g, A) :: v in A) by {
@@ -224,21 +230,10 @@ lemma{:axiom} isPartialSolutionWith(g: Graph, g': Graph, v: Node, kg: nat, kg': 
     }
     alwaysAnOptimalClique(g);
     assert exists S: set<Node> :: S <= g.0 && optimalClique(g, S) && v in S;
-    //they must contain I? suena como algo que es cierto por induccion
-        //by construction, optimalValueClique(removeVertex(g, elementInI), k - 1), por lo que se puede aplicar inductivamente para cada elemento en I
-        //meter esto en la invariante sería buena idea
-        //eliminar I del conjunto y operar desde ahi
-    if I == {}
-    {
-        assert exists S: set<Node> :: S <= g.0 && I <= S && optimalClique(g, S) && v in S;
-    }
-    else{
-        var x: Node :| x in I;
-        assume{:axiom} false;
-        isPartialSolutionWith(g', removeVertex(g', x), x, kg', kg' - 1, I - {x});
-    }
+    var S: set<Node> :| S <= g.0 && optimalClique(g, S) && v in S; 
+    assert forall i: Node | i in I :: i in S; 
 }
-*/
+
 
 lemma isPartialSolutionWithout(g: Graph, g': Graph, v: Node, kg: nat, kg': nat, I: set<Node>)
     requires isValidGraph(g)
@@ -249,6 +244,7 @@ lemma isPartialSolutionWithout(g: Graph, g': Graph, v: Node, kg: nat, kg': nat, 
     requires kg' == kg
     requires I <= g.0
     requires |I| <= kg
+    requires forall i: Node | i in I :: (forall G: Graph | isValidGraph(G) && isSubGraph(G, g) && optimalValueClique(G, kg) :: (forall S: set<Node> | S <= G.0 && optimalClique(G, S) :: i in S));
     ensures exists S: set<Node> :: S <= g.0 && I<= S && optimalClique(g, S) && v !in S
 {
     CliqueTranslation(g', kg');
@@ -256,5 +252,4 @@ lemma isPartialSolutionWithout(g: Graph, g': Graph, v: Node, kg: nat, kg': nat, 
     var S: set<Node> :| S <= g'.0 && isClique(g', S) && |S| == kg' && optimalClique(g', S);
     CliqueInSubgraph(g, g', kg, S);
     assert optimalClique(g, S) && v !in S;
-    assume{:axiom} false;
 }
