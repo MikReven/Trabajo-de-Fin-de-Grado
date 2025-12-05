@@ -1,4 +1,4 @@
-include "../../Especificaciones/VertexCoverOpt.dfy"
+include "../../Especificaciones/VertexCover/VertexCoverOpt.dfy"
 
 
 

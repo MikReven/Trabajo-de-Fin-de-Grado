@@ -1,5 +1,5 @@
-include "Auxiliar/Graph.dfy"
-include "Auxiliar/SetFacts.dfy"
+include "../Auxiliar/Graph.dfy"
+include "../Auxiliar/SetFacts.dfy"
 
 ghost predicate VertexCover(graph:Graph, k:int)
 requires isValidGraph(graph)

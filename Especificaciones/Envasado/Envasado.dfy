@@ -1,5 +1,5 @@
-include "Auxiliar/Sum.dfy"
-include "Auxiliar/MultisetFacts.dfy"
+include "../Auxiliar/Sum.dfy"
+include "../Auxiliar/MultisetFacts.dfy"
 
 
 // DEFINITION OF BIN PACKING PROBLEM
