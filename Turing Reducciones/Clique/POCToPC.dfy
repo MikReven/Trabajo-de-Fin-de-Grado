@@ -3,7 +3,7 @@ include "../../Especificaciones/Clique/CliqueProperties.dfy"
 include "POCToPCAux.dfy"
 
 ghost predicate invariantLoop(
-  graph : Graph, okg : nat,
+  graph : Graph, 
   vertex : set<Node>,//remaining vertex
   I: set<Node>, 
   g : Graph, kg : nat//current graph
@@ -14,12 +14,12 @@ requires isValidGraph(graph)
   isValidGraph(g) &&
   isSubGraph(g, graph) &&
   //g has at leat okg vertices
-  |g.0| >= okg &&
+  |g.0| >= kg && 
   //all vertices in the partial solution have been analyzed and are thus not in vertex
   I == g.0 - vertex &&
-  //I is a prtial solution
+  //I is a partial solution
   (forall i: Node | i in I :: (forall G: Graph | isValidGraph(G) && isSubGraph(G, g) && optimalValueClique(G, kg) :: (forall S: set<Node> | S <= G.0 && optimalClique(G, S) :: i in S)))  &&
-  optimalValueClique(g, okg)  
+  optimalValueClique(g, kg)  
 
   //The following invariants, although true, are not needed for the method to verify, but they can be useful to better understande the code
   //g contains an optimal clique for graph
@@ -50,8 +50,6 @@ method mOptimalClique (graph:Graph) returns (I:set<Node>)
   //this is the initial set of vertex
   //used to traverse the graph vertices
   var vertex := graph.0; 
-  //Optimal Clique value for graph
-  var okg :=  moptimalValueClique(graph);
   //Current graph, it contains nodes that have not been analyzed and nodes which have been analyzed to belong to an optimal Clique for graph
   var g := graph; 
   //Optimal Clique value for the current graph
@@ -63,9 +61,9 @@ method mOptimalClique (graph:Graph) returns (I:set<Node>)
   CliqueTranslation(g, kg);
 
   //stop when g.0 == I
-  while (|I| < okg)
+  while (|I| < kg)
     decreases vertex
-    invariant invariantLoop(graph,okg,vertex,I,g,kg)
+    invariant invariantLoop(graph,vertex,I,g,kg)
   {  
     var v: Node := pick(vertex);
     //Remove vertex v
@@ -80,22 +78,15 @@ method mOptimalClique (graph:Graph) returns (I:set<Node>)
     { 
       //Any optimal clique for g must include v
       isPartialSolutionWith2(g, g', v, kg, kg');
-      isPartialSolutionWith(g, g', v, kg, kg', I);
-      //v is included in our partial solution and stays in g
       I := I + {v};
       
     }
     else { //kg == kg'
-      //There exists an optimal clique that does not contain v
-      isPartialSolutionWithout(g, g', v, kg, kg', I);
-      //Since there is an optimal clique in g', we can remove v from the graph while maintaining that g contains an optimal clique
       g := g';  
     }
     //vertex v has already been analyzed
     vertex := vertex - {v};
-    assert exists S: set<Node> :: S <= g.0 && optimalClique(graph, S) && I <= S;
-    ghost var S: set<Node> :| S <= g.0 && optimalClique(graph, S) && I <= S;
-    //An optimal clique does not contain more than |g.0| vertices 
-    cardinalityLemma3(S, g.0);
+    UpperBoundClique(g);// to prove that kg <= |g.0|
   }
+  
 }
