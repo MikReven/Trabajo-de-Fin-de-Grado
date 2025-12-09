@@ -1,11 +1,6 @@
 include "../Auxiliar/Graph.dfy"
 include "../Auxiliar/SetFacts.dfy"
 
-ghost predicate VertexCover(graph:Graph, k:int)
-requires isValidGraph(graph)
-{
-  exists I:set<Node> | I <= graph.0 && |I| <= k  :: isVertexCover(I,graph)  
-}
 
 ghost predicate isVertexCover(I:set<Node>, graph:Graph)
 requires isValidGraph(graph)
@@ -13,12 +8,6 @@ requires I <= graph.0
 {
   forall e | e in graph.1 :: |I * e| > 0
 }
-
-lemma boundVertexCover(graph:Graph, k:int)
-requires isValidGraph(graph) 
-ensures forall k | k >= |graph.0| :: VertexCover(graph,k)
-{}
-
 
 method checkVertexCover (graph:Graph, k:int, I:set<Node>) returns (b:bool)
   requires isValidGraph(graph)

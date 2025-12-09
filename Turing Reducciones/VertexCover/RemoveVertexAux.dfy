@@ -1,8 +1,5 @@
-/*
-
-include "VertexCoverOpt.dfy"
-include "VertexCoverProperties.dfy"
-
+include "../../Especificaciones/VertexCover/VertexCoverOpt.dfy"
+include "../../Especificaciones/VertexCover/VertexCoverProperties.dfy"
 
 lemma boundVertexCover(graph:Graph, k:int)
 requires isValidGraph(graph) 

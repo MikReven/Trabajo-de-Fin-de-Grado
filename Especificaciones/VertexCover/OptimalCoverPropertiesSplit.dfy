@@ -1,4 +1,5 @@
 include "VertexCoverOpt.dfy"
+include "VertexCoverProperties.dfy"
 
 ghost predicate invariantLoop(
   graph : Graph, okg : nat,
@@ -54,7 +55,7 @@ lemma isVertexCoverEquiv(I:set<Node>, graph:Graph, v1: Node, v2 :Node)
 lemma biggerOptimalVertexCover(graph : Graph, k : nat, k':nat)
     requires isValidGraph(graph) 
     requires optimalValueVertexCover(graph,k)
-    requires  VertexCover(graph, k') && k' <= |graph.0|
+    requires  VertexCoverDecissionProblem(graph, k') && k' <= |graph.0|
     ensures k' >= k
     {}
 
@@ -99,7 +100,7 @@ lemma boundVertexCoverIsOptimal(graph : Graph, I : set<Node>, k :nat)
     var S :| S <= graph.0 && isVertexCover(S, graph) && |S| < |I|;
     boundoptimalValueVertexCover(graph,k);
     assert |S| < |I| <= k <= |graph.0|;
-    assert VertexCover(graph,|S|);
+    assert VertexCoverDecissionProblem(graph,|S|);
     assert !optimalValueVertexCover(graph,k);
     assert false;
     }

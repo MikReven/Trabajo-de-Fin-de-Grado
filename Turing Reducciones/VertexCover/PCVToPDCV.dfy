@@ -5,7 +5,7 @@ include "../../Especificaciones/VertexCover/VertexCoverOpt.dfy"
 //We assume a polynomial algorithm for PDVC
 method {:axiom} mVertexCover (graph : Graph, k : int) returns (b : bool)
   requires isValidGraph(graph)
-  ensures b == VertexCover(graph, k)
+  ensures b == VertexCoverDecissionProblem(graph, k)
 
 //We implement a polynomial algorithm for PCV using mVertexCover
 method mOptimalValueVertexCover (graph : Graph) returns (k : nat)
@@ -23,8 +23,8 @@ method mOptimalValueVertexCover (graph : Graph) returns (k : nat)
     while !done
         decreases |graph.0| - idx
         invariant idx <= |graph.0| + 1
-        invariant (idx > 0 && VertexCover(graph, idx - 1)) <==> done 
-        invariant forall x : nat | x < idx - 1 :: !(VertexCover(graph, x)) 
+        invariant (idx > 0 && VertexCoverDecissionProblem(graph, idx - 1)) <==> done 
+        invariant forall x : nat | x < idx - 1 :: !(VertexCoverDecissionProblem(graph, x)) 
     {
         done := mVertexCover(graph, idx);
         idx := idx + 1;

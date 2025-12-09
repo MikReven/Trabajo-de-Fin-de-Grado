@@ -1,5 +1,6 @@
 include "../../Especificaciones/VertexCover/VertexCoverOpt.dfy"
 include "../../Especificaciones/VertexCover/OptimalCoverPropertiesSplit.dfy"
+include "../../Especificaciones/VertexCover/VertexCoverProperties.dfy"
 
 
 //We assume a polynomial algorithm for PVC
@@ -66,14 +67,14 @@ ensures vertexn < vertex //in order to prove termination
       donotIncludeVertexCoverExists(graph,okg,vertex,I,v,g,kg,g'',kg');
       In := I;
       gn := g;
-      kgn := kg;  
+      kgn := kg;
     }
 }
 
 //We implement a polynomial algorithm for PDVC using moptimalVertexCover
 method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
   requires isValidGraph(graph)
-  //ensures optimalVertexCover(graph, I)
+  ensures optimalVertexCover(graph, I)
 {
   I := {};
  var vertex := graph.0; 

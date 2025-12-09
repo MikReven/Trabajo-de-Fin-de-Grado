@@ -1,11 +1,13 @@
 include "../../Especificaciones/VertexCover/VertexCoverOpt.dfy"
-include "../../Especificaciones/VertexCover/OptimalCoverPropertiesRemoveVertex.dfy"
+include "../../Especificaciones/VertexCover/VertexCoverProperties.dfy"
+//include "../../Especificaciones/VertexCover/OptimalCoverPropertiesRemoveVertex.dfy"
+include "RemoveVertexAux.dfy"
 
 ghost predicate invariantLoop(
-  graph : Graph, okg : nat,
-  vertex : set<Node>,//remaining vertex
-  I : set<Node>, //up to now vertex cover
-  g : Graph, kg : nat//current graph
+  graph: Graph, okg: nat,
+  vertex: set<Node>,//remaining vertex
+  I: set<Node>, //up to now vertex cover
+  g: Graph, kg: nat//current graph
 )
 requires isValidGraph(graph)
 {
