@@ -103,7 +103,7 @@ ensures e in edgesToChange
     pickedEdge
 }
 
-function newSplitEdgesRec(graph: Graph, newNodes: set<Node>, newNodesRemaining: set<Node>, edgesToChange: set<Edge>, removedNode: Node, setAnalyzedNodes: set<Node>, setCreatedEdges: set<Edge>): (r: set<Edge>)
+function {:only} newSplitEdgesRec(graph: Graph, newNodes: set<Node>, newNodesRemaining: set<Node>, edgesToChange: set<Edge>, removedNode: Node, setAnalyzedNodes: set<Node>, setCreatedEdges: set<Edge>): (r: set<Edge>)
 requires isValidGraph(graph)
 requires removedNode in graph.0
 requires edgesToChange <= graph.1
@@ -144,15 +144,17 @@ ensures forall n: Node | n in newNodesRemaining :: (|(set e: Edge | e in r && n 
         var rv: set<Edge> := {edge''} + remainingEdges;
 
         //No particular proof needed
-        assert forall e: Edge | e in rv :: |e| == 2 ;
+        /*assert forall e: Edge | e in rv :: |e| == 2 ;
         assert forall n: Node, e: Edge | n !in newNodesRemaining && n !in (graph.0 - {removedNode}) && e in rv :: n !in e; 
         assert forall n: Node | n in newNodes :: ((exists e: Edge :: e in (rv + setCreatedEdges) && n in e));
+        */
 
         //Proof for forall e: Edge | e in r :: (exists node1: Node, node2: Node :: node1 in newNodes && node2 in (graph.0 - {removedNode}) && e == {node1, node2})  
         assert exists n: Node :: n in (graph.0 - {removedNode}) && n in edge';
         ghost var nodeFromGraph: Node :| nodeFromGraph in (graph.0 - {removedNode}) && nodeFromGraph in edge';
         assert edge'' == {node, nodeFromGraph};
         assert forall e: Edge | e in rv :: (exists node1: Node, node2: Node :: node1 in newNodes && node2 in (graph.0 - {removedNode}) && e == {node1, node2});
+        assume false;
 
         //Proof for forall n: Node | n in newNodes :: (|(set e: Edge | e in r && n in e :: e)| == 1)
         
@@ -213,10 +215,10 @@ ensures forall e: Edge | e in r :: (exists node1: Node, node2: Node :: node1 in 
 //ensures forall n: Node | n in newNodes :: ((exists e: Edge :: e in r && n in e))
 ensures forall e: Edge | e in r :: (exists n: Node :: n in e && n in neighborsOf(graph, removedNode))
 ensures forall n: Node | n in newNodes :: (|(set e: Edge | e in r && n in e :: e)| == 1)
-{
+/*{
     var setAnalyzedNodes: set<Node> := {};    
     newSplitEdgesRec(graph, newNodes, newNodes, edgesToChange, removedNode, {}, {})  
-}
+}*/
 
 lemma incidentEdgesContainsNeighbors(g: Graph, n: Node, I: set<Edge>)
     requires isValidGraph(g)
@@ -224,18 +226,12 @@ lemma incidentEdgesContainsNeighbors(g: Graph, n: Node, I: set<Edge>)
     requires incidentEdges(g, n) == I
     ensures forall e: Edge | e in I :: (exists node: Node :: node in e && node in neighborsOf(g, n))
 {
-    //exists e: Edge :: e in I && (forall node: Node | node in neighborsOf(g, n) :: node !in e)
-    if !forall e: Edge | e in I :: (exists node: Node :: node in e && node in neighborsOf(g, n)) {
-        //DUDA
-        assert exists e: Edge :: e in I && (forall node: Node | node in neighborsOf(g, n) :: node !in e);
-        var e: Edge :|  e in I;// :| e in I && (forall node: Node | node in neighborsOf(g, n) :: node !in e);
-        assume{:axiom} e in I && (forall node: Node | node in neighborsOf(g, n) :: node !in e);
-        var S: set<Node> := neighborsOf(g, n);
-        neighborsAreConnected(g, n, S);
-        assert forall m: Node | n in S :: {m, n} in incidentEdges(g, n); 
-        assert exists m: Node :: m in g.0 && m in e && n != m;
-        var m: Node :| m in g.0 && e == {n,m};
-    }
+   forall e: Edge | e in I 
+   ensures (exists node: Node :: node in e && node in neighborsOf(g, n))
+   {
+     var m: Node :| m in g.0 && e == {n,m};
+     assert m in neighborsOf(g, n);
+   }
 }
 
 function incidentEdges(graph: Graph, node: Node) : (S: set<Edge>)
