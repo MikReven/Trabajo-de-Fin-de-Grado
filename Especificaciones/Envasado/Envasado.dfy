@@ -6,7 +6,7 @@ include "../Auxiliar/MultisetFacts.dfy"
 
 // The Bin Packing problem consists of given a multiset of integers A, E y k deciding 
 // if it is possible to divide the multiset elements in a number no larger than k submultisets 
-// sucha that the sum of elements of each submultiset is no larger than E
+// such that the sum of elements of each submultiset is no larger than E
 ghost predicate isEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>)
 {
        Union(I) == A 

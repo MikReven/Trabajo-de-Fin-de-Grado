@@ -24,6 +24,27 @@ lemma flattenLemma(embeddedSet: set<set<nat>>)
 ensures forall S: set<nat> | S in embeddedSet :: S <= flatten(embeddedSet)
 {}
 
+lemma setEquialityDefinition<T>(A: set<T>, B: set<T>)
+requires A <= B
+requires A >= B 
+ensures A == B 
+{ }
+
+lemma equalityBelonging<T>(A: set<T>, B: set<T>)
+requires A == B 
+ensures forall t: T :: t in A <==> t in B 
+{ }
+
+lemma equialityImpliesSameCardinal<T>(A: set<T>, B: set<T>)
+requires A == B 
+ensures |A| == |B|
+{ }
+
+lemma setComprehensionEquality<T>(A: set<T>, B: set<T>)
+requires A == (set t: T | t in B :: t)
+ensures A == B
+{ }
+
 lemma cardinalityLemma1()
 ensures forall A, B: set<nat> :: (A >= B ==> |A - B| == |A| - |B|)
 { }
@@ -66,6 +87,56 @@ lemma cardinalityLemma5(A: set<nat>)
     assert false;
   }
 }
+
+lemma cardinalitySum<T>(A: set<T>, B: set<T>)
+requires A * B == {}
+ensures |A + B| == |A| + |B|
+{ }
+
+lemma emptyOverpowersIntersection<T>(A: set<T>, B: set<T>)
+requires A == {}
+ensures A * B == {}
+{ }
+
+lemma emptyNeutralUnion<T>(A: set<T>, B: set<T>)
+requires A == {}
+ensures A + B == B
+{ }
+
+lemma unitSet<T>(A: set<T>, b: T)
+requires A == {b}
+ensures |A| == 1
+{ }
+
+lemma setDifference(A: set<nat>, B: set<nat>, C: set<nat>, D: set<nat>)
+  requires A == (B - D + C )
+  requires (B * C) == {}
+  requires D <= B
+  ensures (A - B) == C
+{ 
+  assert forall n: nat | n in A :: n in (B - D) || n in C;
+  assert forall n: nat | n in (A - B) :: n !in B; 
+  assert forall n: nat | n in (A - B) :: n !in (B - C); 
+  assert forall n: nat | n in (A - B) :: n in C;
+  assert |A| == |B| + |C| - |D|;
+}
+
+lemma setBelongingToDifference(A: set<nat>, B: set<nat>, n: nat)
+requires B <= A
+requires n in A 
+requires n !in B 
+ensures n in (A - B)
+{ }
+
+lemma setBelongingToDifferenceForAll(A: set<nat>, b: nat)
+requires b in A
+ensures forall n: nat | n in A && n != b :: n in (A - {b})
+{ }
+
+lemma setBelongingImplication(A: set<nat>, b: nat)
+requires b in A
+ensures {b} <= A
+{ }
 
 lemma alwaysALargerSet(A: set<nat>)
   ensures exists B: set<nat> :: |B| > |A|
@@ -163,6 +234,8 @@ function addMultipleGreater(S:set<nat>, k: nat): (S': set<nat>)
 requires k >= 0
 ensures forall n: nat | n in S':: n > pickMin(S)
 ensures |S'| == k
+ensures forall n: nat | n in S' :: n !in S
+ensures S * S' == {}
 decreases k
 {
   if k == 0 then {}

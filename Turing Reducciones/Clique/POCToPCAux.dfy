@@ -16,7 +16,6 @@ lemma ovCliqueRemoveVertex(g: Graph, g': Graph, v: Node, kg: nat, kg': nat)
     }
     assert kg >= kg';
     CliqueTranslation(g, kg);
-    //No entiendo por qué no es capaz de sacar cosas que están en la definición de optimalClique
     ghost var I: set<Node> :| (optimalClique(g, I) && |I| == kg && I <= g.0 && isClique(g, I));
     assert isClique(g, I);
     assert v in I || v !in I;
@@ -123,8 +122,8 @@ lemma isPartialSolutionWithout(g: Graph, g': Graph, v: Node, kg: nat, kg': nat, 
     ensures exists S: set<Node> :: S <= g.0 && I<= S && optimalClique(g, S) && v !in S
 {
     CliqueTranslation(g', kg');
-    assert exists S: set<Node> :: S <= g'.0 && optimalClique(g', S);
+    //assert exists S: set<Node> :: S <= g'.0 && optimalClique(g', S);
     var S: set<Node> :| S <= g'.0 && isClique(g', S) && |S| == kg' && optimalClique(g', S);
     CliqueInSubgraph(g, g', kg, S);
-    assert optimalClique(g, S) && v !in S;
+    //assert optimalClique(g, S) && v !in S;
 }
