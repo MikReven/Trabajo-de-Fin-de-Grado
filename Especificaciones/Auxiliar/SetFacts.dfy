@@ -50,6 +50,11 @@ requires A == (set t: T | t in B :: t)
 ensures A == B
 { }
 
+lemma setComprehensionUnion<T>(S1: set<set<T>>,S2: set<set<T>>,n: T)
+ensures (set e: set<T> | e in S1+S2 && n in e :: e) == 
+           (set e: set<T> | e in S1 && n in e :: e) + 
+           (set e: set<T> | e in S2 && n in e :: e)
+{}
 
 lemma sameCardinalThroughComprehension<T>(A: set<T>, B: set<set<T>>)
 decreases A
@@ -145,7 +150,7 @@ ensures |A + B| == |A| + |B|
 { }
 
 lemma cardinalityUnion<T>(A: set<T>, B: set<T>, C: set<T>)
-requires A + B == C
+requires C == A + B
 ensures |A| + |B| >= |C|
 ensures |C| >= |A|
 ensures |C| >= |B|

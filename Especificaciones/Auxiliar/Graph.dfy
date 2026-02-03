@@ -352,11 +352,7 @@ requires setNewEdges == (set node1: Node, node2: Node | node1 in newNodes && nod
 ensures forall node1: Node | node1 in newNodes :: |(set e: Edge | e in setNewEdges && node1 in e:: e)| == 1 
 ensures |newNodes| == |setNewEdges|
 {
-    if newNodes == {} {
-        assert setNewEdges == {} by{
-            assert !exists n: Node :: n in newNodes;
-        }
-    }
+    if newNodes == {} {}
     else{
         ghost var neighbors: set<Node>:= neighborsOf(graph, v); 
         aNeighborForEachIncidentEdge(graph, v);
@@ -372,30 +368,30 @@ ensures |newNodes| == |setNewEdges|
                                    && (forall e: Edge | e in setNewEdges && node1 in e :: e == {node1, node2}))
         {
             var k: nat := numberOfLesser(newNodes, node1);
-            assert |newNodes| == |neighbors|;
-            assert k <= |neighbors|;
+            //assert |newNodes| == |neighbors|;
+            //assert k <= |neighbors|;
             var node2 := pickFromOrder(neighbors, k);
             numberOfLesserEqualityForAll(neighbors, node2);
-            assert forall node1: Node, node2: Node | node1 in newNodes && node2 in neighbors && numberOfLesser(newNodes, node1) == numberOfLesser(neighbors, node2) :: {node1, node2} in setNewEdges;
-            assert exists e: Edge :: e in setNewEdges && e == {node1, node2};
+            //assert forall node1: Node, node2: Node | node1 in newNodes && node2 in neighbors && numberOfLesser(newNodes, node1) == numberOfLesser(neighbors, node2) :: {node1, node2} in setNewEdges;
+            //assert exists e: Edge :: e in setNewEdges && e == {node1, node2};
             var e: Edge := {node1, node2};
-            assert e in setNewEdges;
+            //assert e in setNewEdges;
             forall e': Edge | e' in setNewEdges && node1 in e'
             ensures e == e' 
             {
-                assert forall e: Edge | e in setNewEdges :: |e| == 2;
-                assert exists otherNode: Node :: otherNode in e' && otherNode != node1;
-                assert exists a :: a in neighbors && e' == {a, node1};
+                //assert forall e: Edge | e in setNewEdges :: |e| == 2;
+                //assert exists otherNode: Node :: otherNode in e' && otherNode != node1;
+                //assert exists a :: a in neighbors && e' == {a, node1};
 
-                var k: nat := numberOfLesser(newNodes, node1);
+                //var k: nat := numberOfLesser(newNodes, node1);
                 var otherNode: Node :| otherNode in e' && otherNode != node1;
 
-                assert otherNode in neighbors;
-                assert numberOfLesser(neighbors, otherNode) == k;
-                assert numberOfLesser(neighbors, node2) == k;
-                assert numberOfLesser(neighbors, node2) == numberOfLesser(neighbors, otherNode);
-                assert node2 in neighbors;
-                assert otherNode in neighbors;
+                //assert otherNode in neighbors;
+                //assert numberOfLesser(neighbors, otherNode) == k;
+                //assert numberOfLesser(neighbors, node2) == k;
+                //assert numberOfLesser(neighbors, node2) == numberOfLesser(neighbors, otherNode);
+                //assert node2 in neighbors;
+                //assert otherNode in neighbors;
                 numberOfLesserEquality(neighbors, node2, otherNode);
             }
         }
@@ -406,19 +402,19 @@ ensures |newNodes| == |setNewEdges|
             var node2 := pickFromOrder(neighbors, k);
             var setAux: set<Edge> := (set e: Edge | e in setNewEdges && node1 in e:: e);
             assert forall e: Edge | e in setNewEdges && node1 in e :: e in setAux;
-            assert {node1, node2} in setAux;
-            assert |setAux| >= 1;
+            //assert {node1, node2} in setAux;
+            //assert |setAux| >= 1;
             if |setAux| > 1 {
                 cardinality2implies(setAux, {node1, node2});
-                assert exists e: Edge :: e in setAux && e != {node1, node2};
+                //assert exists e: Edge :: e in setAux && e != {node1, node2};
                 var edgeAux: Edge :| edgeAux in setAux && edgeAux != {node1, node2}; 
-                assert node1 in edgeAux;
+                //assert node1 in edgeAux;
                 //el otro vertice tiene que tener el mismo orden que node1, por lo tanto es node2, por lo que edgeAux == e, poor lo que el conjunto tiene cardinalidad 1
                 var nodeAux: Node :| edgeAux == {nodeAux, node1};
-                assert nodeAux in neighbors;
-                assert numberOfLesser(neighbors, nodeAux) == k;
+                //assert nodeAux in neighbors;
+                //assert numberOfLesser(neighbors, nodeAux) == k;
                 numberOfLesserEquality(neighbors, nodeAux, node2);
-                assert edgeAux == {node1, node2};
+                //assert edgeAux == {node1, node2};
             }
         
         }
@@ -457,46 +453,34 @@ ensures forall n: Node | n in (r.0 - graph.0) :: |(set e: Edge | e in (r.1) && n
         }
         
         //Proof for forall n: Node | n in (r.0 - graph.0) :: |(set e: Edge | e in (r.1) && n in e :: e)| == 1
-
         forall n: Node | n in (g.0 - graph.0) 
         ensures |(set e: Edge | e in g.1 && n in e :: e)| == 1
         {    
-            assert newNodes * graph.0 == {};
+            //assert newNodes * graph.0 == {};
             ghost var incidents: set<Edge> := incidentEdges(graph, v);
-            assert (g.0 - graph.0) == newNodes;
-            assert newNodes * graph.0 == {}; 
+            //assert (g.0 - graph.0) == newNodes;
+            //assert newNodes * graph.0 == {}; 
             assert forall node: Node, e: Edge | e in graph.1 && node in e :: node in graph.0; 
-            assert forall e: Edge | e in graph.1 :: n !in e;
-            assert (set e: Edge | e in (graph.1 - incidents) && n in e :: e) <= graph.1;
-            assert (set e: Edge | e in (graph.1 - incidents) && n in e :: e) == {};
-            assert |(set e: Edge | e in (graph.1 - incidents) && n in e :: e)| == 0;
+            //assert forall e: Edge | e in graph.1 :: n !in e;
+            //assert (set e: Edge | e in (graph.1 - incidents) && n in e :: e) <= graph.1;
+            //assert (set e: Edge | e in (graph.1 - incidents) && n in e :: e) == {};
+            //assert |(set e: Edge | e in (graph.1 - incidents) && n in e :: e)| == 0;
             asManyNewNodesAsEdges(graph, v, newNodes, setNewEdges); 
-            assert |(set e: Edge | e in setNewEdges && n in e :: e)| == 1;
-            assert g.1 == graph.1 - incidentEdges(graph, v) + setNewEdges;
-            ghost var set1 := (set e: Edge | e in g.1 && n in e :: e);
-            ghost var set2 := (set e: Edge | e in ((graph.1 - incidents) + setNewEdges) && n in e :: e);
-            assert set1 == set2;
+            //assert |(set e: Edge | e in setNewEdges && n in e :: e)| == 1;
+            //assert g.1 == graph.1 - incidentEdges(graph, v) + setNewEdges;
+            ghost var setG := (set e: Edge | e in ((graph.1 - incidents) + setNewEdges) && n in e :: e);
             ghost var nInNewEdges: set<Edge> := (set e: Edge | e in setNewEdges && n in e :: e);
             ghost var nInOldEdges: set<Edge> := (set e: Edge | e in (graph.1 - incidents) && n in e :: e);
-            /*
-            calc{
-                set2; 
-                ==
+            calc =={
+                setG; 
                 (set e: Edge | (e in ((graph.1 - incidents) + setNewEdges)) && n in e :: e);
-                == { assert forall e: Edge :: (e in (graph.1 - incidents) + setNewEdges) <==> (e in (graph.1 - incidents) || e in setNewEdges); }
-                (set e: Edge | (e in (graph.1 - incidents) || e in setNewEdges) && n in e :: e);
-                == 
-                (set e: Edge | (e in (graph.1 - incidents) && n in e) || (e in setNewEdges && n in e) :: e);
-                ==
-                (set e: Edge | (e in (graph.1 - incidents) && n in e) :: e) + (set e: Edge | (e in setNewEdges && n in e) :: e);
-                == 
-                nInOldEdges + (set e: Edge | (e in setNewEdges && n in e) :: e);
-                == 
+                { setComprehensionUnion((graph.1 - incidents),setNewEdges,n);} 
+                (set e: Edge | e in (graph.1 - incidents) && n in e :: e) + 
+                (set e: Edge | e in setNewEdges && n in e :: e);                
                 nInOldEdges + nInNewEdges;
             }
-            */
-            assume  nInNewEdges + nInOldEdges == set2;
-            cardinalityUnion(nInNewEdges, nInOldEdges, set2);
+            assert setG == nInOldEdges + nInNewEdges;
+            cardinalityUnion(nInOldEdges, nInNewEdges, setG);
         }
         
         g
@@ -504,59 +488,3 @@ ensures forall n: Node | n in (r.0 - graph.0) :: |(set e: Edge | e in (r.1) && n
     //If the vertex does not belong to the graph, it remains unchanged
     else graph
 }
-
-
-        /*
-        assert |newNodes| == |setNewEdges| by {
-            //(set node1: Node, node2: Node | node1 in newNodes && node2 in neighborsOf(graph, v) && numberOfLesser(newNodes, node1) == numberOfLesser(neighborsOf(graph, v), node2) && e == {node1, node2} :: e);
-            if newNodes == {} {
-                assert setNewEdges == {} by{
-                    assert !exists n: Node :: n in newNodes;
-                }
-            }
-            else{
-                ghost var neighbors: set<Node>:= neighborsOf(graph, v); 
-                assert setNewEdges != {} by {
-                    ghost var node1: Node := pickMin(newNodes);    
-                    ghost var node2: Node := pickMin(neighbors);
-                    assert (node1 in newNodes && node2 in neighbors && numberOfLesser(newNodes, node1) == numberOfLesser(neighbors, node2)) ==> ({node1, node2} in setNewEdges);
-                }
-                ghost var e: Edge :| e in setNewEdges;
-                ghost var x: Node :| x in e;
-                ghost var y: Node :| y in e && x != y;
-                assert e == {x, y};
-                assume false;
-            }
-        }*/
-        //DUDA
-        //ensures forall e: Edge | e in graph.1 && node in e :: e in S
-        /*
-        assert forall e: Edge | e in graph.1 && v in e :: e in incidentEdges(graph, v);
-        assume{:axiom} false;
-        assert forall e: Edge | e in graph.1 && v !in e :: e in (graph.1 - incidentEdges(graph, v));
-        setBelongingToDifferenceForAll(graph.0, v);
-        assert forall e | e in (graph.1 - incidentEdges(graph, v)) :: (|e| == 2 && exists node1, node2 :: node1 in (graph.0) && node2 in (graph.0) && node1 != node2 && node1 != v && node2 != v && node1 in (graph.0 - {v}) && node2 in (graph.0 - {v}) && e == {node1,node2});
-        assert forall e | e in (graph.1 - incidentEdges(graph, v)) :: (|e| == 2 && exists node1, node2 :: node1 in (graph.0 - {v}) && node2 in (graph.0 - {v}) && node1 != node2 && e == {node1,node2});
-        assert (graph.0 - {v}) <= g.0;
-        assert newNodes <= g.0;
-        assert forall e: Edge | e in setNewEdges :: (exists node1: Node, node2: Node :: node1 in newNodes && node2 in (graph.0 - {v}) && e == {node1, node2}); 
-        assert g.1 == graph.1 - incidentEdges(graph, v) + setNewEdges;
-        assert forall e | e in g.1 :: (|e| == 2 && exists u,v :: u in g.0 && v in g.0 && u != v && e == {u,v}); 
-        assert isValidGraph(g);
-        */
-        /*
-        assert isValidGraph(graph);
-        assert forall A: Graph, B: set<Node>, C: set<Edge> | A == (B, C) :: A.0 == B && A.1 == C;
-        assert g.0 == graph.0 - {v} + newNodes;
-        assert graph.0 * newNodes == {};
-        setBelongingImplication(graph.0, v);
-        setDifference(g.0, graph.0, newNodes, {v});
-        assert (g.0 - graph.0) == newNodes;
-        corollaryToValidity(graph, newNodes);
-        assert forall n: Node, e: Edge | n in newNodes && e in graph.1 ::  n !in e;
-        assert forall n: Node | n in newNodes :: (|(set e: Edge | e in setNewEdges && n in e :: e)| == 1);
-        */
-        //assert forall n: Node | n in newNodes :: n !in graph.0;
-        //assert isValidGraph(graph);
-        //notAVertexImpliesNotInAnEdgeSet(graph, newNodes);
-        //assert forall e: Edge, n: Node | e in graph.1 && n in newNodes :: n !in e;
