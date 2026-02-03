@@ -36,17 +36,8 @@ ensures !exists I:set<Node> | I <= graph.0 && |I| < k  :: isVertexCover(I,graph)
     {
         ghost var I: set<Node> :| I <= graph.0 && |I| < k && isVertexCover(I,graph);
         assert VertexCoverDecissionProblem(graph, |I|);
-        cardinalityLemma3(I, graph.0);
+        subsetCardinality(I, graph.0);
         assert false;
     }
 }
 
-lemma cardinalityVertexCoverLemma(g: Graph, A: set<Node>)
-    requires isValidGraph(g)
-    requires A <= g.0
-    requires isVertexCover(A, g)
-    requires exists B: set<Node> :: B <= g.0 && isVertexCover(B, g) && |B| < |A|
-    ensures exists C: set<Node> :: optimalVertexCover(g, C) && |C| < |A|
-{
-
-}

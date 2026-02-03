@@ -315,7 +315,7 @@ ensures |S| > 0 ==> r in S
 
 function addMultipleGreater(S:set<nat>, k: nat): (S': set<nat>)
 requires k >= 0
-ensures forall n: nat | n in S':: n > pickMin(S)
+ensures forall n: nat | n in S':: n > pickMax(S)
 ensures |S'| == k
 ensures forall n: nat | n in S' :: n !in S
 ensures S * S' == {}
