@@ -266,7 +266,7 @@ ensures forall n: Node | n in S :: n in graph.0 && n != v
 
 function removeVertex(graph: Graph, v: Node): (graph': Graph) 
 requires isValidGraph(graph)
-requires v in graph.0
+//requires v in graph.0
 ensures isValidGraph(graph')
 ensures forall e: Edge | e in graph.1 :: v in e <==> e !in graph'.1
 ensures forall e: Edge | e in graph.1 :: v !in e <==> e in graph'.1

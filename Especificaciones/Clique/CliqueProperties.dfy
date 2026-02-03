@@ -65,7 +65,7 @@ lemma CliqueTranslation(g: Graph, k: nat)
         assert |I| > k;
         assert optimalValueClique(g, |I|);
         assert |I| != k;
-        cardinalityLemma3(I, g.0);
+        subsetCardinality(I, g.0);
         assert false;
     }
 }

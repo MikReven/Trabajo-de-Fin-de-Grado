@@ -18,7 +18,6 @@ lemma ovCliqueRemoveVertex(g: Graph, g': Graph, v: Node, kg: nat, kg': nat)
     CliqueTranslation(g, kg);
     ghost var I: set<Node> :| (optimalClique(g, I) && |I| == kg && I <= g.0 && isClique(g, I));
     assert isClique(g, I);
-    assert v in I || v !in I;
     if v !in I {
         assert optimalValueClique(g', |I|);
     }
