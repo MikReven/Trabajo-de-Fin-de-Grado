@@ -1,3 +1,11 @@
+method pickMultiset<T>(S:multiset<T>) returns (r:T)
+  requires S != multiset{} //&& |S| > 0
+  ensures r in S
+{
+  var v :| v in S;
+  return v;
+}
+
 lemma CommutativeUnion<T>(x:multiset<T>,y:multiset<T>)
 ensures x + y == y + x
 {}

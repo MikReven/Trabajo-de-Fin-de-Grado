@@ -13,6 +13,14 @@ ghost predicate isEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>
     && forall x | x in I :: x <= A && GSumNat(x) <= E
 }
 
+ghost predicate isEnvasadoGeneralization(A : multiset<nat>, k: nat, E: seq<nat>, I:seq<multiset<nat>>)
+requires |E| == |I|
+{
+       |I| <= k
+    && Union(multiset(I[..])) == A 
+    && forall i: nat | 0 <= i < |I| :: I[i] <= A && GSumNat(I[i]) <= E[i]
+}
+
 
 lemma isInEnvasado(A : multiset<nat>, a:nat, E : nat, I:multiset<multiset<nat>>)
 requires a in A && isEnvasado(A,E,I)
