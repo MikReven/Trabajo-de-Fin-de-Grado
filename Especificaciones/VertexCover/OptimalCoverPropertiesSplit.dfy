@@ -73,9 +73,9 @@ lemma containedOptimalVertexCover(graph : Graph, graph' : Graph, k : nat, k': na
     var S :| S <= graph.0 && isVertexCover(S, graph) && |S| <= k;
     var S' := S * graph'.0;
 
-    cardinalityLemma3(S',S);
+    subsetCardinality(S',S);
     assert |S'| <= |S| <= k;
-    cardinalityLemma3(S',graph'.0);
+    subsetCardinality(S',graph'.0);
     assert |S'| <= |graph'.0|;
 
     assert isVertexCover(S',graph');
