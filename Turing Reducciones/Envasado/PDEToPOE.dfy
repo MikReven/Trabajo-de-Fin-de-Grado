@@ -8,7 +8,7 @@ method {:axiom} moptimalEnvasado (A: multiset<nat>, E: nat) returns (I: multiset
 
 //We implement a polynomial algorithm for PDE using moptimalEnvasar
 method mEnvasar (A: multiset<nat>, E: nat, k: nat) returns (b:bool)
-  ensures b == Envasar(A, E, k)
+  ensures b == envasarDecissionProblem(A, E, k)
 {
   var I := moptimalEnvasado(A, E);
   b := |I| <= k;

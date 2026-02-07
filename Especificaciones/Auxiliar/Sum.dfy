@@ -1,3 +1,5 @@
+include "MultisetFacts.dfy"
+
 function minNat(m:multiset<nat>): (l:nat)
 requires m != multiset{}
 ensures l in m && (forall x | x in m :: l <= x) 
@@ -11,9 +13,6 @@ ensures l in m && (forall x | x in m :: l <= x)
   var x :| x in m && (forall y | y in m :: x <= y); 
   x
 }
-
-
-
 
 lemma HasMinimumInt(m: multiset<int>)
   requires m != multiset{}
@@ -69,6 +68,16 @@ ghost function GSumNat(m: multiset<nat>) : nat
 {
   if m == multiset{} then 0
   else var x :| x in m; x + GSumNat(m - multiset{x})
+}
+
+//Computes the sum of all elements in a multiset
+//Used in Algoritmo2AproximadoAux
+function SumNat(m: multiset<nat>) : nat
+{
+  if m == multiset{} then 0
+  else 
+    var x := minNat(m); 
+    x + SumNat(m - multiset{x})
 }
 
 lemma {:induction m} FSumNatComputaGSumNat(m : multiset<nat>)
@@ -246,3 +255,26 @@ ensures s == GSumInt(A)
 }
 
 
+//////////////////////////////////////////////////
+//               Currently Unused               //
+//////////////////////////////////////////////////
+/*
+
+//Computes the sum of all elements in a multiset of multisets
+method mmSumNat(m: multiset<multiset<nat>>) returns (r: nat)
+decreases m
+{
+  if m == multiset {}
+  {
+    r := 0;
+  }
+  else{
+    var x := pickMultiset(m);
+    var recursiveResult := mmSumNat(m - multiset{x});
+    r := SumNat(x) + recursiveResult;
+  }
+}
+
+
+
+*/

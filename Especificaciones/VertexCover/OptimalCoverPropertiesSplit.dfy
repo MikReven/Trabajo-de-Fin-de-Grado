@@ -55,7 +55,7 @@ lemma isVertexCoverEquiv(I:set<Node>, graph:Graph, v1: Node, v2 :Node)
 lemma biggerOptimalVertexCover(graph : Graph, k : nat, k':nat)
     requires isValidGraph(graph) 
     requires optimalValueVertexCover(graph,k)
-    requires  VertexCoverDecissionProblem(graph, k') && k' <= |graph.0|
+    requires  vertexCoverDecissionProblem(graph, k') && k' <= |graph.0|
     ensures k' >= k
     {}
 
@@ -100,7 +100,7 @@ lemma boundVertexCoverIsOptimal(graph : Graph, I : set<Node>, k :nat)
     var S :| S <= graph.0 && isVertexCover(S, graph) && |S| < |I|;
     boundoptimalValueVertexCover(graph,k);
     assert |S| < |I| <= k <= |graph.0|;
-    assert VertexCoverDecissionProblem(graph,|S|);
+    assert vertexCoverDecissionProblem(graph,|S|);
     assert !optimalValueVertexCover(graph,k);
     assert false;
     }

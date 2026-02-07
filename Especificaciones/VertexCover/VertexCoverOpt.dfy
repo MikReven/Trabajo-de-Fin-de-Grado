@@ -1,6 +1,6 @@
 include "VertexCover.dfy"
 
-ghost predicate VertexCoverDecissionProblem(graph:Graph, k:int)
+ghost predicate vertexCoverDecissionProblem(graph:Graph, k:int)
 requires isValidGraph(graph)
 {
   exists I:set<Node> | I <= graph.0 && |I| <= k  :: isVertexCover(I,graph)  
@@ -10,11 +10,11 @@ requires isValidGraph(graph)
 ghost predicate optimalValueVertexCover (graph : Graph, k : nat) 
     requires isValidGraph(graph)
 {     
-    VertexCoverDecissionProblem(graph, k)
-   && forall x : nat |  x <= |graph.0| && VertexCoverDecissionProblem(graph, x) :: x >= k
+    vertexCoverDecissionProblem(graph, k)
+   && forall x : nat |  x <= |graph.0| && vertexCoverDecissionProblem(graph, x) :: x >= k
 } 
 //In this definition the bound x <= |graph.0| does not constraint anything
-// because VertexCoverDecissionProblem(graph, |graph.0|) always holds
+// because vertexCoverDecissionProblem(graph, |graph.0|) always holds
 //There cannot exist x > |graph.0| such that k > x.
 //Otherwise we have that k > |graph.0|  
 

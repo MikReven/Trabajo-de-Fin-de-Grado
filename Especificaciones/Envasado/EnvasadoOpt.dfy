@@ -1,11 +1,17 @@
 include "Envasado.dfy"
 
+
+ghost predicate envasarDecissionProblem(A:multiset<nat>, E:nat, k:nat)
+{ 
+  exists I:multiset<multiset<nat>> :: |I| <= k && isEnvasado(A,E,I)   
+}
+
 //POE predicate
 ghost predicate optimalValueEnvasado(A : multiset<nat>, E : nat, k : nat)
     //requires Envasar(A, E, k)
 {
-    (Envasar(A, E, k)) &&
-    (forall x : nat | x <= |A| && Envasar(A, E, x) :: x >= k)
+    (envasarDecissionProblem(A, E, k)) &&
+    (forall x : nat | x <= |A| && envasarDecissionProblem(A, E, x) :: x >= k)
 }
 
 //M to denote multisets
@@ -15,14 +21,3 @@ ghost predicate optimalEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<
     && forall M : multiset<multiset<nat>> | isEnvasado(A, E, M) :: |M| >= |I|
 }
 
-lemma boundoptimalValueEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>) 
-requires optimalEnvasado(A,E,I)
-ensures |I| <= |A|
-{ if (forall a | a in A :: a <= E)
-   {boundEnvasar(A,E);
-    assert Envasar(A,E,|A|);
-   }
-   else { 
-    noEnvasar(A,E);
-   }
-}

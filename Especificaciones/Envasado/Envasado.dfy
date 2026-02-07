@@ -13,79 +13,11 @@ ghost predicate isEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>
     && forall x | x in I :: x <= A && GSumNat(x) <= E
 }
 
-ghost predicate isEnvasadoGeneralization(A : multiset<nat>, k: nat, E: seq<nat>, I:seq<multiset<nat>>)
-requires |E| == |I|
+ghost predicate isEnvasadoGeneralization(A : multiset<nat>, E: seq<nat>, I:seq<multiset<nat>>)
 {
-       |I| <= k
+       |I| <= |E|
     && Union(multiset(I[..])) == A 
     && forall i: nat | 0 <= i < |I| :: I[i] <= A && GSumNat(I[i]) <= E[i]
-}
-
-
-lemma isInEnvasado(A : multiset<nat>, a:nat, E : nat, I:multiset<multiset<nat>>)
-requires a in A && isEnvasado(A,E,I)
-ensures exists i :: i in I && a in i
-{
-  if (!exists i :: i in I && a in i)
-  { //assert Union(I) == A;
-    inOneUnion(I,a);
-    //assert !(a in A); //contradiction
-  }
-}
-
-
-ghost predicate Envasar(A:multiset<nat>, E:nat, k:nat)
-{ 
-  exists I:multiset<multiset<nat>> :: |I| <= k && isEnvasado(A,E,I)   
-}
-
-lemma boundEnvasar(A:multiset<nat>, E:nat)
-requires forall a | a in A :: a <= E
-ensures forall j | j >= |A| :: Envasar(A,E,j)
-{ 
-  var I:multiset<multiset<nat>> := multiset{};
-  var A':multiset<nat> := A;
-  while A' != multiset{}
-    invariant |I| == |A| - |A'|
-    invariant Union(I) == A-A'
-    invariant forall x | x in I :: x <= A && GSumNat(x) <= E
-   { var oldI := I;
-     var oldA' := A';
-
-    var a :| a in A';
-    I := I + multiset{multiset{a}};
-    A' := A' - multiset{a};
-    assert A - A' == A - oldA' + multiset{a};
-    UnionOne(I,multiset{a});
-    assert oldI == I - multiset{multiset{a}};
-    assert Union(I) == Union(oldI) + multiset{a};
-   }
-   assert |I| == |A|;
-   assert isEnvasado(A,E,I);
-}
-
-
-lemma noEnvasar(A:multiset<nat>, E:nat)
-requires exists a :: a in A && a > E
-ensures ! exists I:multiset<multiset<nat>> :: isEnvasado(A,E,I)
-{if (exists I:multiset<multiset<nat>> :: isEnvasado(A,E,I))
- {
-  var a:| a in A && a > E;
-  var I :| isEnvasado(A,E,I);
-  isInEnvasado(A,a,E,I);
-  var i :| i in I && a in i;
-  GSumNatElemIn(i,a);
-  assert GSumNat(i) >= a > E;
- }
-
-}
-
-method pick<T>(S:multiset<T>) returns (r:T)
-  requires S != multiset{} //&& |S| > 0
-  ensures r in S
-{
-  var v :| v in S;
-  return v;
 }
 
 // VERIFICACION
@@ -108,7 +40,7 @@ ensures b ==  (|I| <= k
     assert oldunion == Union(I-oldenvases);
 
 
-    var e1 := pick(envases); 
+    var e1 := pickMultiset(envases); 
     envases := envases - multiset{e1};
     assert I - oldenvases == I-envases-multiset{e1};
 

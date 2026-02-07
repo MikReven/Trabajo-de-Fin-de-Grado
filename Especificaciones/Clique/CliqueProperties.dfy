@@ -13,7 +13,7 @@ lemma UpperBoundClique(g: Graph)
     ensures forall I:set<Node> | |I| > |g.0| :: !isClique(g, I)
     ensures forall I:set<Node> | isClique(g, I) :: |I| <= |g.0|
 {
-    cardinalityLemma5(g.0);
+    greaterCardinalityImpliesNotASubsetForAll(g.0);
 }
 
 lemma alwaysAClique(g: Graph)

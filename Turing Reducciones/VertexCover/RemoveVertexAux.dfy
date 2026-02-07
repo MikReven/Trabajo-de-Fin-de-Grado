@@ -3,7 +3,7 @@ include "../../Especificaciones/VertexCover/VertexCoverProperties.dfy"
 
 lemma boundVertexCover(graph:Graph, k:int)
 requires isValidGraph(graph) 
-ensures forall k | k >= |graph.0| :: VertexCoverDecissionProblem(graph,k)
+ensures forall k | k >= |graph.0| :: vertexCoverDecissionProblem(graph,k)
 {}
 
 
@@ -28,7 +28,7 @@ ensures v1 in I || v2 in I
 lemma biggerOptimalVertexCover(graph : Graph, k : nat, k':nat)
 requires isValidGraph(graph) 
 requires optimalValueVertexCover(graph,k)
-requires  VertexCoverDecissionProblem(graph, k') && k' <= |graph.0|
+requires  vertexCoverDecissionProblem(graph, k') && k' <= |graph.0|
 ensures k' >= k
 {}
 
@@ -71,7 +71,7 @@ ensures optimalVertexCover(graph,I)
    var S :| S <= graph.0 && isVertexCover(S, graph) && |S| < |I|;
    boundoptimalValueVertexCover(graph,k);
    assert |S| < |I| <= k <= |graph.0|;
-   assert VertexCoverDecissionProblem(graph,|S|);
+   assert vertexCoverDecissionProblem(graph,|S|);
    assert !optimalValueVertexCover(graph,k);
    assert false;
  }
@@ -106,16 +106,6 @@ requires v1 in graph'.0 && v2 in graph'.0
 requires v1 != v && v2 != v && v1 !in I && v2 !in I
 ensures {v1,v2} in graph'.1
 {}
-
-//Moved this lemma to the file Graph.dfy in the folder Especificaciones/Auxiliar
-/*
-lemma validSubgraph(graph : Graph,v : Node, graph': Graph)
-requires isValidGraph(graph)
-requires graph'.0 == graph.0 - { v }
-requires graph'.1 == graph.1 - incidentEdges(graph,v)
-ensures isValidGraph(graph')
-{}
-*/
 
 lemma delVertexCoverCase1(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat, S':set<Node>)
 requires isValidGraph(graph)  && isValidGraph(graph')
@@ -153,7 +143,7 @@ ensures k' == k
 }
 
 
-lemma delVertexCoverCase2(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat, S':set<Node>)
+lemma{:only} delVertexCoverCase2(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat, S':set<Node>)
 requires isValidGraph(graph)  && isValidGraph(graph')
 requires v in graph.0
 requires optimalValueVertexCover(graph,k)   
@@ -173,21 +163,20 @@ ensures k == k' || k' + 1 == k
   assert |S| == |S'| + 1 == k' + 1;
 
   assert isVertexCover(S,graph) by{
-       forall e | e in graph.1 
-       ensures |S * e| > 0
-      {
-        if (e !in incidentEdges(graph,v)){}
-        else { 
-          assert v in S * e;
-          assert |S * e| > 0;}
-      }
-      
+      forall e | e in graph.1 
+      ensures |S * e| > 0
+    {
+      if (e !in incidentEdges(graph,v)){}
+      else { 
+        assert v in S * e;
+        assert |S * e| > 0;}
     }
-    translationVertexCover(graph,k);
-    var I :| I <= graph.0 && optimalVertexCover(graph, I) && |I| == k;
-    //assert k' + 1 >= k;
-    assert k == k' || k == k' + 1;
-
+    
+  }
+  translationVertexCover(graph,k);
+  var I :| I <= graph.0 && optimalVertexCover(graph, I) && |I| == k;
+  //assert k' + 1 >= k;
+  assert k == k' || k == k' + 1;
 }
 
 

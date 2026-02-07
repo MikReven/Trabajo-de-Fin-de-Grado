@@ -2,14 +2,14 @@ include "VertexCover.dfy"
 include "VertexCoverOpt.dfy"
 
 //Optimal value vertex cover will never be strictly higher than |graph.0|
-//because VertexCoverDecissionProblem(graph, |graph.0|) always holds
+//because vertexCoverDecissionProblem(graph, |graph.0|) always holds
 
 lemma boundoptimalValueVertexCover(graph: Graph, k : nat) 
 requires isValidGraph(graph)
 requires optimalValueVertexCover(graph,k)
 ensures k <= |graph.0|
 { 
-    assert VertexCoverDecissionProblem(graph,|graph.0|);
+    assert vertexCoverDecissionProblem(graph,|graph.0|);
 }
 
 lemma emptyoptimalValueVertexCover(graph: Graph) 
@@ -35,7 +35,7 @@ ensures !exists I:set<Node> | I <= graph.0 && |I| < k  :: isVertexCover(I,graph)
     if exists I:set<Node> :: I <= graph.0 && |I| < k && isVertexCover(I,graph)
     {
         ghost var I: set<Node> :| I <= graph.0 && |I| < k && isVertexCover(I,graph);
-        assert VertexCoverDecissionProblem(graph, |I|);
+        assert vertexCoverDecissionProblem(graph, |I|);
         subsetCardinality(I, graph.0);
         assert false;
     }

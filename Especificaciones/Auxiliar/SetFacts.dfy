@@ -1,5 +1,5 @@
-
-
+//Returns an element belonging to a set
+//Used to iterate over sets
 method pick<T>(S:set<T>) returns (r:T)
   requires S != {} //&& |S| > 0
   ensures r in S
@@ -8,54 +8,24 @@ method pick<T>(S:set<T>) returns (r:T)
   return v;
 }
 
+//Flattens a set of sets to a set containing all elements in the union
+//Used in Envasado
 ghost function Union<T>(I:set<set<T>>) : set<T>
 {
   if I == {} then {}
   else var i :| i in I; i + Union(I-{i})
 }
 
-
-function flatten(embeddedSet: set<set<nat>>) : set<nat>
-{
-    set x, y | y in embeddedSet && x in y :: x
-}
-
-lemma flattenLemma(embeddedSet: set<set<nat>>)
-ensures forall S: set<nat> | S in embeddedSet :: S <= flatten(embeddedSet)
-{}
-
-lemma setEquialityDefinition<T>(A: set<T>, B: set<T>)
-requires A <= B
-requires A >= B 
-ensures A == B 
-{ }
-
-lemma setEquialityDefinition2<T>(A: set<T>, B: set<T>)
-requires forall t: T :: t in A <==> t in B
-ensures A == B 
-{ }
-
-lemma equalityBelonging<T>(A: set<T>, B: set<T>)
-requires A == B 
-ensures forall t: T :: t in A <==> t in B 
-{ }
-
-lemma equialityImpliesSameCardinal<T>(A: set<T>, B: set<T>)
-requires A == B 
-ensures |A| == |B|
-{ }
-
-lemma setComprehensionEquality<T>(A: set<T>, B: set<T>)
-requires A == (set t: T | t in B :: t)
-ensures A == B
-{ }
-
+//A set comprehension defined by the union of sets is equal to union of set comprehensions
+//Used in Graph
 lemma setComprehensionUnion<T>(S1: set<set<T>>,S2: set<set<T>>,n: T)
 ensures (set e: set<T> | e in S1+S2 && n in e :: e) == 
            (set e: set<T> | e in S1 && n in e :: e) + 
            (set e: set<T> | e in S2 && n in e :: e)
 {}
 
+//If all elements of a set B are sets of cardinality 2 where one element belongs to set A and the other doesn't, A and B have the same cardinality 
+//Used in Graph
 lemma sameCardinalThroughComprehension<T>(A: set<T>, B: set<set<T>>)
 decreases A
 requires forall b: set<T> | b in B :: (exists a: T, c: T :: a in A && c !in A && b == {a, c}) 
@@ -70,21 +40,6 @@ ensures |A| == |B|
     var B' := B - {b};
     sameCardinalThroughComprehension(A - {a}, B - {b});
   }
-}
-
-lemma strictSubsetDefinition<T>(A: set<T>, B: set<T>)
-requires A < B 
-ensures exists b: T :: b in B && b !in A 
-{ }
-
-lemma cardinalityLemma1()
-ensures forall A, B: set<nat> :: (A >= B ==> |A - B| == |A| - |B|)
-{ }
-
-lemma cardinalityLemma2()
-ensures forall A, B: set<nat> :: ( A >= B && |A| == |B| ) ==> A == B
-{
-  cardinalityLemma1();
 }
 
 lemma subsetCardinality<T>(A: set<T>, B: set<T>)
@@ -110,24 +65,27 @@ ensures |A| < |B|
   } 
 }
 
-lemma cardinalityLemma4(A: set<nat>, B: set<nat>)
+//If a set has greater cardinality than another, the first cannot be a subset of the second
+lemma greaterCardinalityImpliesNotASubset(A: set<nat>, B: set<nat>)
   requires |A| > |B|
   ensures !(A <= B)
 { 
   var elem: nat :| elem in (A);
   if(elem in B){
-    cardinalityLemma4(A - {elem}, B - {elem});
+    greaterCardinalityImpliesNotASubset(A - {elem}, B - {elem});
   }
   else{ }
 }
 
-lemma cardinalityLemma5(A: set<nat>)
+//A set cannot be a subset of any set whose cardinality is lesser
+//Used in CliqueProperties
+lemma greaterCardinalityImpliesNotASubsetForAll(A: set<nat>)
   ensures forall B: set<nat> | |B| > |A| :: !(B <= A)
 { 
   if (exists B: set<nat> :: |B| > |A| && (B <= A))
   {
     var B: set<nat> :| |B| > |A| && (B <= A);
-    cardinalityLemma4(B, A);
+    greaterCardinalityImpliesNotASubset(B, A);
     assert false;
   }
 }
@@ -470,18 +428,92 @@ ensures exists a: nat :: (a in A && numberOfLesser(A, a) == k && (forall b: nat 
     }
   }
 }
+
+
+///////////////////////////////////////////////////
+//                 Currently Unused              //
+///////////////////////////////////////////////////
 /*
-lemma alwaysOneElementGreaterThanKElementsForAll(A: set<nat>)
-ensures forall k: nat | 0 <= k < |A| :: (exists a: nat :: (a in A && numberOfLesser(A, a) == k))// && (forall b: nat | b in A && numberOfLesser(A, b) == k :: a == b)) 
+
+lemma unionLemma(embeddedSet: set<set<nat>>)
+ensures forall S: set<nat> | S in embeddedSet :: S <= Union(embeddedSet)
+{}
+
+//Two sets are equal if both are subsets of each other
+lemma setEquialityDefinition<T>(A: set<T>, B: set<T>)
+requires A <= B
+requires A >= B 
+ensures A == B 
+{ }
+
+//Two sets are equal if all elements contained in one are contained in the other in both directions
+lemma setEquialityDefinition2<T>(A: set<T>, B: set<T>)
+requires forall t: T :: t in A <==> t in B
+ensures A == B 
+{ }
+
+//If two sets are equal, all elements contained in one are contained in the other in both directions
+lemma equalityBelonging<T>(A: set<T>, B: set<T>)
+requires A == B 
+ensures forall t: T :: t in A <==> t in B 
+{ }
+
+//Two sets that are equal have the same cardinality
+lemma equialityImpliesSameCardinal<T>(A: set<T>, B: set<T>)
+requires A == B 
+ensures |A| == |B|
+{ }
+
+//When using belonging to another set as the sole condition for set comprehension, the result is a set equal to the original
+lemma setComprehensionEquality<T>(A: set<T>, B: set<T>)
+requires A == (set t: T | t in B :: t)
+ensures A == B
+{ }
+
+//If A is a strict subset of B, there is some element in B not contained in A
+lemma strictSubsetDefinition<T>(A: set<T>, B: set<T>)
+requires A < B 
+ensures exists b: T :: b in B && b !in A 
+{ }
+
+//Given a set and one of its subsets, the cardinality of the difference is the difference of cardinalities
+lemma cardinalityOfSubsetDifference<T>(A: set<T>, B: set<T>)
+requires A >= B
+ensures |A - B| == |A| - |B|
+{ }
+
+//If a set is a subset of another and they share cardinalities, they are equal
+lemma subsetAndSameCardinalityImpliesEqual<T>(A: set<T>, B: set<T>)
+requires A >= B && |A| == |B| 
+ensures A == B
 {
-  forall k: nat | 0 <= k < |A| ensures
-  (exists a: nat :: (a in A && numberOfLesser(A, a) == k)){
-    var a: nat := pickFromOrder(A, k);
-    assert a in A;
-    assert numberOfLesser(A, a) == k;
-  }
-  //duda
-  assume false;
-  assert forall k: nat | 0 <= k < |A|  :: exists a : nat :: a in A && numberOfLesser(A, a) == k;
+  cardinalityLemma1(A, B);
 }
+
+
+
+
+
+
+
+
+//The existence of an element that satisfies a condition implies that the set comprehension obtained by applying said condition in non-empty
+lemma existenceImpliesNonEmpty<T>(A: set<T>, B: set<set<T>>)
+requires forall x: T | x in A :: (exists y: set<T> :: y in B && x in y)
+ensures forall x: T | x in A :: (set y: set<T> | y in B && x in y :: y) != {}
+{ 
+    if exists x: T :: x in A && (set y: set<T> | y in B && x in y :: y) == {} {
+        var x: T :| x in A && (set y: set<T> | y in B && x in y :: y) == {}; 
+        var setX: set<set<T>> := (set y: set<T> | y in B && x in y :: y);
+        assert forall y: set<T> | y in B && x in y :: y in setX;
+        assert setX == {};
+        assert forall y: set<T> | y in B :: x !in y;
+    }
+}
+
+
+
+
+
+
 */

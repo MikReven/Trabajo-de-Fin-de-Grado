@@ -1,10 +1,11 @@
 include "../../Especificaciones/Envasado/EnvasadoOpt.dfy"
+include "../../Especificaciones/Envasado/EnvasadoProperties.dfy"
 
 
 
 //We assume a polynomial algorithm for PDE
 method {:axiom} mEnvasar (A : multiset<nat>, E : nat, k : nat) returns (b : bool)
-  ensures b == Envasar(A, E, k)
+  ensures b == envasarDecissionProblem(A, E, k)
 
 //We implement a polynomial algorithm for PE using mEnvasar
 method mOptimalValueEnvasado (A : multiset<nat>, E : nat) returns (k : nat)
@@ -25,15 +26,15 @@ method mOptimalValueEnvasado (A : multiset<nat>, E : nat) returns (k : nat)
     while (idx <= |A| && !done) 
         invariant idx == 0 ==> !done
         invariant idx <= |A| + 1
-        invariant (idx > 0 && Envasar(A, E, idx - 1)) <==> done 
-        invariant forall x : nat | x < idx - 1 :: !(Envasar(A, E, x)) 
+        invariant (idx > 0 && envasarDecissionProblem(A, E, idx - 1)) <==> done 
+        invariant forall x : nat | x < idx - 1 :: !(envasarDecissionProblem(A, E, x)) 
     {
         done := mEnvasar(A, E, idx);
         idx := idx + 1;
     }
     
     k := idx - 1;
-    assert Envasar(A, E, |A|) by {
+    assert envasarDecissionProblem(A, E, |A|) by {
       boundEnvasar(A, E);
     }
   }
