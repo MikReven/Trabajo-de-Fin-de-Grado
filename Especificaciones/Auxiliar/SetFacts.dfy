@@ -482,14 +482,6 @@ requires A >= B
 ensures |A - B| == |A| - |B|
 { }
 
-//If a set is a subset of another and they share cardinalities, they are equal
-lemma subsetAndSameCardinalityImpliesEqual<T>(A: set<T>, B: set<T>)
-requires A >= B && |A| == |B| 
-ensures A == B
-{
-  cardinalityLemma1(A, B);
-}
-
 
 
 

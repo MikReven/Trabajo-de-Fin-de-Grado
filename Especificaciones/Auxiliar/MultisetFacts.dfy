@@ -1,3 +1,88 @@
+//Used by EnvasadoProperties in eachBinHasLesserThanEWeight
+function maxNat(m:multiset<nat>): (l:nat)
+requires m != multiset{}
+ensures l in m && (forall x | x in m :: l >= x) 
+{ maxInt(m)
+}
+
+function maxInt(m:multiset<int>): (l:int)
+requires m != multiset{}
+ensures l in m && (forall x | x in m :: l >= x) 
+{ HasMaximumInt(m);
+  var x :| x in m && (forall y | y in m :: x >= y); 
+  x
+}
+
+lemma HasMaximumInt(m: multiset<int>)
+  requires m != multiset{}
+  ensures exists z :: z in m && forall y | y in m :: z >= y
+{
+  var z :| z in m;
+  if m == multiset{z} {
+    // the mimimum of a singleton set is its only element
+  } else if forall y | y in m :: z >= y {
+    // we happened to pick the minimum of s
+  } else {
+    // s-{z} is a smaller, nonempty set and it has a minimum
+    var m' := m - multiset{z};
+    HasMaximumInt(m');
+    var z' :| z' in m' && forall y :: y in m' ==> z' >= y;
+    // the minimum of s' is the same as the miminum of s
+    forall y | y in m
+      ensures z' >= y
+    {
+      if
+      case y in m' =>
+        assert z' >= y;  // because z' in minimum in s'
+      case y == z =>
+        var k :| k in m && k > z;  // because z is not minimum in s
+        assert k in m';  // because k != z
+    }
+  }
+}
+
+function minNat(m:multiset<nat>): (l:nat)
+requires m != multiset{}
+ensures l in m && (forall x | x in m :: l <= x) 
+{ minInt(m)
+}
+
+function minInt(m:multiset<int>): (l:int)
+requires m != multiset{}
+ensures l in m && (forall x | x in m :: l <= x) 
+{ HasMinimumInt(m);
+  var x :| x in m && (forall y | y in m :: x <= y); 
+  x
+}
+
+lemma HasMinimumInt(m: multiset<int>)
+  requires m != multiset{}
+  ensures exists z :: z in m && forall y | y in m :: z <= y
+{
+  var z :| z in m;
+  if m == multiset{z} {
+    // the mimimum of a singleton set is its only element
+  } else if forall y :: y in m ==> z <= y {
+    // we happened to pick the minimum of s
+  } else {
+    // s-{z} is a smaller, nonempty set and it has a minimum
+    var m' := m - multiset{z};
+    HasMinimumInt(m');
+    var z' :| z' in m' && forall y :: y in m' ==> z' <= y;
+    // the minimum of s' is the same as the miminum of s
+    forall y | y in m
+      ensures z' <= y
+    {
+      if
+      case y in m' =>
+        assert z' <= y;  // because z' in minimum in s'
+      case y == z =>
+        var k :| k in m && k < z;  // because z is not minimum in s
+        assert k in m';  // because k != z
+    }
+  }
+}
+
 method pickMultiset<T>(S:multiset<T>) returns (r:T)
   requires S != multiset{} //&& |S| > 0
   ensures r in S
@@ -6,7 +91,9 @@ method pickMultiset<T>(S:multiset<T>) returns (r:T)
   return v;
 }
 
-//All sets of naturals contain a minimum
+//Lemas to prove that the hasLesserElements is strongly connected
+
+//All multisets of naturals contain a minimum according to the hasLesserElements relation
 lemma hasAMinimumMultiset(S: multiset<nat>)
   requires |S| > 0
   ensures exists x: nat :: (x in S && forall y: nat | y in S :: x <= y)
@@ -72,6 +159,7 @@ predicate hasSmallerElements(A: multiset<nat>, B: multiset<nat>)
   (A != B && B > multiset{} && pickMinMultiset(A) == pickMinMultiset(B) && hasSmallerElements(A - multiset{pickMinMultiset(A)}, B - multiset{pickMinMultiset(B)}))
 }
 
+//No terminado
 lemma multisetMinExists(A: multiset<multiset<nat>>)
 requires A != multiset{}
 ensures exists a: multiset<nat> :: (a in A && isMin(A, a) && (forall a': multiset<nat> | a' in A && isMin(A, a') :: a' == a))
@@ -88,17 +176,15 @@ ensures exists a: multiset<nat> :: (a in A && isMin(A, a) && (forall a': multise
   }
   else{
     var A': multiset<multiset<nat>> := A - multiset{a};
-    var Comp: multiset<multiset<nat>> := multiset{a};
+    var analyzed: multiset<multiset<nat>> := multiset{a};
     var minElem: multiset<nat> := a;
-    //assert exists a': multiset<nat> :: a' in A && !hasSmallerElements(a, a');
-    //assert exists a': multiset<nat> :: a' in A && hasSmallerElements(a', a);
-    assert forall x: multiset<nat> | x in Comp :: hasSmallerElements(minElem, x);
+    assert forall x: multiset<nat> | x in analyzed :: hasSmallerElements(minElem, x);
     while(A' > multiset{})
       //decreases A'
-      invariant Comp + A' == A
+      invariant analyzed + A' == A
       invariant A' <= A
-      invariant forall x: multiset<nat> | x in Comp :: hasSmallerElements(minElem, x)
-      invariant ( A' == multiset{} ) ==> Comp == A
+      invariant forall x: multiset<nat> | x in analyzed :: hasSmallerElements(minElem, x)
+      invariant ( A' == multiset{} ) ==> analyzed == A
       invariant minElem in A
     {
       a :| a in A'; 
@@ -106,41 +192,36 @@ ensures exists a: multiset<nat> :: (a in A && isMin(A, a) && (forall a': multise
         var copy := minElem;
         minElem := a;
         A' := A' - multiset{a};
-        forall x: multiset<nat> | x in Comp 
+        forall x: multiset<nat> | x in analyzed 
         ensures hasSmallerElements(minElem, x)
         {
           hasSmallerElementsTransitivity(minElem, copy, x);
         }
-        assert Comp + A' + multiset{a} == A;
+        assert analyzed + A' + multiset{a} == A;
         assert A' <= A;
-        assert forall x: multiset<nat> | x in Comp + multiset{a} :: hasSmallerElements(minElem, x);
+        assert forall x: multiset<nat> | x in analyzed + multiset{a} :: hasSmallerElements(minElem, x);
         assert minElem in A;
-        assert A' == multiset{} ==> (Comp + multiset{a}) == A;
-        assume false;
-        //Comp := Comp + multiset{a};
+        assert A' == multiset{} ==> (analyzed + multiset{a}) == A;
+        assume analyzed == analyzed + multiset{a};
+        //analyzed := analyzed + multiset{a};
         
       }
       else{
         A' := A' - multiset{a};
-        assert Comp + A' + multiset{a} == A;
+        assert analyzed + A' + multiset{a} == A;
         assert A' <= A;
         hasSmallerElementsStronglyConnected(a, minElem);
-        assert forall x: multiset<nat> | x in Comp + multiset{a} :: hasSmallerElements(minElem, x);
+        assert forall x: multiset<nat> | x in analyzed + multiset{a} :: hasSmallerElements(minElem, x);
         assert minElem in A;
-        assert A' == multiset{} ==> (Comp + multiset{a}) == A;
-        assume false;
+        assert A' == multiset{} ==> (analyzed + multiset{a}) == A;
+        assume analyzed == analyzed + multiset{a};
         //Comp := Comp + multiset{a};
       }
-      /*
-      hasSmallerElementsStronglyConnected(a, minElem);
-      assert hasSmallerElements(a, minElem) || hasSmallerElements(minElem, a);
-      assert hasSmallerElements(minElem, minElem);
-      assume false;
-      assert forall x: multiset<nat> | x in Comp :: hasSmallerElements(minElem, x);
-      */
     }
   }
 }
+
+//End of lemas to prove that the hasLesserElements is strongly connected
 
 predicate isMin(A: multiset<multiset<nat>>, a: multiset<nat>)
 requires a in A
@@ -148,6 +229,7 @@ requires a in A
   forall a': multiset<nat> | a' in A :: hasSmallerElements(a, a')
 }
 
+//Used to pick an element from a multiset of multisets of naturals in a deterministic way
 function pickMultisetFunc(A: multiset<multiset<nat>>): (B: multiset<nat>)
 requires A != multiset{}
 {
@@ -155,6 +237,119 @@ requires A != multiset{}
   var x: multiset<nat> :| x in A && isMin(A, x);
 
   x
+}
+
+//If a multiset is a subset of another, its cardinality is at most equal
+//Used locally by multisetCardinality2Implication
+lemma submultisetImpliesLesserCardinality<T>(A: multiset<T>, B: multiset<T>)
+requires A <= B 
+ensures |A| <= |B|
+{ 
+  if A == multiset{} {}
+  else{
+    var a :| a in A;
+    submultisetImpliesLesserCardinality(A - multiset{a}, B - multiset{a});
+  }
+}
+
+//If a multiset is a subset of another, its cardinality is at most equal
+//Used locally by multisetCardinalityAtLeast2Implication
+lemma submultisetOfAnyLesserCardinality<T>(A: multiset<T>, k: nat)
+decreases |A| - k
+requires k <= |A| 
+ensures exists A': multiset<T> :: A' <= A && |A'| == k
+{ 
+  if |A| == k {}
+  else{
+    var a :| a in A;
+    submultisetOfAnyLesserCardinality(A - multiset{a}, k);
+  } 
+}
+
+//If a multiset is a strict subset of another its cardinality is strictly lesser
+//Used locally by submultisetAndSameCardinalityImpliesEqual
+lemma strictSubmultisetImpliesStrictlyLesserCardinality<T>(A: multiset<T>, B: multiset<T>)
+requires A < B 
+ensures |A| < |B|
+{ 
+  if A == multiset{} {}
+  else{
+    var a :| a in A;
+    strictSubmultisetImpliesStrictlyLesserCardinality(A - multiset{a}, B - multiset{a});
+  }
+}
+
+//It is not possible for two subsets to verify these three statements at once:
+//  One is a subset of the other
+//  They have the same cardinality
+//  At least for one element, one multisets contains more copies than the other
+//Used locally by submultisetAndSameCardinalityImpliesEqual
+lemma submultisetAndSameCardinalityImpliesEqualAux<T>(A: multiset<T>, B: multiset<T>)
+requires A <= B 
+requires |A| == |B|
+requires exists b :: b in B && b in A && B[b] > A[b]
+ensures false
+{
+  var b :| b in B && b in A && B[b] > A[b];
+  if A == multiset{} {}
+  else if exists x :: x in A && x != b {
+    var x :| x in A && x != b;
+    submultisetAndSameCardinalityImpliesEqualAux(A - multiset{x}, B - multiset{x}); 
+  }
+  else{
+    submultisetAndSameCardinalityImpliesEqualAux(A - multiset{b}, B - multiset{b});
+  }
+}
+
+//Used locally by multisetCardinality2Implication
+//If one multiset is a subset of another and they have the same cardinality, they are equal
+lemma submultisetAndSameCardinalityImpliesEqual<T>(A: multiset<T>, B: multiset<T>)
+requires A <= B 
+requires |A| == |B|
+ensures A == B
+{ 
+  assert B <= A by {
+    if exists b: T :: b in B && b !in A {
+      strictSubmultisetImpliesStrictlyLesserCardinality(A, B);
+    }
+    else {
+      if exists b :: b in B && b in A && B[b] > A[b] {
+        var b :| b in B && b in A && B[b] > A[b];
+        submultisetAndSameCardinalityImpliesEqualAux(A, B);
+      } 
+    } 
+  }
+}
+
+//If a multiset exactly contains two elements, it either contains two different elements or two copies of the same element
+//Used locally by multisetCardinalityAtLeast2Implication
+lemma multisetCardinality2Implication<T>(A: multiset<T>)
+requires |A| == 2
+ensures exists a: T, b: T :: a in A && (A[a] == 2 || (b in A && A == multiset{a, b}))
+{ 
+  var a :| a in A;
+  var A': multiset<T> := A - multiset{a};
+  assert |A'| == 1;
+  var b :| b in A';
+  assert A' == multiset{b} by {
+    if A' != multiset{b}{
+      submultisetImpliesLesserCardinality(multiset{b}, A');
+      submultisetAndSameCardinalityImpliesEqual(multiset{b}, A');
+      //assert |A'| == 1;
+    }
+  }
+  //assert A == multiset{a} + multiset{b};
+}
+
+//If a multiset contains two elements, it either contains two different elements or two copies of the same element
+//Used in Sum by SumNatPlusAnotherElement
+lemma multisetCardinalityAtLeast2Implication<T>(A: multiset<T>)
+requires |A| >= 2
+ensures exists a: T, b: T :: a in A && (A[a] >= 2 || A >= multiset{a, b})
+{ 
+  submultisetOfAnyLesserCardinality(A, 2);
+  var A': multiset<T> :| A' <= A && |A'| == 2;
+  multisetCardinality2Implication(A');
 }
 
 lemma CommutativeUnion<T>(x:multiset<T>,y:multiset<T>)

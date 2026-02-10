@@ -12,12 +12,97 @@ ensures |I| <= |A|
    }
 }
 
+lemma elementWithMaxSumExists(A: multiset<multiset<nat>>)
+requires A != multiset{}
+ensures exists x: multiset<nat> :: forall x': multiset<nat> | x' in A :: GSumNat(x) >= GSumNat(x')
+{ 
+  var x :| x in A;
+  var multisetIterate := A - multiset{x};
+  var analyzed := multiset{x};
+  while multisetIterate != multiset{}
+  decreases multisetIterate
+  invariant multisetIterate + analyzed == A 
+  invariant forall x' | x' in analyzed :: GSumNat(x') <= GSumNat(x)
+  invariant multisetIterate == multiset{} ==> analyzed == A
+  {
+    var x' :| x' in multisetIterate;
+    if GSumNat(x') >= GSumNat(x)
+    {
+      x := x';
+    }
+    analyzed := analyzed + multiset{x'};
+    multisetIterate := multisetIterate - multiset{x'};
+  }
+}
+
+//A sum of x elements is at most x times the maximum of said elements
+//Used locally by eachBinHasLesserThanEWeight
+lemma upperBoundSumOfElements(A: multiset<nat>, maxElem: nat)
+requires maxElem in A
+requires forall a: nat | a in A :: a <= maxElem
+ensures GSumNat(A) <= |A| * maxElem
+{
+  var sumA: nat := 0;
+  var sumMaxElem: nat := 0;
+  var analyzed: multiset<nat> := multiset{};
+  var multisetIterate := A;
+  var counter := 0;
+  while multisetIterate != multiset{} 
+  decreases multisetIterate
+  invariant sumMaxElem >= sumA
+  invariant counter == |analyzed|
+  invariant multisetIterate <= A
+  invariant multisetIterate + analyzed == A 
+  invariant multisetIterate == multiset{} ==> analyzed == A 
+  invariant sumA == GSumNat(analyzed)
+  invariant sumMaxElem == counter * maxElem
+  {
+    var a :| a in multisetIterate;
+    additionMultiplicationEquivalence(sumMaxElem, counter, maxElem);
+    sumA := sumA + a;
+    counter := counter + 1;
+    sumMaxElem := maxElem + sumMaxElem; //hace que el assume false deje de funcionar
+    multisetIterate := multisetIterate - multiset{a};
+    SumNatPlusAnotherElement(analyzed, a);
+    analyzed := analyzed + multiset{a};
+  }
+}
+
+//No terminado
+lemma eachBinHasLesserThanEWeight(A: multiset<nat>, E: nat, I: multiset<multiset<nat>>)
+requires isEnvasado(A, E, I)
+ensures GMultisetMultisetSumNat(I) <= E * |I|
+{
+  if I == multiset{} {}
+  else {
+    assert forall i: multiset<nat> | i in I :: GSumNat(i) <= E;
+    elementWithMaxSumExists(I);
+    var x: multiset<nat> :| forall x': multiset<nat> | x' in I :: GSumNat(x) >= GSumNat(x');
+    var weights: multiset<nat> := multisetOfSums(I);
+    HasMaximumInt(weights);
+    var maxWeight: nat :| maxWeight in weights && forall w: nat | w in weights :: maxWeight >= w; 
+    upperBoundSumOfElements(weights, maxWeight);
+    assume false;
+    //crear un set con el GSumNat de cada uno de los elementos de I, y llamar a upperBoundSumOfElements con eso
+    
+    assume false;
+    assert |I| * GSumNat(x) >= GMultisetMultisetSumNat(I);
+
+  }
+}
+
+//No terminado
 lemma lowerBoundoptimalValueEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>) 
 requires optimalEnvasado(A,E,I)
-ensures |I| * E >= |A|
+ensures |I| * E >= GSumNat(A)
 { 
-  var totalSumA: nat := SumNat(A);
+  var totalSumA: nat := FSumNat(A);
   assert forall m: multiset<nat> | m in I :: GSumNat(m) <= E;
+  var totalSumI := GMultisetMultisetSumNat(I);
+  //this is true, but requires a lema to verify, possibly not needed though
+  //assert totalSumA == totalSumI;
+  eachBinHasLesserThanEWeight(A, E, I);
+  assert totalSumI <= E * |I|;
   
   assume false; 
 }
