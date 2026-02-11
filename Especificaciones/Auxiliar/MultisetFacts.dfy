@@ -186,7 +186,18 @@ ensures exists a: multiset<nat> :: (a in A && isMin(A, a) && (forall a': multise
     //b es el menor
     forall a': multiset<nat> | a' in A ensures hasSmallerElements(b, a'){
       if a' in A' {}
-      else { assume hasSmallerElements(b,a);}
+      else { 
+        assert  hasSmallerElements(b,a) by {
+          if hasSmallerElements(a, b){
+            forall x: multiset<nat>  | x in A' 
+            ensures hasSmallerElements(a, x)
+            {
+              hasSmallerElementsTransitivity(a, b, x);
+            } 
+          }
+          hasSmallerElementsStronglyConnected(a, b);
+        }
+      }
     }
     //Los demas menores son iguales a b
     forall a': multiset<nat> | a' in A && isMin(A, a') ensures a' == b
