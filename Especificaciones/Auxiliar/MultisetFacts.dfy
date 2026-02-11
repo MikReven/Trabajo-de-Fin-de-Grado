@@ -176,7 +176,29 @@ ensures exists a: multiset<nat> :: (a in A && isMin(A, a) && (forall a': multise
   }
   else{
     var A': multiset<multiset<nat>> := A - multiset{a};
-    var analyzed: multiset<multiset<nat>> := multiset{a};
+    assert A' != multiset{} by{
+      if A' == multiset{} { assert A == multiset{a}; assert false;}
+      
+    }
+    multisetMinExists(A');
+    var b :| b in A' && isMin(A', b) && (forall a': multiset<nat> | a' in A' && isMin(A', a') :: a' == b);
+    assert b in A; 
+    //b es el menor
+    forall a': multiset<nat> | a' in A ensures hasSmallerElements(b, a'){
+      if a' in A' {}
+      else { assume hasSmallerElements(b,a);}
+    }
+    //Los demas menores son iguales a b
+    forall a': multiset<nat> | a' in A && isMin(A, a') ensures a' == b
+    {
+      if a' in A' {}
+      else { assert a' == a; }
+    }
+
+    
+
+
+    /*var analyzed: multiset<multiset<nat>> := multiset{a};
     var minElem: multiset<nat> := a;
     assert forall x: multiset<nat> | x in analyzed :: hasSmallerElements(minElem, x);
     while(A' > multiset{})
@@ -217,7 +239,7 @@ ensures exists a: multiset<nat> :: (a in A && isMin(A, a) && (forall a': multise
         assume analyzed == analyzed + multiset{a};
         //Comp := Comp + multiset{a};
       }
-    }
+    }*/
   }
 }
 
