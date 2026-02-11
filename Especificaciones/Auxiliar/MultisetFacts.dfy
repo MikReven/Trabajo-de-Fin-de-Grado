@@ -159,7 +159,6 @@ predicate hasSmallerElements(A: multiset<nat>, B: multiset<nat>)
   (A != B && B > multiset{} && pickMinMultiset(A) == pickMinMultiset(B) && hasSmallerElements(A - multiset{pickMinMultiset(A)}, B - multiset{pickMinMultiset(B)}))
 }
 
-//No terminado
 lemma multisetMinExists(A: multiset<multiset<nat>>)
 requires A != multiset{}
 ensures exists a: multiset<nat> :: (a in A && isMin(A, a) && (forall a': multiset<nat> | a' in A && isMin(A, a') :: a' == a))
