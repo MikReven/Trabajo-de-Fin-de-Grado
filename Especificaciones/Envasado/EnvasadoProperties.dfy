@@ -61,17 +61,22 @@ ensures GSumNat(A) <= |A| * maxElem
     additionMultiplicationEquivalence(sumMaxElem, counter, maxElem);
     sumA := sumA + a;
     counter := counter + 1;
-    sumMaxElem := maxElem + sumMaxElem; //hace que el assume false deje de funcionar
-    multisetIterate := multisetIterate - multiset{a};
+    sumMaxElem := maxElem + sumMaxElem; 
     SumNatPlusAnotherElement(analyzed, a);
     analyzed := analyzed + multiset{a};
+    multisetIterate := multisetIterate - multiset{a};
   }
 }
+
+lemma lessThanWithMultiplication(a: nat, b: nat, c: nat)
+requires a <= c 
+ensures a * b <= c * b 
+{ }
 
 //No terminado
 lemma eachBinHasLesserThanEWeight(A: multiset<nat>, E: nat, I: multiset<multiset<nat>>)
 requires isEnvasado(A, E, I)
-ensures GMultisetMultisetSumNat(I) <= E * |I|
+ensures GMultisetSumNat(I) <= E * |I|
 {
   if I == multiset{} {}
   else {
@@ -82,29 +87,33 @@ ensures GMultisetMultisetSumNat(I) <= E * |I|
     HasMaximumInt(weights);
     var maxWeight: nat :| maxWeight in weights && forall w: nat | w in weights :: maxWeight >= w; 
     upperBoundSumOfElements(weights, maxWeight);
-    assume false;
-    //crear un set con el GSumNat de cada uno de los elementos de I, y llamar a upperBoundSumOfElements con eso
-    
-    assume false;
-    assert |I| * GSumNat(x) >= GMultisetMultisetSumNat(I);
-
+    calc{
+      GMultisetSumNat(I);
+      == 
+      GSumNat(weights);
+      <= 
+      maxWeight * |weights|;  
+      == 
+      maxWeight * |I|;
+      <= {lessThanWithMultiplication(maxWeight, |I|, E);}
+      E * |I|;
+    }
   }
 }
 
 //No terminado
 lemma lowerBoundoptimalValueEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>) 
 requires optimalEnvasado(A,E,I)
-ensures |I| * E >= GSumNat(A)
+ensures GSumNat(A) <= E * |I|
 { 
-  var totalSumA: nat := FSumNat(A);
+  var totalSumA: nat := GSumNat(A);
   assert forall m: multiset<nat> | m in I :: GSumNat(m) <= E;
-  var totalSumI := GMultisetMultisetSumNat(I);
-  //this is true, but requires a lema to verify, possibly not needed though
-  //assert totalSumA == totalSumI;
+  var totalSumI := GMultisetSumNat(I);
   eachBinHasLesserThanEWeight(A, E, I);
-  assert totalSumI <= E * |I|;
-  
-  assume false; 
+  assert GMultisetSumNat(I) <=  E * |I|; 
+  GSumNatPartes2(A, I);
+  assert GMultisetSumNat(I) == GSumNat(A);
+  assert GSumNat(A) <= E * |I|;
 }
 
 lemma isInEnvasado(A : multiset<nat>, a:nat, E : nat, I:multiset<multiset<nat>>)
@@ -121,16 +130,16 @@ ensures exists i :: i in I && a in i
 lemma noEnvasar(A:multiset<nat>, E:nat)
 requires exists a :: a in A && a > E
 ensures ! exists I:multiset<multiset<nat>> :: isEnvasado(A,E,I)
-{if (exists I:multiset<multiset<nat>> :: isEnvasado(A,E,I))
- {
-  var a:| a in A && a > E;
-  var I :| isEnvasado(A,E,I);
-  isInEnvasado(A,a,E,I);
-  var i :| i in I && a in i;
-  GSumNatElemIn(i,a);
-  assert GSumNat(i) >= a > E;
- }
-
+{
+  if (exists I:multiset<multiset<nat>> :: isEnvasado(A,E,I))
+  {
+    var a:| a in A && a > E;
+    var I :| isEnvasado(A,E,I);
+    isInEnvasado(A,a,E,I);
+    var i :| i in I && a in i;
+    GSumNatElemIn(i,a);
+    assert GSumNat(i) >= a > E;
+  }
 }
 
 lemma boundEnvasar(A:multiset<nat>, E:nat)

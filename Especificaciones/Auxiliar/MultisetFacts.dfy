@@ -204,52 +204,6 @@ ensures exists a: multiset<nat> :: (a in A && isMin(A, a) && (forall a': multise
       if a' in A' {}
       else { assert a' == a; }
     }
-
-    
-
-
-    /*var analyzed: multiset<multiset<nat>> := multiset{a};
-    var minElem: multiset<nat> := a;
-    assert forall x: multiset<nat> | x in analyzed :: hasSmallerElements(minElem, x);
-    while(A' > multiset{})
-      //decreases A'
-      invariant analyzed + A' == A
-      invariant A' <= A
-      invariant forall x: multiset<nat> | x in analyzed :: hasSmallerElements(minElem, x)
-      invariant ( A' == multiset{} ) ==> analyzed == A
-      invariant minElem in A
-    {
-      a :| a in A'; 
-      if hasSmallerElements(a, minElem) {
-        var copy := minElem;
-        minElem := a;
-        A' := A' - multiset{a};
-        forall x: multiset<nat> | x in analyzed 
-        ensures hasSmallerElements(minElem, x)
-        {
-          hasSmallerElementsTransitivity(minElem, copy, x);
-        }
-        assert analyzed + A' + multiset{a} == A;
-        assert A' <= A;
-        assert forall x: multiset<nat> | x in analyzed + multiset{a} :: hasSmallerElements(minElem, x);
-        assert minElem in A;
-        assert A' == multiset{} ==> (analyzed + multiset{a}) == A;
-        assume analyzed == analyzed + multiset{a};
-        //analyzed := analyzed + multiset{a};
-        
-      }
-      else{
-        A' := A' - multiset{a};
-        assert analyzed + A' + multiset{a} == A;
-        assert A' <= A;
-        hasSmallerElementsStronglyConnected(a, minElem);
-        assert forall x: multiset<nat> | x in analyzed + multiset{a} :: hasSmallerElements(minElem, x);
-        assert minElem in A;
-        assert A' == multiset{} ==> (analyzed + multiset{a}) == A;
-        assume analyzed == analyzed + multiset{a};
-        //Comp := Comp + multiset{a};
-      }
-    }*/
   }
 }
 
@@ -419,19 +373,20 @@ requires x + y >= z + u && x >= z && y >= u
 ensures (x + y) - (z + u) == (x - z) + (y - u)
 {}
 
-ghost function Union (I:multiset<multiset<nat>>) : multiset<nat>
+ghost function Union<T>(I:multiset<multiset<T>>) : (S: multiset<T>)
+ensures forall a: multiset<T>, b: T | a in I && b in a :: b in S
 {
   if I == multiset{} then multiset{}
   else var i :| i in I; i + Union(I-multiset{i})
 }
 
-lemma inOneUnion(I:multiset<multiset<nat>>, a:nat)
+lemma inOneUnion<T>(I:multiset<multiset<T>>, a:T)
 requires a in Union(I)
 ensures exists i :: i in I && a in i
 {}
 
 
-lemma UnionOne(C: multiset<multiset<nat>>, P1:multiset<nat>)
+lemma UnionOne<T>(C: multiset<multiset<T>>, P1:multiset<T>)
 requires P1 in C
 ensures Union(C) == P1 + Union(C-multiset{P1})
 { 
@@ -468,6 +423,14 @@ ensures Union(C) == P1 + P2
  assert  Union(C)  == P1 + P2;
 }
 
+lemma Union3<T>(A: multiset<multiset<T>>, B: multiset<multiset<T>>, C: multiset<T>)
+requires B == A + multiset{C}
+ensures Union(B) == Union(A) + C
+{ 
+  assert A == B - multiset{C};
+  UnionOne(B, C);
+}
+
 lemma Multiset2(C: multiset<multiset<nat>>)
 requires |C| == 2
 ensures exists P1,P2 :: multiset{P1,P2} == C
@@ -501,3 +464,18 @@ ensures exists P1 :: multiset{P1} == C
     SubstractUnion(multiset{P1},C);
     assert  CC + multiset{P1} == C ;
 }
+
+//////////////////////////////////////////////////
+//               Currently Unused               //
+//////////////////////////////////////////////////
+
+
+/*
+//Used in Sum.dfy by GSumNatPartes2
+lemma multisetDifferenceImplication<T>(A: multiset<multiset<T>>, B: multiset<multiset<T>>, a: multiset<T>)
+requires a in A 
+requires B == A - multiset{a}
+ensures A == B + multiset{a}
+{ }
+
+*/

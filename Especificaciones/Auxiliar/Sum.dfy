@@ -2,7 +2,10 @@ include "MultisetFacts.dfy"
 
 //Given a multiset of multiset of natuerals, computes the multiset of their individual sums 
 //Used in Envasado properties by eachBinHasLesserThanEWeight
-ghost function multisetOfSums(A: multiset<multiset<nat>>): multiset<nat>
+ghost function multisetOfSums(A: multiset<multiset<nat>>): (B: multiset<nat>)
+ensures |A| == |B|
+ensures forall b: nat | b in B :: (exists a :: a in A && GSumNat(a) == b)
+ensures forall a: multiset<nat> | a in A :: GSumNat(a) in B
 {
   if A == multiset{} then multiset{}
   else 
@@ -40,121 +43,32 @@ requires n in m
 ensures GSumNat(m) >= n
 { }
 
-//No terminado
-//If you add an element to a multiset, GSumNat(oldMultiset) + newElement  == GSumNat(oldMultiset + multiset{newElement}) 
-//Used by EnvasadoProperties in upperBoundSumOfElements
-/*
-lemma SumNatPlusAnotherElement(m: multiset<nat>, a: nat)
-decreases |m| - 1
-requires a in m
-ensures GSumNat(m) - a == GSumNat(m - multiset{a})
-//ensures forall a | a in m :: GSumNat(m) - a == GSumNat(m - multiset{a})
-{ 
-  if m == multiset{}{}
-  else if |m| == 1 {
-    var a :| a in m;
-    assert m == multiset{a} by {
-      if m != multiset{a}{
-        assert exists a': nat :: a' in m && a != a';
-        var a': nat :| a' in m && a != a';
-        assert a' in m && a in m; 
-        assert multiset{a, a'} <= m;
-        submultisetImpliesLesserCardinality(multiset{a, a'}, m);
-        assert |m| >= |multiset{a, a'}|;
-        assert |m| >= 2;
-      }
-    }
-    assert GSumNat(m) == a;
-  }
-  else{
-    var a :| a in m;
-    multisetCardinalityAtLeast2Implication(m);
-    //we remove an element that is either not a or one of its copies 
-    var a' :| a' in m && (a' != a || m[a] >= 2);
-    SumNatPlusAnotherElement(m - multiset{a}, a');
-    assert 1 <= |m - multiset{a}| < |m|;
-    assert GSumNat(m) - GSumNat(m - multiset{a}) == a;
-    assume false;
-  }
-}*/
-
-//Todo este bloque no está terminado
-
-lemma SumNatLinearOperation(A: multiset<nat>, B:multiset<nat>)
-decreases |A|
-ensures GSumNat(A) + GSumNat(B) == GSumNat(A + B)
-{ 
-  if A == multiset{} 
-  {
-    assert GSumNat(A) == 0;
-    assert A + B == B;
-  }
-  else if B == multiset{} 
-  {
-    assert GSumNat(B) == 0;
-    assert A + B == A;
-  }
-  else {
-    var a :| a in A;
-    assert (A - multiset{a}) + (B + multiset{a}) == A + B;
-    assert GSumNat(A + B) == GSumNat((A - multiset{a}) + (B + multiset{a})); 
-    SumNatLinearOperation(A - multiset{a}, B + multiset{a});
-    SumNatMinusAnotherElement(A, a);
-    SumNatPlusAnotherElement(B, a);
-    assert GSumNat(A - multiset{a}) + GSumNat(B + multiset{a}) == GSumNat((A - multiset{a}) + (B + multiset{a}));
-    assert GSumNat(A - multiset{a}) + GSumNat(B + multiset{a}) == GSumNat(A) + GSumNat(B);
-  }
-}
-
-lemma SumNatDifference(A: multiset<nat>, B: multiset<nat>, a: nat)
-requires a in A
-requires A == B + multiset{a}
-ensures GSumNat(A - B) == a
-{
-  assert A >= B;
-  //assert GSumNat(A) >= GSumNat(B);
-  assume false;
-}
-
-lemma SumNatMinusAnotherElement(m: multiset<nat>, a: nat)
-requires a in m
-ensures GSumNat(m) - a == GSumNat(m - multiset{a})
-
-lemma SumNatPlusAnotherElement(m: multiset<nat>, a: nat)
-ensures GSumNat(m) + a == GSumNat(m + multiset{a})
-
-/*
-lemma SumNatSubset(A: multiset<nat>, B: multiset<nat>)
-requires A <= B 
-ensures GSumNat(A) <= GSumNat(B)
-{
-  if A == multiset{} {}
-  else{
-    var a :| a in A;
-    SumNatSubset(A - multiset{a}, B - multiset{a});
-    assert GSumNat(A - multiset{a}) <= GSumNat(B - multiset{a});
-  }
-}
-**/
-
-//Fin del bloque no terminado
-
 lemma SumNatCardinality1(m: multiset<nat>, n: nat)
 requires m == multiset{n}
 ensures GSumNat(m) == n
 { }
 
-ghost function GSumNat(m: multiset<nat>) : nat
+ghost function GSumNat(m: multiset<nat>) : (n: nat)
+ensures (forall x: nat | x in m :: x == 0) ==> n == 0
 {
   if m == multiset{} then 0
   else var x :| x in m; x + GSumNat(m - multiset{x})
 }
 
-ghost function GMultisetMultisetSumNat(m: multiset<multiset<nat>>) : nat
+//Computes the sum of all elements belonging to a multiset of multisets of naturals
+//Used by EnvasadoProperties in eachBinHasLesserThanEWeight and lowerBoundoptimalValueEnvasado
+ghost function GMultisetSumNat(m: multiset<multiset<nat>>) : nat
 {
+  /*
   if m == multiset{} then 0
-  else var x:multiset<nat> :| x in m; GSumNat(x) + GMultisetMultisetSumNat(m - multiset{x})
+  else var x:multiset<nat> :| x in m; GSumNat(x) + GMultisetSumNat(m - multiset{x})
+  */
+  GSumNat(multisetOfSums(m))
 }
+
+lemma SumNatsEquivalence(m: multiset<multiset<nat>>)
+ensures GSumNat(multisetOfSums(m)) == GMultisetSumNat(m)
+{ }
 
 function FMultisetMultisetSumNat(m: multiset<multiset<nat>>) : nat
 {
@@ -342,6 +256,181 @@ ensures s == GSumInt(A)
   assert s == GSumInt(A);
 }
 
+lemma SumNatPlusAnotherElement(m: multiset<nat>, a: nat)
+ensures GSumNat(m) + a == GSumNat(m + multiset{a})
+{
+  var mA: multiset<nat> := multiset{a};
+  var total: multiset<nat> := m + mA;
+  GSumNatPartes(total, m, mA);
+}
+
+/*
+lemma  GSumIntElemIn(A:multiset<int>,i:int)
+requires i in A
+ensures GSumInt(A) == i + GSumInt(A-multiset{i})
+{ 
+  if (A == multiset{}) {}
+  else{
+    var m :| m in A && GSumInt(A) == GSumInt(A-multiset{m}) + m;
+    if (m == i) {}
+    else {
+      GSumIntElemIn(A-multiset{m},i);
+      assert GSumInt(A-multiset{m}) == i + GSumInt(A-multiset{m}-multiset{i});
+      assert GSumInt(A) == i + GSumInt(A-multiset{m}-multiset{i}) + m;
+      GSumIntElemIn(A-multiset{i},m);
+      assert GSumInt(A-multiset{i}) == m + GSumInt(A-multiset{i}-multiset{m});
+      assert A-multiset{i}-multiset{m} == A-multiset{m}-multiset{i};
+      }
+
+  }
+}
+*/ 
+
+//TODO
+lemma GMultisetSumNatIn(A: multiset<multiset<nat>>, b: multiset<nat>)
+requires b in A 
+ensures GMultisetSumNat(A) ==  GSumNat(b) + GMultisetSumNat(A - multiset{b})
+{
+  if (A == multiset{b}) {}
+  else{
+    var A': multiset<nat> := multisetOfSums(A);
+    var b': nat := GSumNat(b);
+    assert b' in A';
+    //var M: multiset<nat> := A' - multiset{b'};
+    //var m: nat :| m in M;
+    //GSumNatElemIn(A', b');
+    //assert GSumNat(A') == b' + GSumNat(A' - multiset{b'});
+    assert GMultisetSumNat(A) == GMultisetSumNat(A - multiset{b}) + GSumNat(b) by 
+    {
+      
+      calc {
+        GMultisetSumNat(A);
+        GSumNat(A');
+        {GSumNatElemIn(A', b');}
+        b' + GSumNat(A' - multiset{b'});/*
+        b' + GSumNat(multisetOfSums(A) - multiset{b'});
+        GSumNat(b) + GSumNat(multisetOfSums(A) - multiset{GSumNat(b)});
+        GSumNat(b) + GSumNat(multisetOfSums(A - multiset{(b)}));
+        GSumNat(b) + GMultisetSumNat(A - multiset{(b)});*/
+      }
+      assume false;
+    }
+  }
+}
+
+//Used locally by GSumNatPartes2Calc1
+lemma AdditionCommutativity(a: int, b: int, c: int)
+ensures a - b + c == a + c - b
+{ }
+
+//Used locally by GSumNatPartes2Calc1
+lemma AdittionSubstitution(a: nat, b: nat,  c: nat, d: nat)
+requires b - c == d 
+ensures a + b - c == a + d
+{ }
+
+//Performs the first part of the calculation necessary for GSumNatPartes2
+lemma GSumNatPartes2Calc(A: multiset<nat>, I: multiset<multiset<nat>>, I': multiset<multiset<nat>>, I'': multiset<multiset<nat>>, a: nat, i: multiset<nat>, i': multiset<nat>)
+requires A != multiset{}
+requires Union(I) == A 
+requires a in A
+requires i in I 
+requires a in i
+requires i' == i - multiset{a}
+requires I' == I - multiset{i}
+requires I'' == I' + multiset{i'}
+ensures GMultisetSumNat(I) == GMultisetSumNat(I'') + a
+{
+  calc{
+      GMultisetSumNat(I);
+      {
+        GMultisetSumNatIn(I, i);
+        assert I' == I - multiset{i}; 
+      }
+      GMultisetSumNat(I') + GSumNat(i);
+      {
+        assert I' == I'' - multiset{i'}; 
+        GMultisetSumNatIn(I'', i');
+        assert GMultisetSumNat(I'') == GMultisetSumNat(I') + GSumNat(i');
+        assert GMultisetSumNat(I') == GMultisetSumNat(I'') - GSumNat(i');
+      }
+      GMultisetSumNat(I'') -  GSumNat(i') + GSumNat(i);
+      {
+        AdditionCommutativity(GMultisetSumNat(I''), GSumNat(i'), GSumNat(i));
+        assert GMultisetSumNat(I'') - GSumNat(i') + GSumNat(i) == GMultisetSumNat(I'') + GSumNat(i) - GSumNat(i');
+      }
+      GMultisetSumNat(I'') + GSumNat(i) - GSumNat(i');
+      //GMultisetSumNat(I'') + (GSumNat(i) - GSumNat(i'));
+      {
+        GSumNatElemIn (i, a);
+        assert GSumNat(i) == GSumNat(i') + a;
+        assert GSumNat(i) - GSumNat(i') == a;
+        AdittionSubstitution(GMultisetSumNat(I''), GSumNat(i), GSumNat(i'), a);
+      }
+      GMultisetSumNat(I'') + a;
+  }
+}
+
+//Aqui
+//TODO
+lemma GSumNatPartes2(A: multiset<nat>, I: multiset<multiset<nat>>)
+requires Union(I) == A 
+ensures GMultisetSumNat(I) == GSumNat(A)
+{ 
+  if A == multiset{} {
+    forall i: multiset<nat> | i in I 
+    ensures i == multiset{}{
+      assert forall i': nat | i' in i :: i' in A;
+    }
+    assert GMultisetSumNat(I) == 0;
+  }
+  else{
+    var a: nat :| a in A;
+    var A' := A - multiset{a};
+    inOneUnion(I, a);
+    var i: multiset<nat> :| i in I && a in i;
+    var I' := I - multiset{i};
+    var i' := i - multiset{a};
+    var I'' := I' + multiset{i'};
+    calc{
+      A';
+      A - multiset{a};
+      Union(I) - multiset{a}; 
+      (Union(I)) - multiset{a};
+      { UnionOne(I, i); }
+      (Union(I') + i) - multiset{a};
+      {assert multiset{a} <= i;}
+      Union(I') + (i - multiset{a});
+      Union(I') + i';
+      { Union3(I', I'', i'); }
+      Union(I'');
+    }
+    GSumNatPartes2(A', I'');
+    //
+    AdditionCommutativity(GMultisetSumNat(I''), GSumNat(i'), GSumNat(i));
+    assert GMultisetSumNat(I'') - GSumNat(i') + GSumNat(i) == GMultisetSumNat(I'') + GSumNat(i) - GSumNat(i');
+    GSumNatElemIn (i, a);
+    assert GSumNat(i) == GSumNat(i') + a;
+    assert GSumNat(i) - GSumNat(i') == a;
+    //assume false;
+    calc{
+      GMultisetSumNat(I);
+      {GSumNatPartes2Calc(A, I, I', I'',a, i, i');}
+      GMultisetSumNat(I'') + a;
+      
+      {assert GMultisetSumNat(I'') == GSumNat(A');}
+      GSumNat(A') + a;
+      {SumNatPlusAnotherElement(A', a);}
+      GSumNat(A' + multiset{a});
+      {
+        assert A' == A - multiset{a};
+        assert A == A' + multiset{a};
+      }
+      GSumNat(A);
+      
+    }
+  }
+}
 
 //////////////////////////////////////////////////
 //               Currently Unused               //
