@@ -1,3 +1,31 @@
+//Used by Sum.dfy in multisetOfSumsDifference
+lemma CardinalityOfElementUnion<T>(A: multiset<T>, B: multiset<T>, elem: T)
+requires A[elem] >= 1
+requires B[elem] >= 1
+ensures (A + B)[elem] >= 2
+{ }
+
+//Used in Sum.dfy by multisetOfSumsDifference
+lemma ElementBelongsToMultisetDifference<T>(A: multiset<T>, a: T, b: T)
+requires a in A 
+requires a != b 
+ensures a in A - multiset{b}
+{ }
+
+//Used in Sum.dfy by GSumNatPartes2
+lemma multisetDifference<T>(A: multiset<T>, B: multiset<T>, a: T)
+requires a in A
+requires B == A - multiset{a} 
+ensures B + multiset{a} == A
+{ }
+
+//Used in Sum.dfy by multisetOfSums
+lemma multisetDifference2<T>(A: multiset<T>, B: multiset<T>, a: T)
+requires a in B
+requires B == multiset{a} + A 
+ensures A == B - multiset{a} 
+{ }
+
 //Used by EnvasadoProperties in eachBinHasLesserThanEWeight
 function maxNat(m:multiset<nat>): (l:nat)
 requires m != multiset{}
@@ -477,5 +505,10 @@ requires a in A
 requires B == A - multiset{a}
 ensures A == B + multiset{a}
 { }
+
+lemma SubmultisetDefinition<T>(A: multiset<T>, B: multiset<T>)
+requires forall a: T | a in A :: B[a] >= A[a]
+ensures A <= B 
+{ } 
 
 */

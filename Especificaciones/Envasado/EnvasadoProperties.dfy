@@ -68,12 +68,12 @@ ensures GSumNat(A) <= |A| * maxElem
   }
 }
 
+//Used locally by eachBinHasLesserThanEWeight
 lemma lessThanWithMultiplication(a: nat, b: nat, c: nat)
 requires a <= c 
 ensures a * b <= c * b 
 { }
 
-//No terminado
 lemma eachBinHasLesserThanEWeight(A: multiset<nat>, E: nat, I: multiset<multiset<nat>>)
 requires isEnvasado(A, E, I)
 ensures GMultisetSumNat(I) <= E * |I|
@@ -101,7 +101,8 @@ ensures GMultisetSumNat(I) <= E * |I|
   }
 }
 
-//No terminado
+
+//Used in Algoritmo2AproximadoAux by atMostOneLessThanHalfImplies2Aproximated
 lemma lowerBoundoptimalValueEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>) 
 requires optimalEnvasado(A,E,I)
 ensures GSumNat(A) <= E * |I|
@@ -114,6 +115,15 @@ ensures GSumNat(A) <= E * |I|
   GSumNatPartes2(A, I);
   assert GMultisetSumNat(I) == GSumNat(A);
   assert GSumNat(A) <= E * |I|;
+}
+
+lemma lowerBoundoptimalValueEnvasadoForAll(A : multiset<nat>, E : nat) 
+ensures forall O: multiset<multiset<nat>> | optimalEnvasado(A, E, O) :: GSumNat(A) <= E * |O|
+{ 
+  forall O: multiset<multiset<nat>> | optimalEnvasado(A, E, O)
+  ensures GSumNat(A) <= E * |O|{
+    lowerBoundoptimalValueEnvasado(A, E, O);
+  }
 }
 
 lemma isInEnvasado(A : multiset<nat>, a:nat, E : nat, I:multiset<multiset<nat>>)
@@ -165,4 +175,33 @@ ensures forall j | j >= |A| :: envasarDecissionProblem(A,E,j)
    }
    assert |I| == |A|;
    assert isEnvasado(A,E,I);
+}
+
+lemma enVasadoImpliesOptimalEnvasado(A: multiset<nat>, E: nat, example: multiset<multiset<nat>>)
+decreases |example| 
+requires isEnvasado(A, E, example)
+ensures exists O: multiset<multiset<nat>> :: optimalEnvasado(A, E, O)
+{
+  if optimalEnvasado(A, E, example){}
+  else{
+    assert exists O: multiset<multiset<nat>> :: isEnvasado(A, E, O) && |O| < |example|;
+    var O :| isEnvasado(A, E, O) && |O| < |example|;
+    enVasadoImpliesOptimalEnvasado(A, E, O);
+  }
+}
+
+lemma noCapacity(A: multiset<nat>, E: nat, I: multiset<multiset<nat>>)
+requires isEnvasado(A, E, I)
+requires E == 0
+ensures forall a | a in A :: a == 0
+{
+  assert forall a | a in A :: a == 0 by {
+      if exists a :: a in A && a != 0 {
+          var a :| a in A && a != 0;
+          inOneUnion(I, a);
+          var i :| i in I && a in i;
+          SumNatGreaterThanOneElement(i, a);
+          assert GSumNat(i) > 0;
+      } 
+  }
 }
