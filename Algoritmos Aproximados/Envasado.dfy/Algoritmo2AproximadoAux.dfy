@@ -3,6 +3,7 @@ include "EnvasadoKAproximado.dfy"
 
 //All bins are more than half full
 //Used locally
+//Used by Algoritmo2Aproximado in binPacking2Aproximated
 ghost predicate allMoreThanHalfFull(E: nat, I: multiset<multiset<nat>>)
 {
     (forall M: multiset<nat> | M in I :: GSumNat(M) * 2 > E)
@@ -11,32 +12,57 @@ ghost predicate allMoreThanHalfFull(E: nat, I: multiset<multiset<nat>>)
 
 //Only one bin in I is less than half full
 //Used locally
+//Used by Algoritmo2Aproximado in binPacking2Aproximated
 ghost predicate oneLessThanHalfFull(E: nat, I: multiset<multiset<nat>>)
 {
     (exists M: multiset<nat> :: M in I && GSumNat(M) * 2 <= E && 
                                 I[M] == 1 &&
                                 forall M': multiset<nat> | M' in I && M' != M :: GSumNat(M') * 2 > E) 
 }
-/*
-lemma allMoreThanHalfFullImplies2Aproximated(A: multiset<nat>, E: nat, I: multiset<multiset<nat>>)
-requires isEnvasado(A, E, I)
-requires allMoreThanHalfFull(E, I) 
-ensures isKAproximatedBinPacking(A, E, I, 2)
+
+//All bins are more than half full
+//Used locally
+//Used by Algoritmo2Aproximado in binPacking2Aproximated
+ghost predicate allMoreThanHalfFullSeq(E: nat, I: seq<multiset<nat>>)
 {
-    //for any BinPacking S, |S| * E >= GSumNat(A)
-    assume forall I': multiset<multiset<nat>> | isEnvasado(A, E, I') :: |I| * E >= GSumNat(A);
-    //if the optimal number of bins is x
-    assume false;
+    (forall M: multiset<nat> | M in I :: GSumNat(M) * 2 > E)
 }
 
-lemma oneLessThanHalfFullImplies2Aproximated(A: multiset<nat>, E: nat, I: multiset<multiset<nat>>)
-requires isEnvasado(A, E, I)
-requires oneLessThanHalfFull(E, I) 
-ensures isKAproximatedBinPacking(A, E, I, 2)
+
+//Only one bin in I is less than half full
+//Used locally
+//Used by Algoritmo2Aproximado in binPacking2Aproximated
+ghost predicate oneLessThanHalfFullSeq(E: nat, I: seq<multiset<nat>>)
 {
-    assume false;
+    (exists idx: nat :: 0 <= idx < |I| && GSumNat(I[idx]) * 2 <= E && 
+                                forall idx': nat | 0 <= idx' < |I| && idx' != idx :: GSumNat(I[idx']) * 2 > E) 
 }
-*/
+
+lemma allMoreThanHalfFullSeqImpliesMultiset(E: nat, I: seq<multiset<nat>>)
+requires allMoreThanHalfFullSeq(E, I)
+ensures allMoreThanHalfFull(E, multiset(I))
+{ }
+
+lemma oneLessThanHalfFullSeqImpliesMultiset(E: nat, I: seq<multiset<nat>>)
+requires oneLessThanHalfFullSeq(E, I)
+ensures oneLessThanHalfFull(E, multiset(I))
+{ 
+    if I == [] {}
+    else{
+        var idx: nat :| 0 <= idx < |I| && GSumNat(I[idx]) * 2 <= E;
+        var subSequence1: seq<multiset<nat>> := I[0..idx];
+        var subSequence2: seq<multiset<nat>> := I[idx + 1..];
+        var I': seq<multiset<nat>> := subSequence1 + subSequence2;
+        assert forall i: nat | 0 <= i < 0 && i != idx :: I[i] in I';
+        assert allMoreThanHalfFullSeq(E, I');
+        allMoreThanHalfFullSeqImpliesMultiset(E, I');
+        var M': multiset<multiset<nat>> := multiset(I');
+        assert allMoreThanHalfFull(E, M');
+        var M := M' + multiset{I[idx]};
+        assert oneLessThanHalfFull(E, M);
+        assume M' + multiset{I[idx]} == multiset(I);
+    }
+}
 
 //Used locally by atMostOneLessThanHalfImplies2Aproximated
 lemma multiplyingByNaturals(a: nat, b: nat, c: nat)

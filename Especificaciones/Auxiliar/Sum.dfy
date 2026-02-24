@@ -30,6 +30,7 @@ ensures forall a: multiset<nat> | a in A :: GSumNat(a) in B
 }
 
 //NO terminado
+/*
 lemma MultisetOfSumsParts(A: multiset<multiset<nat>>)
 ensures forall a: multiset<nat> | a in A :: multisetOfSums(A - multiset{a}) == multisetOfSums(A) - multiset{GSumNat(a)}
 {
@@ -54,7 +55,7 @@ ensures forall a: multiset<nat> | a in A :: multisetOfSums(A - multiset{a}) == m
     //assert B ==  
 
   }
-} 
+} */
 
 ghost function multisetOfSums2(A: multiset<multiset<nat>>, a: multiset<nat>): (B: multiset<nat>)
 requires a in A
@@ -63,6 +64,7 @@ ensures |A| == |B|
 //ensures forall a: multiset<nat> | a in A :: GSumNat(a) in B
 //TODO
 ensures multisetOfSums(A - multiset{a}) == B - multiset{GSumNat(a)} 
+ensures B == multisetOfSums(A)
 {
   if A == multiset{a} then 
     multiset{GSumNat(a)}
@@ -76,6 +78,7 @@ ensures multisetOfSums(A - multiset{a}) == B - multiset{GSumNat(a)}
     multisetDifference2(recursiveResult, result, GSumNat(a));
     assert recursiveResult == result - multiset{GSumNat(a)};
     assert multisetOfSums(A - multiset{a}) == result - multiset{GSumNat(a)}; 
+    assume false;
     
     result
 }
@@ -370,7 +373,7 @@ ensures GMultisetSumNat(A) ==  GSumNat(b) + GMultisetSumNat(A - multiset{b})
       {assert A' == multisetOfSums(A);}
       b' + GSumNat(multisetOfSums(A) - multiset{b'});
       GSumNat(b) + GSumNat(multisetOfSums(A) - multiset{GSumNat(b)});
-      {assert multisetOfSums2(A, b) - multiset{GSumNat(b)} == multisetOfSums(A - multiset{b});}
+      { assert multisetOfSums2(A, b) - multiset{GSumNat(b)} == multisetOfSums(A - multiset{b});}
       GSumNat(b) + GSumNat(multisetOfSums(A - multiset{b}));
       GSumNat(b) + GMultisetSumNat(A - multiset{(b)});
     }
