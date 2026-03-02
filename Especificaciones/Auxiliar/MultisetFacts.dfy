@@ -401,6 +401,11 @@ requires x + y >= z + u && x >= z && y >= u
 ensures (x + y) - (z + u) == (x - z) + (y - u)
 {}
 
+lemma SubMultisetUnionDifference<T>(A: multiset<T>, B: multiset<T>, C: multiset<T>)
+requires B <= A 
+ensures A - B + C == A + C - B 
+{}
+
 ghost function Union<T>(I:multiset<multiset<T>>) : (S: multiset<T>)
 ensures forall a: multiset<T>, b: T | a in I && b in a :: b in S
 {

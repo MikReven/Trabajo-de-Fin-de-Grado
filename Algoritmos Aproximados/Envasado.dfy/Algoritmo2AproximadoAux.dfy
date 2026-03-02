@@ -227,6 +227,7 @@ ensures isKAproximatedBinPacking(A, E, I, 2)
 {
     if I == multiset{}{}
     else{
+        // |I| - 1 multiset that are more than half full
         var I' := multisetsMoreThanHalf(A, E, I);
         enVasadoImpliesOptimalEnvasado(A, E, I);
         var O: multiset<multiset<nat>> :| optimalEnvasado(A, E, O);
@@ -240,3 +241,11 @@ ensures isKAproximatedBinPacking(A, E, I, 2)
         }
     }
 }
+
+lemma EnvasadoSequenceMultisetTranslation(A: multiset<nat>, E: nat, S: seq<multiset<nat>>, I: multiset<multiset<nat>>)
+requires forall i: nat | 0 <= i < |S| :: GSumNat(S[i]) <= E 
+requires forall i: nat | 0 <= i < |S| :: S[i] <= A
+requires I == multiset(S)
+requires Union(I) == A 
+ensures isEnvasado(A, E, I)
+{ }

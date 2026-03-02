@@ -1,17 +1,38 @@
 include "EnvasadoOpt.dfy"
 
-lemma boundoptimalValueEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>) 
-requires optimalEnvasado(A,E,I)
-ensures |I| <= |A|
-{ if (forall a | a in A :: a <= E)
-   {boundEnvasar(A,E);
-    assert envasarDecissionProblem(A,E,|A|);
+lemma boundEnvasar(A:multiset<nat>, E:nat)
+requires forall a | a in A :: a <= E
+ensures forall j | j >= |A| :: envasarDecissionProblem(A,E,j)
+{ 
+  var I:multiset<multiset<nat>> := multiset{};
+  var A':multiset<nat> := A;
+  while A' != multiset{}
+    invariant |I| == |A| - |A'|
+    invariant Union(I) == A-A'
+    invariant forall x | x in I :: x <= A && GSumNat(x) <= E
+   { var oldI := I;
+     var oldA' := A';
+
+    var a :| a in A';
+    I := I + multiset{multiset{a}};
+    A' := A' - multiset{a};
+    assert A - A' == A - oldA' + multiset{a};
+    UnionOne(I,multiset{a});
+    assert oldI == I - multiset{multiset{a}};
+    assert Union(I) == Union(oldI) + multiset{a};
    }
-   else { 
-    noEnvasar(A,E);
-   }
+   assert |I| == |A|;
+   assert isEnvasado(A,E,I);
 }
 
+//TODO
+lemma EnvasadoExists(A: multiset<nat>, E: nat)
+requires forall a | a in A :: a <= E
+ensures exists I: multiset<multiset<nat>> :: isEnvasado(A, E, I)
+
+
+
+//A induccion
 lemma elementWithMaxSumExists(A: multiset<multiset<nat>>)
 requires A != multiset{}
 ensures exists x: multiset<nat> :: forall x': multiset<nat> | x' in A :: GSumNat(x) >= GSumNat(x')
@@ -35,6 +56,7 @@ ensures exists x: multiset<nat> :: forall x': multiset<nat> | x' in A :: GSumNat
   }
 }
 
+//A induccion
 //A sum of x elements is at most x times the maximum of said elements
 //Used locally by eachBinHasLesserThanEWeight
 lemma upperBoundSumOfElements(A: multiset<nat>, maxElem: nat)
@@ -86,16 +108,14 @@ ensures GMultisetSumNat(I) <= E * |I|
     var weights: multiset<nat> := multisetOfSums(I);
     HasMaximumInt(weights);
     var maxWeight: nat :| maxWeight in weights && forall w: nat | w in weights :: maxWeight >= w; 
+    //meter en la calc
     upperBoundSumOfElements(weights, maxWeight);
-    calc{
+    calc <= {
       GMultisetSumNat(I);
-      == 
       GSumNat(weights);
-      <= 
-      maxWeight * |weights|;  
-      == 
+      maxWeight * |weights|; 
       maxWeight * |I|;
-      <= {lessThanWithMultiplication(maxWeight, |I|, E);}
+      {lessThanWithMultiplication(maxWeight, |I|, E);}
       E * |I|;
     }
   }
@@ -107,14 +127,12 @@ lemma lowerBoundoptimalValueEnvasado(A : multiset<nat>, E : nat, I:multiset<mult
 requires optimalEnvasado(A,E,I)
 ensures GSumNat(A) <= E * |I|
 { 
-  var totalSumA: nat := GSumNat(A);
-  assert forall m: multiset<nat> | m in I :: GSumNat(m) <= E;
-  var totalSumI := GMultisetSumNat(I);
+  //assert forall m: multiset<nat> | m in I :: GSumNat(m) <= E;
   eachBinHasLesserThanEWeight(A, E, I);
-  assert GMultisetSumNat(I) <=  E * |I|; 
+  //assert GMultisetSumNat(I) <=  E * |I|; 
   GSumNatPartes2(A, I);
-  assert GMultisetSumNat(I) == GSumNat(A);
-  assert GSumNat(A) <= E * |I|;
+  //assert GMultisetSumNat(I) == GSumNat(A);
+  //assert GSumNat(A) <= E * |I|;
 }
 
 lemma lowerBoundoptimalValueEnvasadoForAll(A : multiset<nat>, E : nat) 
@@ -134,6 +152,7 @@ ensures exists i :: i in I && a in i
   { //assert Union(I) == A;
     inOneUnion(I,a);
     //assert !(a in A); //contradiction
+    assert false;
   }
 }
 
@@ -149,32 +168,8 @@ ensures ! exists I:multiset<multiset<nat>> :: isEnvasado(A,E,I)
     var i :| i in I && a in i;
     GSumNatElemIn(i,a);
     assert GSumNat(i) >= a > E;
+    assert false;
   }
-}
-
-lemma boundEnvasar(A:multiset<nat>, E:nat)
-requires forall a | a in A :: a <= E
-ensures forall j | j >= |A| :: envasarDecissionProblem(A,E,j)
-{ 
-  var I:multiset<multiset<nat>> := multiset{};
-  var A':multiset<nat> := A;
-  while A' != multiset{}
-    invariant |I| == |A| - |A'|
-    invariant Union(I) == A-A'
-    invariant forall x | x in I :: x <= A && GSumNat(x) <= E
-   { var oldI := I;
-     var oldA' := A';
-
-    var a :| a in A';
-    I := I + multiset{multiset{a}};
-    A' := A' - multiset{a};
-    assert A - A' == A - oldA' + multiset{a};
-    UnionOne(I,multiset{a});
-    assert oldI == I - multiset{multiset{a}};
-    assert Union(I) == Union(oldI) + multiset{a};
-   }
-   assert |I| == |A|;
-   assert isEnvasado(A,E,I);
 }
 
 lemma enVasadoImpliesOptimalEnvasado(A: multiset<nat>, E: nat, example: multiset<multiset<nat>>)
@@ -205,3 +200,22 @@ ensures forall a | a in A :: a == 0
       } 
   }
 }
+
+//////////////////////////////////////////////////
+//               Currently Unused               //
+//////////////////////////////////////////////////
+/*
+lemma boundoptimalValueEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>) 
+requires optimalEnvasado(A,E,I)
+ensures |I| <= |A|
+{ if (forall a | a in A :: a <= E)
+   {boundEnvasar(A,E);
+    assert envasarDecissionProblem(A,E,|A|);
+   }
+   else { 
+    noEnvasar(A,E);
+   }
+}
+
+
+*/
