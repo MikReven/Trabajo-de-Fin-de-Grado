@@ -143,7 +143,7 @@ ensures k' == k
 }
 
 
-lemma{:only} delVertexCoverCase2(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat, S':set<Node>)
+lemma delVertexCoverCase2(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat, S':set<Node>)
 requires isValidGraph(graph)  && isValidGraph(graph')
 requires v in graph.0
 requires optimalValueVertexCover(graph,k)   
@@ -161,15 +161,17 @@ ensures k == k' || k' + 1 == k
 
   var S := S' + {v};
   assert |S| == |S'| + 1 == k' + 1;
-
   assert isVertexCover(S,graph) by{
       forall e | e in graph.1 
       ensures |S * e| > 0
     {
-      if (e !in incidentEdges(graph,v)){}
+      if (e !in incidentEdges(graph,v)){
+        assert |S'* e| > 0 ;
+        assert |S * e| > 0;
+        }
       else { 
         assert v in S * e;
-        assert |S * e| > 0;}
+        assert |S * e| > 0; }
     }
     
   }
