@@ -1,4 +1,5 @@
 include "../../Especificaciones/Envasado/EnvasadoProperties.dfy"
+include "../../Especificaciones/Auxiliar/Sequence.dfy"
 include "EnvasadoKAproximado.dfy"
 
 //All bins are more than half full
@@ -44,24 +45,31 @@ ensures allMoreThanHalfFull(E, multiset(I))
 { }
 
 //If only only one bin is half or less full
-lemma OneLessThanHalfFullSeqImpliesMultiset(E: nat, I: seq<multiset<nat>>)
-requires oneLessThanHalfFullSeq(E, I)
-ensures oneLessThanHalfFull(E, multiset(I))
+lemma OneLessThanHalfFullSeqImpliesMultiset(E: nat, S: seq<multiset<nat>>)
+requires oneLessThanHalfFullSeq(E, S)
+ensures oneLessThanHalfFull(E, multiset(S))
 { 
-    if I == [] {}
+    if S == [] {}
     else{
-        var idx: nat :| 0 <= idx < |I| && GSumNat(I[idx]) * 2 <= E;
-        var subSequence1: seq<multiset<nat>> := I[0..idx];
-        var subSequence2: seq<multiset<nat>> := I[idx + 1..];
-        var I': seq<multiset<nat>> := subSequence1 + subSequence2;
-        assert forall i: nat | 0 <= i < 0 && i != idx :: I[i] in I';
-        assert allMoreThanHalfFullSeq(E, I');
-        allMoreThanHalfFullSeqImpliesMultiset(E, I');
-        var M': multiset<multiset<nat>> := multiset(I');
-        assert allMoreThanHalfFull(E, M');
-        var M := M' + multiset{I[idx]};
-        assert oneLessThanHalfFull(E, M);
-        assume M' + multiset{I[idx]} == multiset(I);
+        var idx: nat :| 0 <= idx < |S| && GSumNat(S[idx]) * 2 <= E;
+        var subSequence1: seq<multiset<nat>> := S[0..idx];
+        var subSequence2: seq<multiset<nat>> := S[idx + 1..];
+        var S': seq<multiset<nat>> := subSequence1 + subSequence2;
+        assert forall i: nat | 0 <= i < 0 && i != idx :: S[i] in S';
+        assert allMoreThanHalfFullSeq(E, S');
+        var I': multiset<multiset<nat>> := multiset(S');
+        allMoreThanHalfFullSeqImpliesMultiset(E, S');
+        assert allMoreThanHalfFull(E, I');
+        var I := I' + multiset{S[idx]};
+        assert oneLessThanHalfFull(E, I);
+        assert multiset(S') + multiset{S[idx]} == multiset(S' + [S[idx]]);
+        calc{
+            I;
+            I' + multiset{S[idx]};
+            multiset(S') + multiset{S[idx]};
+            {SequenceInsertionToMultiset(S, S', subSequence1, subSequence2, S[idx]);}
+            multiset(S);
+        }
     }
 }
 
