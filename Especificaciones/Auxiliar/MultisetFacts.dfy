@@ -30,7 +30,8 @@ ensures A == B - multiset{a}
 function maxNat(m:multiset<nat>): (l:nat)
 requires m != multiset{}
 ensures l in m && (forall x | x in m :: l >= x) 
-{ maxInt(m)
+{ 
+  maxInt(m)
 }
 
 function maxInt(m:multiset<int>): (l:int)
@@ -72,13 +73,15 @@ lemma HasMaximumInt(m: multiset<int>)
 function minNat(m:multiset<nat>): (l:nat)
 requires m != multiset{}
 ensures l in m && (forall x | x in m :: l <= x) 
-{ minInt(m)
+{ 
+  minInt(m)
 }
 
 function minInt(m:multiset<int>): (l:int)
 requires m != multiset{}
 ensures l in m && (forall x | x in m :: l <= x) 
-{ HasMinimumInt(m);
+{ 
+  HasMinimumInt(m);
   var x :| x in m && (forall y | y in m :: x <= y); 
   x
 }
@@ -153,6 +156,7 @@ lemma hasAMinimumMultiset(S: multiset<nat>)
 
 function pickMinMultiset(A: multiset<nat>) : (a: nat)
 requires A != multiset{}
+ensures a in A
 {
   hasAMinimumMultiset(A);
   var a: nat :| a in A && (forall a': nat | a' in A :: a' >= a);
@@ -405,6 +409,16 @@ lemma SubMultisetUnionDifference<T>(A: multiset<T>, B: multiset<T>, C: multiset<
 requires B <= A 
 ensures A - B + C == A + C - B 
 {}
+
+lemma DifferenceOfDifference<T>(A: multiset<T>, B: multiset<T>, C: multiset<T>, d: T)
+requires d in A
+requires d in C
+requires B <= A 
+requires C <= A
+requires B == C - multiset{d} 
+ensures A - B == A - C + multiset{d} 
+ensures  A - C + multiset{d} == A - B
+{ }
 
 ghost function Union<T>(I:multiset<multiset<T>>) : (S: multiset<T>)
 ensures forall a: multiset<T>, b: T | a in I && b in a :: b in S

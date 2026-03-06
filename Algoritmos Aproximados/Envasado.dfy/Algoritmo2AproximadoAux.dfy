@@ -43,7 +43,8 @@ requires allMoreThanHalfFullSeq(E, I)
 ensures allMoreThanHalfFull(E, multiset(I))
 { }
 
-lemma oneLessThanHalfFullSeqImpliesMultiset(E: nat, I: seq<multiset<nat>>)
+//If only only one bin is half or less full
+lemma OneLessThanHalfFullSeqImpliesMultiset(E: nat, I: seq<multiset<nat>>)
 requires oneLessThanHalfFullSeq(E, I)
 ensures oneLessThanHalfFull(E, multiset(I))
 { 
@@ -61,6 +62,23 @@ ensures oneLessThanHalfFull(E, multiset(I))
         var M := M' + multiset{I[idx]};
         assert oneLessThanHalfFull(E, M);
         assume M' + multiset{I[idx]} == multiset(I);
+    }
+}
+
+lemma AllMoreThanHalfFullSeqImpliesMultiset(E: nat, I: seq<multiset<nat>>)
+requires allMoreThanHalfFullSeq(E, I)
+ensures allMoreThanHalfFull(E, multiset(I))
+{ }
+
+lemma HalfSeqToMultisetTranslation(E: nat, S: seq<multiset<nat>>)
+requires allMoreThanHalfFullSeq(E, S) || oneLessThanHalfFullSeq(E, S)
+ensures allMoreThanHalfFull(E, multiset(S)) || oneLessThanHalfFull(E, multiset(S))
+{ 
+    if allMoreThanHalfFullSeq(E, S) {
+        AllMoreThanHalfFullSeqImpliesMultiset(E, S);
+    }
+    else{
+        OneLessThanHalfFullSeqImpliesMultiset(E, S);
     }
 }
 
