@@ -140,7 +140,7 @@ ensures (I != multiset{} && |I| * E < pesoTotal * 2) || (I == multiset{} && peso
     else{
         var i: multiset<nat> :| i in I;
         var I' := I - multiset{i};
-        GMultisetSumNatIn(I, i);
+        GMultisetSumComposition(I, i);
         lowerBoundSum(I', E, pesoTotal - GSumNat(i));
 
         assert (pesoTotal - GSumNat(i)) * 2 >= |I'| * E;
@@ -184,7 +184,7 @@ ensures GMultisetSumNat(I') < GSumNat(A)
         var I' := I - multiset{lessThanHalf}; 
         assert forall x | x in I' :: GSumNat(x) * 2 > E;
         var diff := GSumNat(lessThanHalf);
-        GMultisetSumNatIn(I, lessThanHalf);
+        GMultisetSumComposition(I, lessThanHalf);
         assert GMultisetSumNat(I) ==  GSumNat(lessThanHalf) + GMultisetSumNat(I - multiset{lessThanHalf});
         GSumNatPartes2(A, I);
         assert pesoTotal == diff + GMultisetSumNat(I');
@@ -197,7 +197,7 @@ ensures GMultisetSumNat(I') < GSumNat(A)
         var i :| i in I;
         var I' := I - multiset{i};
         var diff := GSumNat(i);
-        GMultisetSumNatIn(I, i);
+        GMultisetSumComposition(I, i);
         assert GMultisetSumNat(I) ==  GSumNat(i) + GMultisetSumNat(I - multiset{i});
         GSumNatPartes2(A, I);
         assert pesoTotal == diff + GMultisetSumNat(I');

@@ -1,8 +1,9 @@
 include "EnvasadoOpt.dfy"
 
-lemma boundEnvasar(A:multiset<nat>, E:nat)
+
+lemma boundPacking(A:multiset<nat>, E:nat)
 requires forall a | a in A :: a <= E
-ensures forall j | j >= |A| :: envasarDecissionProblem(A,E,j)
+ensures forall j | j >= |A| :: binPackingDecissionProblem(A,E,j)
 { 
   var I:multiset<multiset<nat>> := multiset{};
   var A':multiset<nat> := A;
@@ -22,15 +23,8 @@ ensures forall j | j >= |A| :: envasarDecissionProblem(A,E,j)
     assert Union(I) == Union(oldI) + multiset{a};
    }
    assert |I| == |A|;
-   assert isEnvasado(A,E,I);
+   assert isBinPacking(A,E,I);
 }
-
-//TODO
-lemma EnvasadoExists(A: multiset<nat>, E: nat)
-requires forall a | a in A :: a <= E
-ensures exists I: multiset<multiset<nat>> :: isEnvasado(A, E, I)
-
-
 
 //A induccion
 lemma elementWithMaxSumExists(A: multiset<multiset<nat>>)
@@ -97,7 +91,7 @@ ensures a * b <= c * b
 { }
 
 lemma eachBinHasLesserThanEWeight(A: multiset<nat>, E: nat, I: multiset<multiset<nat>>)
-requires isEnvasado(A, E, I)
+requires isBinPacking(A, E, I)
 ensures GMultisetSumNat(I) <= E * |I|
 {
   if I == multiset{} {}
@@ -112,6 +106,7 @@ ensures GMultisetSumNat(I) <= E * |I|
     upperBoundSumOfElements(weights, maxWeight);
     calc <= {
       GMultisetSumNat(I);
+      {SumNatsEquivalence(I);}
       GSumNat(weights);
       maxWeight * |weights|; 
       maxWeight * |I|;
@@ -123,8 +118,8 @@ ensures GMultisetSumNat(I) <= E * |I|
 
 
 //Used in Algoritmo2AproximadoAux by atMostOneLessThanHalfImplies2Aproximated
-lemma lowerBoundoptimalValueEnvasado(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>) 
-requires optimalEnvasado(A,E,I)
+lemma lowerBoundoptimalValueBinPacking(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>) 
+requires optimalBinPacking(A,E,I)
 ensures GSumNat(A) <= E * |I|
 { 
   //assert forall m: multiset<nat> | m in I :: GSumNat(m) <= E;
@@ -135,17 +130,17 @@ ensures GSumNat(A) <= E * |I|
   //assert GSumNat(A) <= E * |I|;
 }
 
-lemma lowerBoundoptimalValueEnvasadoForAll(A : multiset<nat>, E : nat) 
-ensures forall O: multiset<multiset<nat>> | optimalEnvasado(A, E, O) :: GSumNat(A) <= E * |O|
+lemma lowerBoundoptimalValueBinPacikngForAll(A : multiset<nat>, E : nat) 
+ensures forall O: multiset<multiset<nat>> | optimalBinPacking(A, E, O) :: GSumNat(A) <= E * |O|
 { 
-  forall O: multiset<multiset<nat>> | optimalEnvasado(A, E, O)
+  forall O: multiset<multiset<nat>> | optimalBinPacking(A, E, O)
   ensures GSumNat(A) <= E * |O|{
-    lowerBoundoptimalValueEnvasado(A, E, O);
+    lowerBoundoptimalValueBinPacking(A, E, O);
   }
 }
 
-lemma isInEnvasado(A : multiset<nat>, a:nat, E : nat, I:multiset<multiset<nat>>)
-requires a in A && isEnvasado(A,E,I)
+lemma isInBinPacking(A : multiset<nat>, a:nat, E : nat, I:multiset<multiset<nat>>)
+requires a in A && isBinPacking(A,E,I)
 ensures exists i :: i in I && a in i
 {
   if (!exists i :: i in I && a in i)
@@ -156,15 +151,15 @@ ensures exists i :: i in I && a in i
   }
 }
 
-lemma noEnvasar(A:multiset<nat>, E:nat)
+lemma noPacking(A:multiset<nat>, E:nat)
 requires exists a :: a in A && a > E
-ensures ! exists I:multiset<multiset<nat>> :: isEnvasado(A,E,I)
+ensures ! exists I:multiset<multiset<nat>> :: isBinPacking(A,E,I)
 {
-  if (exists I:multiset<multiset<nat>> :: isEnvasado(A,E,I))
+  if (exists I:multiset<multiset<nat>> :: isBinPacking(A,E,I))
   {
     var a:| a in A && a > E;
-    var I :| isEnvasado(A,E,I);
-    isInEnvasado(A,a,E,I);
+    var I :| isBinPacking(A,E,I);
+    isInBinPacking(A,a,E,I);
     var i :| i in I && a in i;
     GSumNatElemIn(i,a);
     assert GSumNat(i) >= a > E;
@@ -172,21 +167,21 @@ ensures ! exists I:multiset<multiset<nat>> :: isEnvasado(A,E,I)
   }
 }
 
-lemma enVasadoImpliesOptimalEnvasado(A: multiset<nat>, E: nat, example: multiset<multiset<nat>>)
+lemma binPackingImpliesOptimalExists(A: multiset<nat>, E: nat, example: multiset<multiset<nat>>)
 decreases |example| 
-requires isEnvasado(A, E, example)
-ensures exists O: multiset<multiset<nat>> :: optimalEnvasado(A, E, O)
+requires isBinPacking(A, E, example)
+ensures exists O: multiset<multiset<nat>> :: optimalBinPacking(A, E, O)
 {
-  if optimalEnvasado(A, E, example){}
+  if optimalBinPacking(A, E, example){}
   else{
-    assert exists O: multiset<multiset<nat>> :: isEnvasado(A, E, O) && |O| < |example|;
-    var O :| isEnvasado(A, E, O) && |O| < |example|;
-    enVasadoImpliesOptimalEnvasado(A, E, O);
+    assert exists O: multiset<multiset<nat>> :: isBinPacking(A, E, O) && |O| < |example|;
+    var O :| isBinPacking(A, E, O) && |O| < |example|;
+    binPackingImpliesOptimalExists(A, E, O);
   }
 }
 
 lemma noCapacity(A: multiset<nat>, E: nat, I: multiset<multiset<nat>>)
-requires isEnvasado(A, E, I)
+requires isBinPacking(A, E, I)
 requires E == 0
 ensures forall a | a in A :: a == 0
 {
@@ -216,6 +211,7 @@ ensures |I| <= |A|
     noEnvasar(A,E);
    }
 }
+
 
 
 */

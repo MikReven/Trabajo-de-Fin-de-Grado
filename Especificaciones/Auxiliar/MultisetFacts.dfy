@@ -12,6 +12,12 @@ requires a != b
 ensures a in A - multiset{b}
 { }
 
+//Used in Sum.dfy by multisetOfSumsDifference
+lemma ElementBelongsImpliesASubset<T>(A: multiset<T>, a: T)
+requires a in A 
+ensures multiset{a} <= A
+{ }
+
 //Used in Sum.dfy by GSumNatPartes2
 lemma multisetDifference<T>(A: multiset<T>, B: multiset<T>, a: T)
 requires a in A
@@ -163,6 +169,15 @@ ensures a in A
   a
 }
 
+function GPickMinMultiset(A: multiset<nat>) : (a: nat)
+requires A != multiset{}
+ensures a in A
+{
+  hasAMinimumMultiset(A);
+  var a: nat :| a in A && (forall a': nat | a' in A :: a' >= a);
+  a
+}
+
 lemma hasSmallerElementsAntiSymmetric(A: multiset<nat>, B: multiset<nat>)
 requires hasSmallerElements(A, B) && hasSmallerElements(B, A)
 ensures A == B 
@@ -249,6 +264,16 @@ requires a in A
 
 //Used to pick an element from a multiset of multisets of naturals in a deterministic way
 function pickMultisetFunc(A: multiset<multiset<nat>>): (B: multiset<nat>)
+requires A != multiset{}
+{
+  multisetMinExists(A);
+  var x: multiset<nat> :| x in A && isMin(A, x);
+
+  x
+}
+
+//Used to pick an element from a multiset of multisets of naturals in a deterministic way
+function GPickMultisetFunc(A: multiset<multiset<nat>>): (B: multiset<nat>)
 requires A != multiset{}
 {
   multisetMinExists(A);
@@ -418,6 +443,16 @@ requires C <= A
 requires B == C - multiset{d} 
 ensures A - B == A - C + multiset{d} 
 ensures  A - C + multiset{d} == A - B
+{ }
+
+lemma OrderOfDifferences<T>(A: multiset<T>, B: multiset<T>, C: multiset<T>)
+ensures A - B - C == A - C - B
+{ }
+
+lemma DifferenceUnion<T>(A: multiset<T>, B: multiset<T>)
+requires B <= A
+ensures A == A - B + B 
+ensures A == A + B - B
 { }
 
 ghost function Union<T>(I:multiset<multiset<T>>) : (S: multiset<T>)

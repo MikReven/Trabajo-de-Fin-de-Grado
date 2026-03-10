@@ -4,19 +4,19 @@ include "../../Especificaciones/Envasado/EnvasadoProperties.dfy"
 
 
 //We assume a polynomial algorithm for PDE
-method {:axiom} mEnvasar (A : multiset<nat>, E : nat, k : nat) returns (b : bool)
-  ensures b == envasarDecissionProblem(A, E, k)
+method {:axiom} mbinPackingDecissionProblem (A : multiset<nat>, E : nat, k : nat) returns (b : bool)
+  ensures b == binPackingDecissionProblem(A, E, k)
 
 //We implement a polynomial algorithm for PE using mEnvasar
-method mOptimalValueEnvasado (A : multiset<nat>, E : nat) returns (k : nat)
+method mOptimalValueBinPacking (A : multiset<nat>, E : nat) returns (k : nat)
   requires forall a : nat | a in A :: a <= E
-  ensures optimalValueEnvasado(A, E, k)
+  ensures optimalValueBinPacking(A, E, k)
 {
   //If the Multiset is empty, the best Bin Packing is an empty set
   if A == multiset{} {
     k := 0;
-    assert optimalValueEnvasado(A, E, k) by {
-      boundEnvasar(A, E);
+    assert optimalValueBinPacking(A, E, k) by {
+      boundBinPacking(A, E);
     }
   }
   else{
@@ -26,16 +26,16 @@ method mOptimalValueEnvasado (A : multiset<nat>, E : nat) returns (k : nat)
     while (idx <= |A| && !done) 
         invariant idx == 0 ==> !done
         invariant idx <= |A| + 1
-        invariant (idx > 0 && envasarDecissionProblem(A, E, idx - 1)) <==> done 
-        invariant forall x : nat | x < idx - 1 :: !(envasarDecissionProblem(A, E, x)) 
+        invariant (idx > 0 && binPackingDecissionProblem(A, E, idx - 1)) <==> done 
+        invariant forall x : nat | x < idx - 1 :: !(binPackingDecissionProblem(A, E, x)) 
     {
-        done := mEnvasar(A, E, idx);
+        done := mbinPackingDecissionProblem(A, E, idx);
         idx := idx + 1;
     }
     
     k := idx - 1;
-    assert envasarDecissionProblem(A, E, |A|) by {
-      boundEnvasar(A, E);
+    assert binPackingDecissionProblem(A, E, |A|) by {
+      boundBinPacking(A, E);
     }
   }
 }
