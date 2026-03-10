@@ -449,9 +449,12 @@ lemma OrderOfDifferences<T>(A: multiset<T>, B: multiset<T>, C: multiset<T>)
 ensures A - B - C == A - C - B
 { }
 
+lemma OrderOfUnions<T>(A: multiset<T>, B: multiset<T>, C: multiset<T>)
+ensures A + B + C == A + C + B
+{ }
+
 lemma DifferenceUnion<T>(A: multiset<T>, B: multiset<T>)
-requires B <= A
-ensures A == A - B + B 
+ensures B <= A ==> (A == A - B + B) 
 ensures A == A + B - B
 { }
 
