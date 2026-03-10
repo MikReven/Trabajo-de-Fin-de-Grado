@@ -284,7 +284,7 @@ ensures newiterateMultiset < iterateMultiset
 method binPacking2AproximatedGeneral(A: multiset<nat>, E: nat) returns (I: multiset<multiset<nat>>)
 requires forall a: nat | a in A :: 0 < a <= E
 requires E > 0
-ensures isEnvasado(A,E,I)
+ensures isBinPacking(A,E,I)
 ensures isKAproximatedBinPacking(A, E, I, 2)
 {
     //Variable initialization

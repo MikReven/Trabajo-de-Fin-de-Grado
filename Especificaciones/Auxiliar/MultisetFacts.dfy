@@ -421,8 +421,7 @@ ensures  x * z + y * z >= (x + y) * z
 {}
 
 lemma SubstractUnion<T>(x:multiset<T>,y:multiset<T>)
-requires y >= x
-ensures x + (y - x) == y
+ensures x + y - x == y
 {} 
 
 lemma UnionSubstractUnion<T>(x:multiset<T>,y:multiset<T>,z:multiset<T>,u:multiset<T>)
@@ -446,11 +445,12 @@ ensures  A - C + multiset{d} == A - B
 { }
 
 lemma OrderOfDifferences<T>(A: multiset<T>, B: multiset<T>, C: multiset<T>)
-ensures A - B - C == A - C - B
+ensures (A - B) - C == (A - C) - B
 { }
 
 lemma OrderOfUnions<T>(A: multiset<T>, B: multiset<T>, C: multiset<T>)
-ensures A + B + C == A + C + B
+ensures (A + B) + C == (A + C) + B
+ensures A + (B + C) == B + (A + C)
 { }
 
 lemma DifferenceUnion<T>(A: multiset<T>, B: multiset<T>)

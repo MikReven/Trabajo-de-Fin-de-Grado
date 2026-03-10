@@ -1,7 +1,7 @@
 include "EnvasadoOpt.dfy"
 
 
-lemma boundPacking(A:multiset<nat>, E:nat)
+lemma boundBinPacking(A:multiset<nat>, E:nat)
 requires forall a | a in A :: a <= E
 ensures forall j | j >= |A| :: binPackingDecissionProblem(A,E,j)
 { 

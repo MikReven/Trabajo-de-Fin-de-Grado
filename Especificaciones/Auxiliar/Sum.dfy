@@ -6,83 +6,47 @@ ghost function multisetOfSums(A: multiset<multiset<nat>>): (B: multiset<nat>)
 ensures |A| == |B|
 ensures forall b: nat | b in B :: (exists a :: a in A && GSumNat(a) == b)
 ensures forall a: multiset<nat> | a in A :: GSumNat(a) in B
-ensures A != multiset{} ==> B == multisetOfSums(A - multiset{GPickMultisetFunc(A)}) + multiset{GSumNat(GPickMultisetFunc(A))} 
 {
-  /*
+  
   if A == multiset{} then multiset{}
   else 
-    var a: multiset<nat> :| a in A;
-    var recursiveResult := multisetOfSums(A - multiset{a});
-    var result := multiset{GSumNat(a)} + recursiveResult;
-
-    assert recursiveResult == multisetOfSums(A - multiset{a});
-    assert GSumNat(a) in result;
-    assert result == multiset{GSumNat(a)} + recursiveResult;
-    multisetDifference2(recursiveResult, result, GSumNat(a));
-    assert recursiveResult == result - multiset{GSumNat(a)};
-    assert multisetOfSums(A - multiset{a}) == result - multiset{GSumNat(a)}; 
-    
-    result
-  */
-  if A == multiset{} then multiset{}
-  else 
-    var  x:multiset<nat> := GPickMultisetFunc(A); 
-    var recursiveResult := multisetOfSums(A - multiset{x});
-    var result := multiset{GSumNat(x)} + recursiveResult;
-    assert result == multiset{GSumNat(x)} + multisetOfSums(A - multiset{x});
-
-    multiset{GSumNat(x)} + recursiveResult
+    var  x:multiset<nat> :| x in A; 
+    multiset{GSumNat(x)} + multisetOfSums(A - multiset{x})
 }
 
 
-lemma{:only} MultisetOfSumsComposition(I: multiset<multiset<nat>>, i: multiset<nat>)
+lemma MultisetOfSumsComposition(I: multiset<multiset<nat>>, i: multiset<nat>)
+decreases I
 requires i in I
-ensures multisetOfSums(I) == multisetOfSums(I - multiset{i}) + multiset{GSumNat(i)}
+ensures multisetOfSums(I) ==  multiset{GSumNat(i)} + multisetOfSums(I - multiset{i}) 
 {
-  if (I == multiset{i}) {}
-  else{
-    var m: multiset<nat> :| m in I && (multisetOfSums(I) == multisetOfSums(I-multiset{m}) + multiset{GSumNat(m)});
-    if (m == i) {}
-    else {
-      assert multisetOfSums(I - multiset{i}) == multisetOfSums(I) - multiset{GSumNat(i)} by{
-        calc == {
-          multisetOfSums(I-multiset{i});
-          {
-            assume false;
-            ElementBelongsToMultisetDifference(I, m, i);
-            MultisetOfSumsComposition(I-multiset{i},m);
-          }
-          multisetOfSums(I-multiset{i}-multiset{m}) + multiset{GSumNat(m)}; 
-          {OrderOfDifferences(I, multiset{i}, multiset{m});}
-          multisetOfSums(I-multiset{m}-multiset{i}) + multiset{GSumNat(m)}; 
-          {
-            assume false;
-            DifferenceUnion(multisetOfSums(I-multiset{m}-multiset{i}) + multiset{GSumNat(m)}, multiset{GSumNat(i)});
-          }
-          multisetOfSums(I-multiset{m}-multiset{i}) + multiset{GSumNat(m)} + multiset{GSumNat(i)} - multiset{GSumNat(i)};
-          {OrderOfUnions(multisetOfSums(I-multiset{m}-multiset{i}), multiset{GSumNat(m)}, multiset{GSumNat(i)});} 
-          multisetOfSums(I-multiset{m}-multiset{i}) + multiset{GSumNat(i)} + multiset{GSumNat(m)} - multiset{GSumNat(i)};
-          {
-            assume false;
-            assert multisetOfSums(I) == multisetOfSums(I - multiset{m} - multiset{i}) + multiset{GSumNat(i)} + multiset{GSumNat(m)};
-          }
-          multisetOfSums(I) - multiset{GSumNat(i)};
-        }
-      }     
-      calc == {
-        multisetOfSums(I);
-        {
-          assert i in I;
-          assert GSumNat(i) in multisetOfSums(I);
-          ElementBelongsImpliesASubset(multisetOfSums(I), GSumNat(i));
-          assert multiset{GSumNat(i)} <= multisetOfSums(I);
-          DifferenceUnion(multisetOfSums(I), multiset{GSumNat(i)});
-        }
-        multisetOfSums(I) - multiset{GSumNat(i)} + multiset{GSumNat(i)};
-        multisetOfSums(I - multiset{i}) + multiset{GSumNat(i)};
+   assert I != multiset{};
+   var x :| x in I && multisetOfSums(I) == multiset{GSumNat(x)} + multisetOfSums(I - multiset{x});
+   if (x == i) {}
+   else {
+     var I' := I-multiset{x};
+     assert i in I';
+     calc{
+      multisetOfSums(I);
+      multiset{GSumNat(x)} + multisetOfSums(I');
+      { MultisetOfSumsComposition(I',i);
+        assert multisetOfSums(I') ==  multiset{GSumNat(i)} + multisetOfSums(I' - multiset{i}); }
+      multiset{GSumNat(x)} + (multiset{GSumNat(i)} + multisetOfSums(I' - multiset{i}));
+      { OrderOfUnions(multiset{GSumNat(x)},multiset{GSumNat(i)},multisetOfSums(I' - multiset{i}));
       }
-    }
-  }
+      multiset{GSumNat(i)} + (multiset{GSumNat(x)} + multisetOfSums(I' - multiset{i}));
+      { OrderOfDifferences(I,multiset{x},multiset{i});
+        assert I' == I-multiset{x};
+        assert I' - multiset{i} == (I - multiset{i}) - multiset{x};
+      }
+      multiset{GSumNat(i)} +  (multiset{GSumNat(x)} + multisetOfSums((I - multiset{i}) - multiset{x}));
+      { ElementBelongsToMultisetDifference(I,x,i);
+        MultisetOfSumsComposition(I - multiset{i},x);
+        assert   multiset{GSumNat(x)} + multisetOfSums((I - multiset{i}) - multiset{x}) == multisetOfSums(I - multiset{i});
+      }
+      multiset{GSumNat(i)} + multisetOfSums(I - multiset{i});
+     }
+   }
 }
 
 function FSumNat(m: multiset<nat>): nat
@@ -137,28 +101,36 @@ ghost function GMultisetSumNat(m: multiset<multiset<nat>>) : nat
 }
 
 lemma GMultisetSumComposition(I: multiset<multiset<nat>>, i: multiset<nat>)
+decreases I
 requires i in I
 ensures GMultisetSumNat(I) == GSumNat(i) + GMultisetSumNat(I - multiset{i})
 {
-  if (I == multiset{}) {}
-  else{
-    var m: multiset<nat> :| m in I && (GMultisetSumNat(I) == GMultisetSumNat(I-multiset{m}) + GSumNat(m));
-    if (m == i) {}
-    else {
-      GMultisetSumComposition(I-multiset{m},i);
-      assert GMultisetSumNat(I-multiset{m}) == GMultisetSumNat(I-multiset{m}-multiset{i}) + GSumNat(i); 
-      assert GMultisetSumNat(I) == GSumNat(i) + GMultisetSumNat(I - multiset{m} - multiset{i}) + GSumNat(m);    
-      GMultisetSumComposition(I-multiset{i},m);
-      assert I-multiset{i}-multiset{m} == I-multiset{m}-multiset{i};
-      calc{
-        GMultisetSumNat(I-multiset{i});
-        {GMultisetSumComposition(I-multiset{i},m);}
-        GMultisetSumNat(I-multiset{i}-multiset{m}) + GSumNat(m);
-        {assert I-multiset{i}-multiset{m} == I-multiset{m}-multiset{i};}
-        GMultisetSumNat(I-multiset{m}-multiset{i}) + GSumNat(m);
-        GSumNat(i) + GMultisetSumNat(I-multiset{m}-multiset{i}) + GSumNat(m) - GSumNat(i);
-        GMultisetSumNat(I) - GSumNat(i);
+  var x :| x in I && GMultisetSumNat(I) == GSumNat(x) + GMultisetSumNat(I - multiset{x});
+  if (x == i) {}
+  else {
+    var I' := I-multiset{x};
+    assert i in I';
+    calc{
+      GMultisetSumNat(I);
+      GSumNat(x) + GMultisetSumNat(I');
+      { 
+        GMultisetSumComposition(I',i);
+        assert GMultisetSumNat(I') ==  GSumNat(i) + GMultisetSumNat(I' - multiset{i}); 
       }
+      GSumNat(x) + (GSumNat(i) + GMultisetSumNat(I' - multiset{i}));
+      GSumNat(i) + (GSumNat(x) + GMultisetSumNat(I' - multiset{i}));
+      { 
+        OrderOfDifferences(I,multiset{x},multiset{i});
+        assert I' == I-multiset{x};
+        assert I' - multiset{i} == (I - multiset{i}) - multiset{x};
+      }
+      GSumNat(i) + (GSumNat(x) + GMultisetSumNat((I - multiset{i}) - multiset{x}));
+      { 
+        ElementBelongsToMultisetDifference(I,x,i);
+        GMultisetSumComposition(I - multiset{i},x);
+        assert GSumNat(x) + GMultisetSumNat((I - multiset{i}) - multiset{x}) == GMultisetSumNat(I - multiset{i});
+      }
+      GSumNat(i) + GMultisetSumNat(I - multiset{i});
     }
   }
 }
@@ -176,7 +148,14 @@ ensures GSumNat(multisetOfSums(M)) == GMultisetSumNat(M)
       GSumNat(multisetOfSums(M));
       {GSumNatElemIn(multisetOfSums(M), GSumNat(m));}
       GSumNat(m) + GSumNat(multisetOfSums(M) - multiset{GSumNat(m)});
-      {MultisetOfSumsComposition(M, m);}
+      {
+        assert multisetOfSums(M) - multiset{GSumNat(m)} == multisetOfSums(M - multiset{m}) by{
+          MultisetOfSumsComposition(M, m);
+          assert multisetOfSums(M) == multiset{GSumNat(m)} + multisetOfSums(M - multiset{m});
+          SubstractUnion(multiset{GSumNat(m)}, multisetOfSums(M - multiset{m}));
+          assert multiset{GSumNat(m)} + multisetOfSums(M - multiset{m}) - multiset{GSumNat(m)} == multisetOfSums(M - multiset{m});
+        }
+      }
       GSumNat(m) + GSumNat(multisetOfSums(M - multiset{m}));
       {SumNatsEquivalence(M - multiset{m});}
       GMultisetSumNat(M - multiset{m}) + GSumNat(m);

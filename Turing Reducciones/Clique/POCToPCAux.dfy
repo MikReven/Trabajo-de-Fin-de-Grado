@@ -22,7 +22,9 @@ lemma ovCliqueRemoveVertex(g: Graph, g': Graph, v: Node, kg: nat, kg': nat)
         assert optimalValueClique(g', |I|);
     }
     else{
-        if exists I': set<Node> :: isClique(g', I') && |I'| == kg {}
+        if exists I': set<Node> :: isClique(g', I') && |I'| == kg {
+            assert optimalValueClique(g', kg);
+        }
         else{
             ghost var I': set<Node> := I - {v};
             CliqueTranslation2(g', I');

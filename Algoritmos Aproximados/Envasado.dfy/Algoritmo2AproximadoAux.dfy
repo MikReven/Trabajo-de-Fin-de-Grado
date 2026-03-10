@@ -168,7 +168,7 @@ ensures a < b
 
 //Used locally by atMostOneLessThanHalfImplies2Aproximated
 ghost function multisetsMoreThanHalf(A: multiset<nat>, E: nat, I: multiset<multiset<nat>>): (I': multiset<multiset<nat>>)
-requires isEnvasado(A, E, I)
+requires isBinPacking(A, E, I)
 requires forall i | i in I :: GSumNat(i) > 0
 requires allMoreThanHalfFull(E, I) || oneLessThanHalfFull(E, I)
 requires E > 0
@@ -209,12 +209,12 @@ ensures GMultisetSumNat(I') < GSumNat(A)
 
 //Used locally by atMostOneLessThanHalfImplies2Aproximated
 lemma atMostOneLessThanHalfImplies2AproximatedCalc(A: multiset<nat>, E: nat, O: multiset<multiset<nat>>, I: multiset<multiset<nat>>, I': multiset<multiset<nat>>)
-requires isEnvasado(A, E, I)
+requires isBinPacking(A, E, I)
 requires forall i | i in I :: GSumNat(i) > 0
 requires allMoreThanHalfFull(E, I) || oneLessThanHalfFull(E, I)
 requires E > 0
 requires I != multiset{}
-requires optimalEnvasado(A, E, O)
+requires optimalBinPacking(A, E, O)
 requires I' == multisetsMoreThanHalf(A, E, I)
 ensures |I'| < |O| * 2
 {
@@ -223,7 +223,7 @@ ensures |I'| < |O| * 2
 
     calc{
         pesoTotal;
-        <= {lowerBoundoptimalValueEnvasado(A, E, O);}
+        <= {lowerBoundoptimalValueBinPacking(A, E, O);}
         |O| * E;
     }
     lowerBoundSum(I', E, pesoTotal');
@@ -245,7 +245,7 @@ ensures |I'| < |O| * 2
 
 
 lemma atMostOneLessThanHalfImplies2Aproximated(A: multiset<nat>, E: nat, I: multiset<multiset<nat>>)
-requires isEnvasado(A, E, I)
+requires isBinPacking(A, E, I)
 requires allMoreThanHalfFull(E, I) || oneLessThanHalfFull(E, I) 
 requires E > 0
 requires forall i | i in I :: GSumNat(i) > 0
@@ -255,11 +255,11 @@ ensures isKAproximatedBinPacking(A, E, I, 2)
     else{
         // |I| - 1 multiset that are more than half full
         var I' := multisetsMoreThanHalf(A, E, I);
-        enVasadoImpliesOptimalEnvasado(A, E, I);
-        var O: multiset<multiset<nat>> :| optimalEnvasado(A, E, O);
+        binPackingImpliesOptimalExists(A, E, I);
+        var O: multiset<multiset<nat>> :| optimalBinPacking(A, E, O);
 
         atMostOneLessThanHalfImplies2AproximatedCalc(A, E, O, I, I');
-        forall M: multiset<multiset<nat>> | isEnvasado(A, E, M)
+        forall M: multiset<multiset<nat>> | optimalBinPacking(A, E, M)
         ensures |I'| < |M| * 2
         {
             assert |O| <= |M|;
@@ -273,5 +273,5 @@ requires forall i: nat | 0 <= i < |S| :: GSumNat(S[i]) <= E
 requires forall i: nat | 0 <= i < |S| :: S[i] <= A
 requires I == multiset(S)
 requires Union(I) == A 
-ensures isEnvasado(A, E, I)
+ensures isBinPacking(A, E, I)
 { }
