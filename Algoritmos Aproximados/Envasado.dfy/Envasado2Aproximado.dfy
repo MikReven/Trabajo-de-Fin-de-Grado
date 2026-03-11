@@ -1,4 +1,4 @@
-include "../../Especificaciones/Auxiliar/Sequence.dfy"
+include "../../Especificaciones/Auxiliar/SequenceFacts.dfy"
 include "../../Especificaciones/Envasado/Envasado.dfy"
 include "EnvasadoKAproximado.dfy"
 include "Algoritmo2AproximadoAux.dfy"
@@ -305,7 +305,7 @@ ensures isKAproximatedBinPacking(A, E, I, 2)
     //As the sequence verifies all the coditions necessary to be a BinPacking, so does the corresponding multiset
     I := multiset(bins);
     HalfSeqToMultisetTranslation(E, bins);
-    atMostOneLessThanHalfImplies2Aproximated(A, E, I);
+    AtMostOneLessThanHalfImplies2Aproximated(A, E, I);
 }
 
 /*Version vieja
