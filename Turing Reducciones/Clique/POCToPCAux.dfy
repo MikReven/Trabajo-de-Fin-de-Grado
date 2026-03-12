@@ -15,7 +15,7 @@ lemma ovCliqueRemoveVertex(g: Graph, g': Graph, v: Node, kg: nat, kg': nat)
         assert false;
     }
     assert kg >= kg';
-    CliqueTranslation(g, kg);
+    OptimalCliqueValueBounds(g, kg);
     ghost var I: set<Node> :| (optimalClique(g, I) && |I| == kg && I <= g.0 && isClique(g, I));
     assert isClique(g, I);
     if v !in I {
@@ -27,7 +27,7 @@ lemma ovCliqueRemoveVertex(g: Graph, g': Graph, v: Node, kg: nat, kg': nat)
         }
         else{
             ghost var I': set<Node> := I - {v};
-            CliqueTranslation2(g', I');
+            OptimalCliquesSizeIsOptimalValue(g', I');
         }
     } 
 }
@@ -72,7 +72,7 @@ lemma isPartialSolutionWith2(g: Graph, g': Graph, v: Node, kg: nat, kg': nat)
         //instantiate the clique
         var S: set<Node> :| S <= G.0 && optimalClique(G, S) && v !in S; 
         //that clique must actually contain v, since it would be an optimal clique in g
-        CliqueTranslation2(G, S);
+        OptimalCliquesSizeIsOptimalValue(G, S);
         assert |S| == kg;
         CliqueInSubgraph(g, G, |S|, S);
         assert optimalClique(g, S);
@@ -104,7 +104,7 @@ lemma isPartialSolutionWith(g: Graph, g': Graph, v: Node, kg: nat, kg': nat, I: 
             assert false;
         }
     }
-    alwaysAnOptimalClique(g);
+    AlwaysAnOptimalClique(g);
     assert exists S: set<Node> :: S <= g.0 && optimalClique(g, S) && v in S;
     var S: set<Node> :| S <= g.0 && optimalClique(g, S) && v in S; 
     assert forall i: Node | i in I :: i in S; 
@@ -122,7 +122,7 @@ lemma isPartialSolutionWithout(g: Graph, g': Graph, v: Node, kg: nat, kg': nat, 
     requires forall i: Node | i in I :: (forall G: Graph | isValidGraph(G) && isSubGraph(G, g) && optimalValueClique(G, kg) :: (forall S: set<Node> | S <= G.0 && optimalClique(G, S) :: i in S))
     ensures exists S: set<Node> :: S <= g.0 && I<= S && optimalClique(g, S) && v !in S
 {
-    CliqueTranslation(g', kg');
+    OptimalCliqueValueBounds(g', kg');
     //assert exists S: set<Node> :: S <= g'.0 && optimalClique(g', S);
     var S: set<Node> :| S <= g'.0 && isClique(g', S) && |S| == kg' && optimalClique(g', S);
     CliqueInSubgraph(g, g', kg, S);

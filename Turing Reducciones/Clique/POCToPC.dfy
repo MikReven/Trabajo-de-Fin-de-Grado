@@ -58,7 +58,7 @@ method mOptimalClique (graph:Graph) returns (I:set<Node>)
   //A clique for graph cannot contain more than |graph.0| vertices
   UpperBoundClique(graph);
   //If kg is the optimal value of a clique for g, there is some clique with that cardinality and no cliques with a greater cardinality
-  CliqueTranslation(g, kg);
+  OptimalCliqueValueBounds(g, kg);
 
   //stop when g.0 == I
   while (|I| < kg)

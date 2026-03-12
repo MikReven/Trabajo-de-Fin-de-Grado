@@ -297,8 +297,12 @@ ensures isKAproximatedBinPacking(A, E, I, 2)
     }
 }
 
+//////////////////////////////////////////////////
+//               Currently Unused               //
+//////////////////////////////////////////////////
+
+/*
 //If the conditions to be a BinPicking hold for for a sequence, the corresponding multiset is a BinPacking
-//This lemma is unused
 lemma EnvasadoSequenceMultisetTranslation(A: multiset<nat>, E: nat, S: seq<multiset<nat>>, I: multiset<multiset<nat>>)
 requires forall i: nat | 0 <= i < |S| :: GSumNat(S[i]) <= E 
 requires forall i: nat | 0 <= i < |S| :: S[i] <= A
@@ -306,3 +310,4 @@ requires I == multiset(S)
 requires Union(I) == A 
 ensures isBinPacking(A, E, I)
 { }
+*/
