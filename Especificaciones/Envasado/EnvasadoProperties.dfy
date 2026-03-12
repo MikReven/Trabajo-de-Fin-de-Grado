@@ -118,7 +118,7 @@ ensures GMultisetSumNat(I) <= E * |I|
 
 
 //Used in Algoritmo2AproximadoAux by atMostOneLessThanHalfImplies2Aproximated
-lemma lowerBoundoptimalValueBinPacking(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>) 
+lemma LowerBoundoptimalValueBinPacking(A : multiset<nat>, E : nat, I:multiset<multiset<nat>>) 
 requires optimalBinPacking(A,E,I)
 ensures GSumNat(A) <= E * |I|
 { 
@@ -130,12 +130,12 @@ ensures GSumNat(A) <= E * |I|
   //assert GSumNat(A) <= E * |I|;
 }
 
-lemma lowerBoundoptimalValueBinPacikngForAll(A : multiset<nat>, E : nat) 
+lemma LowerBoundoptimalValueBinPacikngForAll(A : multiset<nat>, E : nat) 
 ensures forall O: multiset<multiset<nat>> | optimalBinPacking(A, E, O) :: GSumNat(A) <= E * |O|
 { 
   forall O: multiset<multiset<nat>> | optimalBinPacking(A, E, O)
   ensures GSumNat(A) <= E * |O|{
-    lowerBoundoptimalValueBinPacking(A, E, O);
+    LowerBoundoptimalValueBinPacking(A, E, O);
   }
 }
 
@@ -167,7 +167,7 @@ ensures ! exists I:multiset<multiset<nat>> :: isBinPacking(A,E,I)
   }
 }
 
-lemma binPackingImpliesOptimalExists(A: multiset<nat>, E: nat, example: multiset<multiset<nat>>)
+lemma BinPackingImpliesOptimalExists(A: multiset<nat>, E: nat, example: multiset<multiset<nat>>)
 decreases |example| 
 requires isBinPacking(A, E, example)
 ensures exists O: multiset<multiset<nat>> :: optimalBinPacking(A, E, O)
@@ -176,7 +176,7 @@ ensures exists O: multiset<multiset<nat>> :: optimalBinPacking(A, E, O)
   else{
     assert exists O: multiset<multiset<nat>> :: isBinPacking(A, E, O) && |O| < |example|;
     var O :| isBinPacking(A, E, O) && |O| < |example|;
-    binPackingImpliesOptimalExists(A, E, O);
+    BinPackingImpliesOptimalExists(A, E, O);
   }
 }
 

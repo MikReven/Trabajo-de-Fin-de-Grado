@@ -32,6 +32,37 @@ include "EnvasadoKAproximado.dfy"
         -AtMostOneLessThanHalfImplies2AproximatedCalc: Proves a calculation necessary for atMostOneLessThanHalfImplies2Aproximated
         -AtMostOneLessThanHalfImplies2Aproximated: If in a BinPacking at most one bins is half full or less, the solution is 2-Aproximated
 
+    Methods:
+        None
+
+    Imported Elements
+        Predicates
+            From Envasado.dfy
+            -isBinPacking
+            FromEnvasadoOpt.dfy
+            -optimalBinPacking
+            From EnvasadoKAproximado.dfy
+            -isKAproximatedBinPacking
+        Functions
+            From Sum.dfy
+            -GSumNat
+            -GMultisetSumNat
+        Lemmas
+            From Sum.dfy
+            -GMultisetSumComposition
+            -GSumNatPartes2
+            From NaturalsFacts.dfy
+            -IsSmallerThan
+            -Distributivity
+            -ProductSimplification
+            -MultiplyingByNaturals
+            -CommutativeProduct
+            -DividingByNaturals
+            From SequenceFacts.dfy
+            -SequenceInsertionToMultiset
+            From EnvasadoProperties.dfy
+            -LowerBoundoptimalValueBinPacking
+            -BinPackingImpliesOptimalExists
 */
 
 //All bins are more than half full
@@ -220,7 +251,7 @@ ensures |I'| < |O| * 2
 
     calc{
         totalWeight;
-        <= {lowerBoundoptimalValueBinPacking(A, E, O);}
+        <= {LowerBoundoptimalValueBinPacking(A, E, O);}
         |O| * E;
     }
     LowerBoundSum(I', E, totalWeight');
@@ -253,7 +284,7 @@ ensures isKAproximatedBinPacking(A, E, I, 2)
     else{
         // |I| - 1 multiset that are more than half full
         var I' := multisetsMoreThanHalf(A, E, I);
-        binPackingImpliesOptimalExists(A, E, I);
+        BinPackingImpliesOptimalExists(A, E, I);
         var O: multiset<multiset<nat>> :| optimalBinPacking(A, E, O);
 
         AtMostOneLessThanHalfImplies2AproximatedCalc(A, E, O, I, I');
