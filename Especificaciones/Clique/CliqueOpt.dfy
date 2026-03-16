@@ -27,7 +27,7 @@ ghost predicate optimalValueClique(g: Graph, k: nat)
    && forall x: nat | CliqueDecissionProblem(g, x) :: x <= k
 }
 
-//Optimal clique problem: returns true if I is the one of largest clique possible (there could be more than one)
+//Optimal clique problem: returns true if I is one of the largest clique possible (there could be more than one)
 ghost predicate optimalClique(g: Graph, I: set<Node>)
     requires isValidGraph(g)
 {

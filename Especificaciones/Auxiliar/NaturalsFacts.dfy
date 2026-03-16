@@ -45,3 +45,9 @@ requires a == b - c
 requires c > 0
 ensures a < b  
 { }
+
+//Used locally by eachBinHasLesserThanEWeight
+lemma lessThanWithMultiplication(a: nat, b: nat, c: nat)
+requires a <= c 
+ensures a * b <= c * b 
+{ }

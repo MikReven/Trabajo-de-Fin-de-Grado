@@ -1,7 +1,44 @@
 include "../../Especificaciones/Clique/CliqueOpt.dfy"
 include "../../Especificaciones/Clique/CliqueProperties.dfy"
 include "POCToPCAux.dfy"
+/*
+    File explanation
+        The main goal of this file is to provide a method that Turing Reduces the optimal solution version to the optimal value version of of the Clique Problem.
+        To do this we assume a method that solves the optimal value version and use it in a method that computes an optimal solution of the Clique Problem in a given graph.
+    Predicates
+        -invariantLoop: Encapsulates the properties to be maintained through each iteration during the mOptimalClique method
+    Methods:
+        -moptimalValueClique
+        -mOptimalClique
 
+    Imported Elements
+        Predicates
+            From Graph.dfy
+            -isValidGraph
+            -isSubGraph
+            From Clique.dfy
+            -isClique
+            From CliqueOpt.dfy
+            -optimalValueClique
+            -optimalClique
+        Functions
+            From Graph.dfy
+            -removeVertex
+        Lemmas
+            From Graph.dfy
+            -validSubgraph
+            From CliqueProperties.dfy
+            -UpperBoundClique
+            -OptimalCliqueValueBounds
+            From POCTOPCAux.dfy
+            -ovCliqueRemoveVertex
+            -isPartialSolutionWith2
+        Methods
+            From SetFacts.dfy
+            -pick
+*/
+
+//Encapsulates the properties to be maintained through each iteration during the mOptimalClique method
 ghost predicate invariantLoop(
   graph : Graph, 
   vertex : set<Node>,//remaining vertex
@@ -41,7 +78,15 @@ method {:axiom} moptimalValueClique (graph : Graph) returns (k: nat)
   requires isValidGraph(graph)
   ensures optimalValueClique(graph,k)
 
+
 //We implement a polynomial algorithm for PDCV using moptimalVertexCover
+//Procedure
+  /*
+  We iterate over each vertex in the graph and compute the optimal value of a Clique in the Graph that we obtain after removing the vertex.
+  If the value does not change, the graph still contains at least one optimal clique, and we remove the vertex from the graph
+  If the value decreases, the vertex was necessary to form optimal cliques, every optimal clique must contain it
+  We finish when we have ha clique whose cardinality equals th eoptimal value of the initial grpah
+  */
 method mOptimalClique (graph:Graph) returns (I:set<Node>)
   requires isValidGraph(graph)
   ensures optimalClique(graph, I)
@@ -77,7 +122,7 @@ method mOptimalClique (graph:Graph) returns (I:set<Node>)
     if kg == kg' + 1 
     { 
       //Any optimal clique for g must include v
-      isPartialSolutionWith2(g, g', v, kg, kg');
+      isPartialSolutionWith(g, g', v, kg, kg');
       I := I + {v};
       
     }

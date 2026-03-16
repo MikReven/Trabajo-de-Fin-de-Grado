@@ -1,7 +1,30 @@
 include "../../Especificaciones/Clique/CliqueOpt.dfy"
 include "../../Especificaciones/Clique/CliqueProperties.dfy"
+/*
+    File explanation
+        The main goal of this file is to provide a method that Turing Reduces the optimal value version to the decission version of of the Clique Problem.
+        To do this we assume a method that solves the decission version and use it in a method that computes the optimal value of a Clique in a given graph
 
+    Methods:
+        -mCliqueDecissionProblem
+        -mOptimalValueClique
 
+    Imported Elements
+        Predicates
+            From Graph.dfy
+            -isValidGraph
+            From Clique.dfy
+            -isClique
+            From CliqueOpt.dfy
+            -CliqueDecissionProblem
+            -optimalValueClique
+        Functions
+            None
+        Lemmas
+            From CliqueProperties.dfy
+            -LowerBoundClique
+            -UpperBoundClique
+*/
 
 //We assume a polynomial algorithm for PDC
 method {:axiom} mCliqueDecissionProblem (graph : Graph, k : nat) returns (b : bool)
@@ -9,6 +32,7 @@ method {:axiom} mCliqueDecissionProblem (graph : Graph, k : nat) returns (b : bo
   ensures b == CliqueDecissionProblem(graph, k)
 
 //We implement a polynomial algorithm for PC using mCliqueDecissionProblem
+//We iterate over the possible sizes of a Clique, and we check if a clique of that size exists, we stop once we value such that no clique of that size exist in the graph
 method mOptimalValueClique (graph : Graph) returns (k : nat)
   requires isValidGraph(graph)
   ensures optimalValueClique(graph,k)

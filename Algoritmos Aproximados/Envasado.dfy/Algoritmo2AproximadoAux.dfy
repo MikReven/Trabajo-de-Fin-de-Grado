@@ -39,7 +39,7 @@ include "EnvasadoKAproximado.dfy"
         Predicates
             From Envasado.dfy
             -isBinPacking
-            FromEnvasadoOpt.dfy
+            From EnvasadoOpt.dfy
             -optimalBinPacking
             From EnvasadoKAproximado.dfy
             -isKAproximatedBinPacking
@@ -50,7 +50,7 @@ include "EnvasadoKAproximado.dfy"
         Lemmas
             From Sum.dfy
             -GMultisetSumComposition
-            -GSumNatPartes2
+            -GSumNatPOfUnion
             From NaturalsFacts.dfy
             -IsSmallerThan
             -Distributivity
@@ -123,7 +123,7 @@ ensures GMultisetSumNat(I') < GSumNat(A)
         var diff := GSumNat(lessThanHalf);
         GMultisetSumComposition(I, lessThanHalf);
         assert GMultisetSumNat(I) ==  GSumNat(lessThanHalf) + GMultisetSumNat(I - multiset{lessThanHalf});
-        GSumNatPartes2(A, I);
+        GSumNatOfUnion(A, I);
         assert totalWeight == diff + GMultisetSumNat(I');
         var totalWeight' := totalWeight - diff;
         assert diff > 0;
@@ -136,7 +136,7 @@ ensures GMultisetSumNat(I') < GSumNat(A)
         var diff := GSumNat(i);
         GMultisetSumComposition(I, i);
         assert GMultisetSumNat(I) ==  GSumNat(i) + GMultisetSumNat(I - multiset{i});
-        GSumNatPartes2(A, I);
+        GSumNatOfUnion(A, I);
         assert totalWeight == diff + GMultisetSumNat(I');
         var totalWeight' := totalWeight - diff;
         assert diff > 0;

@@ -392,7 +392,7 @@ ensures a + b - c == a + d
 { }
 
 //Performs a calculation necessary for GSumNatPartes2
-lemma GSumNatPartes2Calc1(A: multiset<nat>, A': multiset<nat>, I: multiset<multiset<nat>>, I': multiset<multiset<nat>>, I'': multiset<multiset<nat>>, a: nat, i: multiset<nat>, i': multiset<nat>)
+lemma GSumNatOfUnionCalc1(A: multiset<nat>, A': multiset<nat>, I: multiset<multiset<nat>>, I': multiset<multiset<nat>>, I'': multiset<multiset<nat>>, a: nat, i: multiset<nat>, i': multiset<nat>)
 requires A != multiset{}
 requires Union(I) == A 
 requires a in A
@@ -420,7 +420,7 @@ ensures A' == Union(I'')
 }
 
 //Performs a calculation necessary for GSumNatPartes2
-lemma GSumNatPartes2Calc2(A: multiset<nat>, I: multiset<multiset<nat>>, I': multiset<multiset<nat>>, I'': multiset<multiset<nat>>, a: nat, i: multiset<nat>, i': multiset<nat>)
+lemma GSumNatOfUnionCalc2(A: multiset<nat>, I: multiset<multiset<nat>>, I': multiset<multiset<nat>>, I'': multiset<multiset<nat>>, a: nat, i: multiset<nat>, i': multiset<nat>)
 requires A != multiset{}
 requires Union(I) == A 
 requires a in A
@@ -456,7 +456,7 @@ ensures GMultisetSumNat(I) == GMultisetSumNat(I'') + a
 }
 
 //Used in EnvasadoProperties by lowerBoundoptimalValueEnvasado
-lemma GSumNatPartes2(A: multiset<nat>, I: multiset<multiset<nat>>)
+lemma GSumNatOfUnion(A: multiset<nat>, I: multiset<multiset<nat>>)
 requires Union(I) == A 
 ensures GMultisetSumNat(I) == GSumNat(A)
 { 
@@ -469,11 +469,11 @@ ensures GMultisetSumNat(I) == GSumNat(A)
     var I' := I - multiset{i};
     var i' := i - multiset{a};
     var I'' := I' + multiset{i'};
-    GSumNatPartes2Calc1(A, A', I, I', I'',a, i, i');
-    GSumNatPartes2(A', I'');
+    GSumNatOfUnionCalc1(A, A', I, I', I'',a, i, i');
+    GSumNatOfUnion(A', I'');
     calc{
       GMultisetSumNat(I);
-      {GSumNatPartes2Calc2(A, I, I', I'',a, i, i');}
+      {GSumNatOfUnionCalc2(A, I, I', I'',a, i, i');}
       GMultisetSumNat(I'') + a;
       GSumNat(A') + a;
       {SumNatPlusAnotherElement(A', a);}

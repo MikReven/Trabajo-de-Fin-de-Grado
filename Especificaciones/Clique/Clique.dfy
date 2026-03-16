@@ -8,6 +8,7 @@ include "../Auxiliar/Graph.dfy"
     Imported elements
         Uses the predicate isValidGraph from GraphFacts.dfy
 */
+
 predicate isClique(g: Graph, I: set<Node>)
     requires isValidGraph(g)
 {
