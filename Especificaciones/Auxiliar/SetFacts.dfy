@@ -42,6 +42,11 @@ ensures |A| == |B|
   }
 }
 
+lemma SubsetTransitivity<T>(A: set<T>, B:set<T>, C: set<T>)
+requires A <= B && B <= C
+ensures A <= C
+{ }
+
 lemma subsetCardinality<T>(A: set<T>, B: set<T>)
 requires A <= B
 ensures |A| <= |B|
@@ -167,6 +172,24 @@ requires B <= A
 requires n in A 
 requires n !in B 
 ensures n in (A - B)
+{ }
+
+
+lemma UnionPlusLessElement<T>(A: set<T>, B:set<T>, v:T)
+requires A * B == {}
+requires v !in A && v in B
+ensures (A + {v} ) + (B - {v}) == A + B
+{}
+
+lemma UnionPlusLessSet<T>(A: set<T>, B:set<T>, C:set<T>)
+requires A * B == {}
+requires C <= A  && C * B == {}
+ensures (A - C ) + (B + C) == A + B
+{}
+
+lemma DifferenceOfDifference<T>(A: set<T>, B: set<T>, C: set<T>)
+requires C <= A
+ensures A - (B - C) == A - B + C
 { }
 
 lemma setBelongingToDifferenceForAll(A: set<nat>, b: nat)

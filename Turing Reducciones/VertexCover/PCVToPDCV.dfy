@@ -1,8 +1,30 @@
 include "../../Especificaciones/VertexCover/VertexCoverOpt.dfy"
+/*
+    File explanation
+        The main goal of this file is to provide a method that Turing Reduces the optimal value version of the Vertex Cover Problem to the decission version.
+        To do this we assume a method that solves the decission version of the Vertex Cover Problem and use it in a method that solves the optimal value version.
+
+    Methods:
+        -mVertexCover
+        -mOptimalValueVertexCover
+
+    Imported Elements
+        Predicates
+            From Graph.dfy
+            -isValidGraph
+            From VertexCoverOpt.dfy
+            -vertexCoverDecissionProblem
+            -optimalValueVertexCover
+        Functions
+            None
+        Lemmas
+            None
+*/
 
 
 
 //We assume a polynomial algorithm for PDVC
+//We iterate from 0 to the number of vertices looking for the smallest Vertex Cover we can find
 method {:axiom} mVertexCover (graph : Graph, k : int) returns (b : bool)
   requires isValidGraph(graph)
   ensures b == vertexCoverDecissionProblem(graph, k)
@@ -17,7 +39,6 @@ method mOptimalValueVertexCover (graph : Graph) returns (k : nat)
     k := 0;
   }
   else{
-    //We iterate from 0 to the number of vertices looking for the smallest Vertex Cover we can find
     var idx : nat := 0;
     var done : bool := false;
     while !done

@@ -1,94 +1,34 @@
 include "../../Especificaciones/VertexCover/VertexCoverOpt.dfy"
 include "../../Especificaciones/VertexCover/VertexCoverProperties.dfy"
+/*
+    File explanation
+        The main goal of this file is to provide lemmas that are useful to make reasonings about the Turing Reduction in POCVToPCVRemoveVertex.dfy
+        These lemmas are speciffic enough to said Reduction to warrant separating them from the general properties in VerxCoverProperties, as most of them are ussed to prove that the invariants
+        of the Reduction hold.
 
-lemma boundVertexCover(graph:Graph, k:int)
-requires isValidGraph(graph) 
-ensures forall k | k >= |graph.0| :: vertexCoverDecissionProblem(graph,k)
-{}
+    Predicates
+        None
+    Functions
+        None
+    Lemmas
+        //TODO
+    Methods
+        None
 
-
-//An optimal vertex cover is vertex cover 
-//and its cardinal is the optimal value
-lemma optimalVertexCoverisVertexCover(graph: Graph, I : set<Node>)
-requires isValidGraph(graph) 
-requires optimalVertexCover(graph,I)
-ensures isVertexCover(I,graph)
-ensures optimalValueVertexCover(graph,|I|)
-{}
-
-//|I * {v1,v2}| > 0 is the same as v1 in I || v2 in I
-lemma isVertexCoverEquiv(I:set<Node>, graph:Graph, v1: Node, v2 :Node)
-requires isValidGraph(graph) 
-requires I <= graph.0 && isVertexCover(I,graph)
-requires v1 in graph.0 && v2 in graph.0 && {v1,v2} in graph.1
-ensures v1 in I || v2 in I
-{}
-
-
-lemma biggerOptimalVertexCover(graph : Graph, k : nat, k':nat)
-requires isValidGraph(graph) 
-requires optimalValueVertexCover(graph,k)
-requires  vertexCoverDecissionProblem(graph, k') && k' <= |graph.0|
-ensures k' >= k
-{}
-
-//The optimal value vertex cover of a subgraph is smaller than that of the graph
-lemma containedOptimalVertexCover(graph : Graph, graph' : Graph, k : nat, k': nat)
-requires isValidGraph(graph) && isValidGraph(graph')
-requires graph'.0 <= graph.0
-requires graph'.1 <= graph.1 
-requires optimalValueVertexCover(graph,k)   
-requires optimalValueVertexCover(graph',k')
-ensures k' <= k
-{
-  var S :| S <= graph.0 && isVertexCover(S, graph) && |S| <= k;
-  var S' := S * graph'.0;
-
-  subsetCardinality(S',S);
-  assert |S'| <= |S| <= k;
-  subsetCardinality(S',graph'.0);
-  assert |S'| <= |graph'.0|;
-
-  assert isVertexCover(S',graph');
-  biggerOptimalVertexCover(graph',k',|S'|);
-  assert k >= |S'| >= k';
-}
-
-
-
-//A vertex cover whose cardinal is optimal value vertex cover is an optimal vertex cover
-lemma boundVertexCoverIsOptimal(graph : Graph, I : set<Node>, k :nat) 
-requires isValidGraph(graph)
-requires I <= graph.0
-requires isVertexCover(I,graph)
-requires optimalValueVertexCover(graph,k)
-requires |I| <= k
-ensures optimalVertexCover(graph,I)
-{
- if (!optimalVertexCover(graph,I))
- {  
-   assert exists S :: S <= graph.0 && isVertexCover(S, graph) && |S| < |I|;
-   var S :| S <= graph.0 && isVertexCover(S, graph) && |S| < |I|;
-   boundoptimalValueVertexCover(graph,k);
-   assert |S| < |I| <= k <= |graph.0|;
-   assert vertexCoverDecissionProblem(graph,|S|);
-   assert !optimalValueVertexCover(graph,k);
-   assert false;
- }
-}
-
-//If there are no edges optimal value vertex cover is zero
-lemma OptimalVertexCoverNoEdges(graph : Graph)
-requires isValidGraph(graph)
-requires graph.1 == {}
-ensures optimalValueVertexCover(graph,0)
-{
-   var I : set<Node> := {};
-   assert isVertexCover(I,graph);
-}  
+    Imported Elements
+        Predicates
+            From EnvasadoOpt.dfy
+            -optimalBinPacking
+            -binPackingDecissionProblem
+        Functions
+            None
+        Lemmas
+            None
+*/
 
 //An edge of fullgraph whose extremes v1, v2 belong to graph'.0 must be in graph'.1
 //because graph is disjoint from I and v1 != v and v2 != v
+//Used locally by includeVertexCoverExists
 lemma subgraphEdges(
   fullgraph : Graph,
   I: set<Node>, v : Node,
@@ -107,6 +47,10 @@ requires v1 != v && v2 != v && v1 !in I && v2 !in I
 ensures {v1,v2} in graph'.1
 {}
 
+//If an optimal vertex cover that includes all nodes adjacent to the removed node in the graph after removing said node exists, 
+//all of its edges are already covered, thus, the optimal value of the cover does not change
+//Used locally by delVertexCoverCase
+//Straightforward proof
 lemma delVertexCoverCase1(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat, S':set<Node>)
 requires isValidGraph(graph)  && isValidGraph(graph')
 requires v in graph.0
@@ -117,7 +61,8 @@ requires graph'.1 == graph.1 - incidentEdges(graph,v)
 requires S' <= graph'.0 && optimalVertexCover(graph', S') && |S'| == k'
 requires forall u:Node | {u,v} in graph.1 :: u in S'
 ensures k' == k
-{ containedOptimalVertexCover(graph,graph',k,k');
+{ 
+  containedOptimalVertexCover(graph,graph',k,k');
   assert k' <= k;
 
   assert isVertexCover(S',graph) by{
@@ -142,7 +87,11 @@ ensures k' == k
     assert k == k';
 }
 
-
+//If an optimal vertex cover that does not include all nodes adjacent to the removed node in the graph after removing said node exists, 
+//at least one of its edges are yet to be covered, thus, the optimal vertex cover for the original graph must include an additional vertex, the removed one
+//the optimal solution for the subgraph could be expanded to a vertex cover by including each uncovered neighbor of the removed node, but this will sometimes result in a suboptimal solution
+//It is also possible that another optimal vertex cover exists that does include all of the removed vertex's neighbors, in which case the optimal value remains unchanged
+//Used locally by delVertexCoverCase
 lemma delVertexCoverCase2(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat, S':set<Node>)
 requires isValidGraph(graph)  && isValidGraph(graph')
 requires v in graph.0
@@ -156,7 +105,8 @@ ensures k == k' || k' + 1 == k
 //Not necessarily k == k' + 1
 //Example: v=1, edges (1,2) (2,3)
 //Optimal vertex cover for graph' and graph is both 1 
-{  containedOptimalVertexCover(graph,graph',k,k');
+{  
+  containedOptimalVertexCover(graph,graph',k,k');
   assert k' <= k;
 
   var S := S' + {v};
@@ -182,9 +132,9 @@ ensures k == k' || k' + 1 == k
 }
 
 
-//If we remove a vertex and its incident edges
-//then the optimal value vertex cover may maintain 
-//or be one less
+//When removing a vertex from a graph, the optimal vertex cover value may decrease by one or stay the same 
+//Used in POCVToPCVRemoveVertex.dfy to divide the proof into the two cases possible
+//Proof uses the two lemmas above
 lemma delVertexCover(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat)
 requires isValidGraph(graph)  && isValidGraph(graph')
 requires v in graph.0
@@ -213,15 +163,12 @@ ensures k == k' || k == k' + 1
   }
 }
 
-lemma setOfIncidentEdges(graph : Graph,I : set<Node>)
-requires isValidGraph(graph)
-requires I <= graph.0
-requires graph.1 == (set edge:Edge, node:Node | edge in graph.1 && node in I && node in edge :: edge)
-ensures isVertexCover(I,graph)
-{
-}
-
-
+//Given a full graph, fullgraph, a partial solution, I, and the graph whose nodes are those of the fullgraph that do not belong to the partial solution and the edges that have yet to be covered, graph,
+//And a complete solution that has been obtained by expanding the partial solution, it holds that
+//The vertices that are in the complete solution but not in the partial one define a vertex cover over graph
+//And the size of a vertex cover for fullgraph is the size of an optimal vertex cover for graph plus the size of the partial solution
+//Used locally by donotIncludeVertexCoverFull
+//A vertex cover of graph of size k exists, and the union of of this cover with I is vertex cover of fullgraph, and the size of the union is k + |I|
 lemma compoundVertexCover(
   fullgraph : Graph, O : set<Node>, ok: nat, 
   I: set<Node>, 
@@ -236,8 +183,8 @@ requires optimalValueVertexCover(graph,k)
 requires I <= O <= fullgraph.0 && isVertexCover(O,fullgraph) &&  |O| == ok
 ensures isVertexCover(O-I,graph) && ok == k + |I|
 {
- translationVertexCover(graph,k);
- assert |O - I| >= k && ok == |O| == |O - I| + |I| >= k + |I|;
+  translationVertexCover(graph,k);
+  assert |O - I| >= k && ok == |O| == |O - I| + |I| >= k + |I|;
  
   assert ok <= k + |I| by{
  
@@ -266,12 +213,14 @@ ensures isVertexCover(O-I,graph) && ok == k + |I|
 
 
 //In case k == k', there is no optimal vertex cover containing I and v
-
+//Used locally by donotIncludeVertexCoverFullForall
+//If the opposite ere true, we could remove v from the optimal solution and get a solution of size k' < k for graph'
 lemma donotIncludeVertexCoverFull(
   fullgraph : Graph, O : set<Node>, ok: nat, 
   vertex: set<Node>, I: set<Node>, v : Node,
   graph : Graph, k : nat, 
-  graph' : Graph, k' : nat)
+  graph' : Graph, k' : nat
+)
 requires isValidGraph(fullgraph) && isValidGraph(graph)  && isValidGraph(graph')
 //graph is obtained from fullgraph by removing vertex in I and their edges
 requires graph.0 <= fullgraph.0 && graph.1 <= fullgraph.1 
@@ -289,30 +238,25 @@ requires k == k'
 requires I <= O <= fullgraph.0 && isVertexCover(O,fullgraph) && |O| == ok 
 ensures v !in O
 {
-  
   var O' := O - I;
   assert ok == |O| == |I| + |O'|;
   assert |O'| == ok - |I|;
   assert isVertexCover(O',graph);
   translationVertexCover(graph,k); //then ok == k + |I|
-   compoundVertexCover(fullgraph,O,ok,I,graph,k);
+  compoundVertexCover(fullgraph,O,ok,I,graph,k);
   
-
-  if (v in O)
- {
-  
-
-  assert isVertexCover(O'- {v}, graph');
-  translationVertexCover(graph',k');
-  assert |O' - {v}| == k' - 1;
-  assert false;
- }
-
+  if (v in O) {
+    assert isVertexCover(O'- {v}, graph');
+    translationVertexCover(graph',k');
+    assert |O' - {v}| == k' - 1;
+    assert false;
+  }
 }
 
 
 //In case k == k', there is no optimal vertex cover containing I and v
-
+//Used in POCVToRemoveVertex.dfy by bodyLoop to prove that an invariant is maintained
+//Proof is trivial once with the lemma above has been proved
 lemma donotIncludeVertexCoverFullForall(
   fullgraph : Graph, ok: nat, 
   vertex: set<Node>, I: set<Node>, v : Node,
@@ -334,10 +278,9 @@ requires graph'.1 == graph.1 - incidentEdges(graph,v)
 requires k == k'
 ensures forall O : set<Node> | I <= O <= fullgraph.0 && isVertexCover(O,fullgraph) && |O| == ok  :: v !in O
 {
-forall O : set<Node> | I <= O <= fullgraph.0 && isVertexCover(O,fullgraph) && |O| == ok 
-ensures v !in O
-{ donotIncludeVertexCoverFull(fullgraph, O, ok, vertex, I, v, graph, k, graph', k');}
-
+  forall O : set<Node> | I <= O <= fullgraph.0 && isVertexCover(O,fullgraph) && |O| == ok 
+  ensures v !in O
+  { donotIncludeVertexCoverFull(fullgraph, O, ok, vertex, I, v, graph, k, graph', k');}
 }
 
 //Ik k == k' we do not include v and we still can build a cover for the graph with 
@@ -351,7 +294,6 @@ requires isValidGraph(fullgraph) && isValidGraph(graph)  && isValidGraph(graph')
 requires graph.0 <= fullgraph.0 && graph.1 <= fullgraph.1 
 requires graph.1 +  (set edge:Edge, node:Node | edge in fullgraph.1 && node in I && node in edge :: edge) == fullgraph.1
 requires I <= fullgraph.0
-
 requires vertex <= fullgraph.0 && vertex * I == {} && I * graph.0 == {} && I + graph.0 == fullgraph.0
 requires v in graph.0 && v in vertex
 requires optimalValueVertexCover(fullgraph,ok) 
@@ -360,7 +302,6 @@ requires optimalValueVertexCover(graph',k')
 requires graph'.0 == graph.0 - { v }
 requires graph'.1 == graph.1 - incidentEdges(graph,v)
 requires k == k'
-
 requires exists V : set<Node> :: V <= graph.0 && V <= vertex && optimalVertexCover(graph,V) && optimalVertexCover(fullgraph, I + V)
 ensures exists V' :: V' <= graph.0 && V' <= vertex - {v} && optimalVertexCover(graph,V') && optimalVertexCover(fullgraph, I + V')
 { translationVertexCover(graph,k);
@@ -514,21 +455,7 @@ ensures exists S' ::  S' <= graph'.0 && S' <= vertex - {v} && optimalVertexCover
 
    }
  }
-
-
 }
-
-lemma UnionPlusLessElement<T>(A: set<T>, B:set<T>, v:T)
-requires A * B == {}
-requires v !in A && v in B
-ensures (A + {v} ) + (B - {v}) == A + B
-{}
-
-lemma UnionPlusLessSet<T>(A: set<T>, B:set<T>, C:set<T>)
-requires A * B == {}
-requires C <= A  && C * B == {}
-ensures (A - C ) + (B + C) == A + B
-{}
 
 lemma includeVertexAndEdgesProperty(
   fullgraph : Graph, 

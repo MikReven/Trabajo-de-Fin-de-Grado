@@ -1,7 +1,7 @@
 include "../../Especificaciones/Auxiliar/SequenceFacts.dfy"
 include "../../Especificaciones/Envasado/Envasado.dfy"
-include "EnvasadoKAproximado.dfy"
-include "Algoritmo2AproximadoAux.dfy"
+include "BinPackingKAproximated.dfy"
+include "BinPacking2AproximatedAux.dfy"
 /*
     File explanation
         The main goal of this file is to specify an iterative procedure to compute a 2-Aproximated solution to the BinPacking Problem.
@@ -29,7 +29,7 @@ include "Algoritmo2AproximadoAux.dfy"
 
     Imported Elements
         Predicates
-            From Envasado2AproximadoAux.dfy
+            From BinPackinga2Aproxima.dfy
             -allMoreThanHalfFullSeq
             -oneLessThanHalfFullSeq
             -allMoreThanHalfFull (by implication)
@@ -49,7 +49,7 @@ include "Algoritmo2AproximadoAux.dfy"
             -UnionOne
             -SubMultisetUnionDifference
             -DifferenceOfDifference
-            From Envasado2AproximadoAux.dfy
+            From BinPacking2AproximatedAux.dfy
             -HalfSeqToMultisetTranslation
             -AtMostOneLessThanHalfImplies2Aproximated
 */

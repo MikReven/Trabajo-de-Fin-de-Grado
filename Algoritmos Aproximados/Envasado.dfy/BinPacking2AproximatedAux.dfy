@@ -1,7 +1,7 @@
 include "../../Especificaciones/Envasado/EnvasadoProperties.dfy"
 include "../../Especificaciones/Auxiliar/SequenceFacts.dfy"
 include "../../Especificaciones/Auxiliar/NaturalsFacts.dfy"
-include "EnvasadoKAproximado.dfy"
+include "BinPackingKAproximated.dfy"
 /*
     File explanation
         The main goal of this file is to prove that if at most one bin in a BinPacking is half full or less, that solution is 2-Aproximated. 
@@ -9,7 +9,7 @@ include "EnvasadoKAproximado.dfy"
     
     Predicates: 
         These predicates are used to describe the propety that none or one bin is less than half full, both have one version using a multiset and another one using a sequence.
-        They are used both locally and in Envasado2Aproximado.dfy
+        They are used both locally and in BinPacking2Aproximated.dfy
         -allMoreThanHalfFull: All bins are more than half full (multiset)
         -allMoreThanHalfFullSeq: All bins are more than half full (sequence)
         -oneLessThanHalfFull: Only one bin in I is less than half full (multiset)
@@ -41,7 +41,7 @@ include "EnvasadoKAproximado.dfy"
             -isBinPacking
             From EnvasadoOpt.dfy
             -optimalBinPacking
-            From EnvasadoKAproximado.dfy
+            From BinPackingKAproximated.dfy
             -isKAproximatedBinPacking
         Functions
             From Sum.dfy
@@ -183,7 +183,7 @@ ensures oneLessThanHalfFull(E, multiset(S))
 }
 
 //Combination of the two lemas above, if at most one bin in the sequence is half full or less, the same holds for the corresponding multiset
-//Used in Envasado2Aproximado.dfy to translate from the sequences used when iterating to a multiset, which are used when describing the BinPacking Problem
+//Used in BinPacking2Aproximated.dfy to translate from the sequences used when iterating to a multiset, which are used when describing the BinPacking Problem
 lemma HalfSeqToMultisetTranslation(E: nat, S: seq<multiset<nat>>)
 requires allMoreThanHalfFullSeq(E, S) || oneLessThanHalfFullSeq(E, S)
 ensures allMoreThanHalfFull(E, multiset(S)) || oneLessThanHalfFull(E, multiset(S))
@@ -303,7 +303,7 @@ ensures isKAproximatedBinPacking(A, E, I, 2)
 
 /*
 //If the conditions to be a BinPicking hold for for a sequence, the corresponding multiset is a BinPacking
-lemma EnvasadoSequenceMultisetTranslation(A: multiset<nat>, E: nat, S: seq<multiset<nat>>, I: multiset<multiset<nat>>)
+lemma BinPackingSequenceMultisetTranslation(A: multiset<nat>, E: nat, S: seq<multiset<nat>>, I: multiset<multiset<nat>>)
 requires forall i: nat | 0 <= i < |S| :: GSumNat(S[i]) <= E 
 requires forall i: nat | 0 <= i < |S| :: S[i] <= A
 requires I == multiset(S)

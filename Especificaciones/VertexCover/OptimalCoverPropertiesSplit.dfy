@@ -1,3 +1,4 @@
+/*
 include "VertexCoverOpt.dfy"
 include "VertexCoverProperties.dfy"
 
@@ -341,3 +342,4 @@ lemma{:axiom} includeVertexAndEdgesProperty(
   ensures (I + {v}) + graph'.0 == fullgraph.0
 
 //
+*/
