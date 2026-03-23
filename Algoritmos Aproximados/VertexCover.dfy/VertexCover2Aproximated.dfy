@@ -120,7 +120,7 @@ requires I <= graph.0
 requires pickedEdges <= graph.1 
 requires |I| == |pickedEdges| * 2
 requires (forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 && e in graph.1 && e in pickedEdges && e == {n1, n2} :: n1 in I && n2 in I)
-requires pickedEdges' ==  pickedEdges + {e}
+requires pickedEdges' == pickedEdges + {e}
 requires I' == I + {n1, n2}
 ensures (forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 && e in graph.1 && e in pickedEdges' && e == {n1, n2} :: n1 in I + {n1, n2} && n2 in I + {n1 + n2})
 {
@@ -187,21 +187,18 @@ ensures edgesRemaining' < edgesRemaining
             assert false;
         }
     }
+    
     assert isValidGraph(graph);
     assert pickedEdges <= graph.1;  
     assert e in edgesRemaining;
     assert (forall e: Edge | e in edgesRemaining :: e * I == {}); 
-    
     assert forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 && e in graph.1 && e in pickedEdges && e == {n1, n2} :: n1 in I && n2 in I by{
         assert invariantLoop(graph, I, edgesRemaining, pickedEdges);
-    }
-    //assert (forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 && e in graph.1 && e in pickedEdges' && e == {n1, n2} :: n1 in I' && n2 in I');
-    
+    }    
     assert forall e1, e2 | e1 in pickedEdges && e2 in pickedEdges && e1 != e2 :: e1 * e2 == {};
     pickedEdgesAreDisjoint(graph, pickedEdges, e, edgesRemaining, I);
-    assume false;
-    //assume invariantLoop(graph, I', edgesRemaining', pickedEdges');
-    //assume edgesRemaining' < edgesRemaining;
+    //assume false;
+    assume invariantLoop(graph, I', edgesRemaining', pickedEdges');
     
 }
 
