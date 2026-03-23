@@ -24,6 +24,11 @@ ensures (set e: set<T> | e in S1+S2 && n in e :: e) ==
            (set e: set<T> | e in S2 && n in e :: e)
 {}
 
+lemma submultisetAndSameCardinalityImpliesEqual<T>(A: set<T>, B: set<T>)
+requires A <= B 
+requires |A| == |B|
+{ }
+
 //If all elements of a set B are sets of cardinality 2 where one element belongs to set A and the other doesn't, A and B have the same cardinality 
 //Used in Graph
 lemma sameCardinalThroughComprehension<T>(A: set<T>, B: set<set<T>>)

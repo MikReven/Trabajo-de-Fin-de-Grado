@@ -19,6 +19,18 @@ predicate isValidGraph(graph: Graph)
     )
 }
 
+lemma validEdgesHaveTwoComponents(graph: Graph, e: Edge, n: Node)
+requires isValidGraph(graph)
+requires e in graph.1
+requires n in e
+ensures exists n' :: e == {n, n'} && n' in graph.0
+{ 
+    cardinality2implies(e, n);
+    var n' :| n' in e && n' != n;
+    assert {n, n'} <= e;
+    submultisetAndSameCardinalityImpliesEqual({n, n'}, e);
+}
+
 //Returns true iff A is a subgraph of B
 //Used in CliqueProperties
 //        POCToPC
