@@ -1,3 +1,4 @@
+//Por terminar
 /*
     File explanation
         The main goal of this file is to provide functions, and lemmas that are useful when reasoning about sets.
@@ -489,6 +490,15 @@ ensures exists a: nat :: (a in A && numberOfLesser(A, a) == k && (forall b: nat 
 //                 Currently Unused              //
 ///////////////////////////////////////////////////
 /*
+
+//If a set has cardinality 2, there exists two different elements that belong to it
+lemma Cardinality2Composition(A: set<nat>)
+requires |A| == 2
+ensures exists a, b: nat :: a in A && b in A && a < b 
+{ 
+  var a := pickMin(A);
+  cardinality2implies(A, a);
+}
 
 //Flattens a family of sets to the union of the family
 ghost function Union<T>(I:set<set<T>>) : set<T>

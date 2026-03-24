@@ -87,6 +87,20 @@ ensures forall e: Edge | e in graph.1 && node in e :: e in S
     (set edge: Edge | edge in graph.1 && node in edge :: edge)
 }
 
+//Returns the set of edges incident on the vertices a given edge connects
+//Used in VertexCoverAproximated.dfy
+function incidentEdgesToEdge(graph: Graph, e: Edge) : (S: set<Edge>)
+requires isValidGraph(graph)
+requires e in graph.1
+ensures forall e: Edge | e in S :: |e| == 2
+//ensures forall e: Edge | e in S :: exists n: Node :: n in graph.0 && n in e && n != node
+//ensures forall e: Edge | e in graph.1 :: e in S <==> node in e
+//ensures forall e: Edge | e in graph.1 && node in e :: e in S
+{
+    var n1, n2 :| n1 in e && n2 in e && n1 < n2;
+    incidentEdges(graph, n1) + incidentEdges(graph, n2)
+}
+
 //Returns the set of nodes adjacent to v
 //Used locally 
 //Used in SplitVertexAux 
