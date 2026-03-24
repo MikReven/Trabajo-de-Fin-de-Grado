@@ -77,6 +77,7 @@ requires isValidGraph(B)
 //Used in POCToPCV
 //Used in POCToPCVRemoveVertex
 //Used in RemoveVertexAux 
+//Used in VertexCover2Aproximated
 function incidentEdges(graph: Graph, node: Node) : (S: set<Edge>)
 requires isValidGraph(graph)
 ensures forall e: Edge | e in S :: |e| == 2
@@ -88,7 +89,7 @@ ensures forall e: Edge | e in graph.1 && node in e :: e in S
 }
 
 //Returns the set of edges incident on the vertices a given edge connects
-//Used in VertexCoverAproximated.dfy
+//Used in VertexCover2Aproximated
 function incidentEdgesToEdge(graph: Graph, e: Edge) : (S: set<Edge>)
 requires isValidGraph(graph)
 requires e in graph.1

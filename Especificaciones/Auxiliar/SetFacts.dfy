@@ -134,6 +134,8 @@ ensures exists b: T :: b in A && b != a
   }
 }
 
+//The cardinality of the union of two disjoint sets is the sum of their cardinalities
+//Used in VertexCover2Aproximated
 lemma cardinalitySum<T>(A: set<T>, B: set<T>)
 requires A * B == {}
 ensures |A + B| == |A| + |B|
