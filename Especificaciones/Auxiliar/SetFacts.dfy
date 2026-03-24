@@ -1,3 +1,36 @@
+/*
+    File explanation
+        The main goal of this file is to provide functions, and lemmas that are useful when reasoning about sets.
+        There are two broad categories for these functions and lemmas: 
+          Properties that hold when performing operations with sets of any type, such as set union and set difference
+          Properties relating to orders of sets of naturals
+    
+    Predicates: 
+        None
+
+    Functions:
+        -Union: Flattens a set of sets to a set containing all elements in the union
+        -pickMax: Returns the maximum of a given set of naturals, or 0 if it is empty
+        -pickMin: Returns the minimum of a given set of naturals, or 0 if it is empty
+        -addMultipleGreater: Adds a given amount of numbers greater than the previous maximum of a set of naturals
+        -numberOfLesser: Returns the number of elements smaller than a given element that belongs to a set of naturals
+        -pickFromOrder: Returns the element from a given set of naturals that is greater than k elements from that same set
+        -
+
+    Lemmas:
+        These lemmas represent properties that are derived from a graph being valid
+        -validSubgraph: The result of removing a vertex and its incident edges from a graph is another valid graph
+        -validEdgesHaveTwoComponents: Any edge from a valid graph contains two nodes
+        These lemmas relate the neighbors and incident edges of a vertex 
+        -neighborsAreConnected: All adjacent nodes to n are connected to it by an edge
+
+    Methods:
+        pick: Returns an element belonging to a given set
+
+    Imported elements
+        None
+*/
+
 //Returns an element belonging to a set
 //Used to iterate over sets
 method pick<T>(S:set<T>) returns (r:T)
@@ -8,30 +41,17 @@ method pick<T>(S:set<T>) returns (r:T)
   return v;
 }
 
-//Flattens a set of sets to a set containing all elements in the union
-//Used in Envasado
-ghost function Union<T>(I:set<set<T>>) : set<T>
-{
-  if I == {} then {}
-  else var i :| i in I; i + Union(I-{i})
-}
-
 //A set comprehension defined by the union of sets is equal to union of set comprehensions
-//Used in Graph
-lemma setComprehensionUnion<T>(S1: set<set<T>>,S2: set<set<T>>,n: T)
+//Used in Graph by splitVertex
+lemma SetComprehensionUnion<T>(S1: set<set<T>>,S2: set<set<T>>,n: T)
 ensures (set e: set<T> | e in S1+S2 && n in e :: e) == 
            (set e: set<T> | e in S1 && n in e :: e) + 
            (set e: set<T> | e in S2 && n in e :: e)
 {}
 
-lemma submultisetAndSameCardinalityImpliesEqual<T>(A: set<T>, B: set<T>)
-requires A <= B 
-requires |A| == |B|
-{ }
-
 //If all elements of a set B are sets of cardinality 2 where one element belongs to set A and the other doesn't, A and B have the same cardinality 
-//Used in Graph
-lemma sameCardinalThroughComprehension<T>(A: set<T>, B: set<set<T>>)
+//Used in Graph by asManyNewNodesAsEdges
+lemma SameCardinalThroughComprehension<T>(A: set<T>, B: set<set<T>>)
 decreases A
 requires forall b: set<T> | b in B :: (exists a: T, c: T :: a in A && c !in A && b == {a, c}) 
 requires forall a: T | a in A :: exists b: set<T> :: b in B && a in b && (forall b': set<T> | b' in B && a in b' :: b == b')
@@ -43,10 +63,11 @@ ensures |A| == |B|
     var b :| b in B && a in b;
     var A' := A - {a};
     var B' := B - {b};
-    sameCardinalThroughComprehension(A - {a}, B - {b});
+    SameCardinalThroughComprehension(A - {a}, B - {b});
   }
 }
 
+//
 lemma SubsetTransitivity<T>(A: set<T>, B:set<T>, C: set<T>)
 requires A <= B && B <= C
 ensures A <= C
@@ -63,14 +84,14 @@ ensures |A| <= |B|
   } 
 }
 
-lemma strictSubsetCardinality(A: set<nat>, B: set<nat>)
+lemma strictSubsetCardinality<T>(A: set<T>, B: set<T>)
 requires A < B
 requires B != {}
 ensures |A| < |B|
 {
   if A == {} {} 
   else {
-    ghost var x: nat :| x in A;
+    ghost var x: T :| x in A;
     strictSubsetCardinality(A - {x}, B - {x}); 
   } 
 }
@@ -159,24 +180,24 @@ requires A == {b}
 ensures |A| == 1
 { }
 
-lemma setDifference(A: set<nat>, B: set<nat>, C: set<nat>, D: set<nat>)
+lemma setDifference<T>(A: set<T>, B: set<T>, C: set<T>, D: set<T>)
   requires A == (B - D + C )
   requires (B * C) == {}
   requires D <= B
   ensures (A - B) == C
 { 
-  assert forall n: nat | n in A :: n in (B - D) || n in C;
-  assert forall n: nat | n in (A - B) :: n !in B; 
-  assert forall n: nat | n in (A - B) :: n !in (B - C); 
-  assert forall n: nat | n in (A - B) :: n in C;
+  assert forall n: T | n in A :: n in (B - D) || n in C;
+  assert forall n: T | n in (A - B) :: n !in B; 
+  assert forall n: T | n in (A - B) :: n !in (B - C); 
+  assert forall n: T | n in (A - B) :: n in C;
   assert |A| == |B| + |C| - |D|;
 }
 
-lemma setBelongingToDifference(A: set<nat>, B: set<nat>, n: nat)
+lemma setBelongingToDifference<T>(A: set<T>, B: set<T>, t: T)
 requires B <= A
-requires n in A 
-requires n !in B 
-ensures n in (A - B)
+requires t in A 
+requires t !in B 
+ensures t in (A - B)
 { }
 
 
@@ -197,12 +218,12 @@ requires C <= A
 ensures A - (B - C) == A - B + C
 { }
 
-lemma setBelongingToDifferenceForAll(A: set<nat>, b: nat)
+lemma setBelongingToDifferenceForAll<T>(A: set<T>, b: T)
 requires b in A
-ensures forall n: nat | n in A && n != b :: n in (A - {b})
+ensures forall n: T | n in A && n != b :: n in (A - {b})
 { }
 
-lemma setBelongingImplication(A: set<nat>, b: nat)
+lemma setBelongingImplication<T>(A: set<T>, b: T)
 requires b in A
 ensures {b} <= A
 { }
@@ -214,6 +235,8 @@ lemma alwaysALargerSet(A: set<nat>)
   var elem: nat := pickMax(A) + 1;
   assert |B + {elem}| > |A|;
 }
+
+//Orders
 
 //All sets of naturals contain a maximum
 lemma hasAMaximum(S: set<nat>)
@@ -277,7 +300,7 @@ lemma hasAMinimum(S: set<nat>)
   }
 }
 
-//Returns the maximum of a given set, or 0 if it is empty
+//Returns the maximum of a given set of naturals, or 0 if it is empty
 function pickMax(S:set<nat>): (r: nat)
 ensures |S| > 0 ==> r in S
 {
@@ -288,7 +311,7 @@ ensures |S| > 0 ==> r in S
     v
 }
 
-//Returns the minimum of a given set, or 0 if it is empty
+//Returns the minimum of a given set of naturals, or 0 if it is empty
 function pickMin(S:set<nat>): (r: nat)
 ensures |S| > 0 ==> r in S
 {
@@ -299,6 +322,7 @@ ensures |S| > 0 ==> r in S
     v
 }
 
+//Adds a given amount of numbers greater than the previous maximum of a set of naturals
 function addMultipleGreater(S:set<nat>, k: nat): (S': set<nat>)
 requires k >= 0
 ensures forall n: nat | n in S':: n > pickMax(S)
@@ -313,6 +337,7 @@ decreases k
     {pickMax(S) + 1} + addMultipleGreater({pickMax(S) + 1}, k - 1) 
 }
 
+//Returns the number of elements smaller than a given element that belongs to a set of naturals
 function numberOfLesser(A: set<nat>, x: nat): (y: nat)
 requires x in A 
 ensures y < |A|
@@ -325,6 +350,7 @@ ensures y < |A|
   |setLesser|
 }
 
+//numberOfLesser is injective when only using one set
 lemma numberOfLesserEquality(A: set<nat>, x: nat, y: nat)
 requires x in A 
 requires y in A 
@@ -351,6 +377,7 @@ ensures forall y: nat | y in A && numberOfLesser(A, x) == numberOfLesser(A, y) :
   }
 }
 
+//Returns the element from a given set of naturals that is greater than k elements from that same set
 function pickFromOrder(A: set<nat>, k: nat): (a: nat)
 requires 0 <= k < |A|
 ensures a in A
@@ -462,6 +489,31 @@ ensures exists a: nat :: (a in A && numberOfLesser(A, a) == k && (forall b: nat 
 //                 Currently Unused              //
 ///////////////////////////////////////////////////
 /*
+
+//Flattens a family of sets to the union of the family
+ghost function Union<T>(I:set<set<T>>) : set<T>
+{
+  if I == {} then {}
+  else var i :| i in I; i + Union(I-{i})
+}
+
+//Is a set is subset of another andd they have the same cardinality, they are equal
+lemma subsetAndSameCardinalityImpliesEqual<T>(A: set<T>, B: set<T>)
+requires A <= B 
+requires |A| == |B|
+ensures A == B
+{ 
+  assert forall x | x in A :: x in B;
+  forall x | x in B 
+  ensures x in A
+  {
+    if x !in A {
+      assert A < B;
+      strictSubsetCardinality(A, B);
+      assert false;
+    }
+  }
+}
 
 lemma unionLemma(embeddedSet: set<set<nat>>)
 ensures forall S: set<nat> | S in embeddedSet :: S <= Union(embeddedSet)

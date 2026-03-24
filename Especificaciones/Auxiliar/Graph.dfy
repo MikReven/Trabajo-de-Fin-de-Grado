@@ -1,13 +1,54 @@
 include "SetFacts.dfy"
+/*
+    File explanation
+        The main goal of this file is to provide predicates, functions, and lemmas that are useful when reasoning about graphs, 
+        as well as a data structure to represent them, a tuple consisting of a set of vertices and a set of edges, 
+        with each edge is a set of vertices.
+        This structure alone is too lax, so we define a predicate, isValidGraph,  to define what are valid graphs, since without it we could have
+        edges that connect more than two vertices or edges that connect to vertices that do not exist.   
+    
+    Predicates: 
+        -isValidGraph: Returns true iff the value of graph represents a valid graph
+        -isSubgraph: Given two valid  graphs, returns true iff one is a subset of the other
+
+    Functions:
+        -incidentEdges: Returns the set of Edges that contain a given vertex from a given graph
+        -neighborsOf: Returns the set of vertices that are connected to a given vertex in a given graph by a edges
+        -removeVertex: Returns the graph that results from removing the given vertex and its incident edges from a graph
+        -splitVertex: Given a vertex and a graph, "splits" the node, meaning that the vertex is remove, and for each of its neighbors, 
+            a new vertex is created connected to it 
+
+    Lemmas:
+        These lemmas represent properties that are derived from a graph being valid
+        -validSubgraph: The result of removing a vertex and its incident edges from a graph is another valid graph
+        -validEdgesHaveTwoComponents: Any edge from a valid graph contains two nodes
+        These lemmas relate the neighbors and incident edges of a vertex 
+        -neighborsAreConnected: All adjacent nodes to n are connected to it by an edge
+
+    Methods:
+        None
+
+    Imported elements
+        Predicates
+            None
+        Functions
+            From SetFacts.dfy
+            -addMultipleGreater
+            -numberOfLesser
+            -pickFromOrder
+        Lemmas
+            From SetFacts.dfy
+            -setComprehensionUnion
+            -cardinalityUnion
+            -numberOfLesserEquality
+            -cardinality2implies
+            -sameCardinalThroughComprehension
+*/
 
 //Definition of Graph, Edge, and Node types
 type Node = nat
 type Edge = set<Node>
 type Graph = (set<Node>, set<Edge>)
-
-/////////////////////////////////////////////////
-//                  Functions                  //
-/////////////////////////////////////////////////
 
 //Returns true iff the value of graph represents a valid graph
 //Used whenever we have to work with graphs
@@ -19,22 +60,10 @@ predicate isValidGraph(graph: Graph)
     )
 }
 
-lemma validEdgesHaveTwoComponents(graph: Graph, e: Edge, n: Node)
-requires isValidGraph(graph)
-requires e in graph.1
-requires n in e
-ensures exists n' :: e == {n, n'} && n' in graph.0
-{ 
-    cardinality2implies(e, n);
-    var n' :| n' in e && n' != n;
-    assert {n, n'} <= e;
-    submultisetAndSameCardinalityImpliesEqual({n, n'}, e);
-}
-
 //Returns true iff A is a subgraph of B
 //Used in CliqueProperties
-//        POCToPC
-//        POCToPCAux
+//Used in POCToPC
+//Used in POCToPCAux
 predicate isSubGraph(A: Graph, B: Graph)
 requires isValidGraph(A)
 requires isValidGraph(B)
@@ -44,10 +73,10 @@ requires isValidGraph(B)
 
 //Returns the set of edges incident on vertex node
 //Used locally
-//     in OptimalCoverPropertiesSplit 
-//     in POCToPCV
-//     in POCToPCVRemoveVertex
-//     in RemoveVertexAux 
+//Used in OptimalCoverPropertiesSplit 
+//Used in POCToPCV
+//Used in POCToPCVRemoveVertex
+//Used in RemoveVertexAux 
 function incidentEdges(graph: Graph, node: Node) : (S: set<Edge>)
 requires isValidGraph(graph)
 ensures forall e: Edge | e in S :: |e| == 2
@@ -60,7 +89,7 @@ ensures forall e: Edge | e in graph.1 && node in e :: e in S
 
 //Returns the set of nodes adjacent to v
 //Used locally 
-//     in SplitVertexAux 
+//Used in SplitVertexAux 
 function neighborsOf(graph: Graph, v: Node) : (S: set<Node>)
 requires isValidGraph(graph)
 ensures forall n: Node | n in S :: n in graph.0 && n != v
@@ -70,9 +99,9 @@ ensures forall n: Node | n in S :: n in graph.0 && n != v
 
 //Returns a graph without the vertex v and the edges incident on it
 //Used locally
-//     in POCToPC
-//     in POCToPCAux
-//     in POCVToPCVRemoveVertex
+//Used in POCToPC
+//Used in POCToPCAux
+//Used in POCVToPCVRemoveVertex
 function removeVertex(graph: Graph, v: Node): (graph': Graph) 
 requires isValidGraph(graph)
 ensures isValidGraph(graph')
@@ -85,7 +114,7 @@ ensures forall e: Edge | e in graph.1 :: v !in e <==> e in graph'.1
 
 //Given a graph and a vertex, splits the vertex to create various vertices that maintain the incident edges
 //Used in POCVToPCVSplitVertex
-//     in SplitVertexAux
+//Used in SplitVertexAux
 function splitVertex(graph: Graph, v: Node): (r: Graph)
 requires isValidGraph(graph) 
 ensures isValidGraph(r)
@@ -136,7 +165,7 @@ ensures forall n: Node | n in (r.0 - graph.0) :: |(set e: Edge | e in (r.1) && n
             calc =={
                 setG; 
                 (set e: Edge | (e in ((graph.1 - incidents) + setNewEdges)) && n in e :: e);
-                { setComprehensionUnion((graph.1 - incidents),setNewEdges,n);} 
+                {SetComprehensionUnion((graph.1 - incidents),setNewEdges,n);} 
                 (set e: Edge | e in (graph.1 - incidents) && n in e :: e) + 
                 (set e: Edge | e in setNewEdges && n in e :: e);                
                 nInOldEdges + nInNewEdges;
@@ -151,14 +180,10 @@ ensures forall n: Node | n in (r.0 - graph.0) :: |(set e: Edge | e in (r.1) && n
     else graph
 }
 
-//////////////////////////////////////////////////
-//                    Lemmas                    //
-//////////////////////////////////////////////////
-
 //The result of removing a vertex and its incident edges from a graph is another valid graph
-//Used in POCToPC
-//        POCVToPCVSplitVertex
-//        POCVToPCVRemoveVertex
+//Used in POCToPC by mOptimalClique
+//Used in POCVToPCVSplitVertex by bodyLoop
+//Used in POCVToPCVRemoveVertex by bodyLoop
 lemma validSubgraph(graph : Graph, v : Node, graph': Graph)
 requires isValidGraph(graph)
 requires graph'.0 == graph.0 - { v }
@@ -216,7 +241,7 @@ ensures |incidentEdges(graph, node)| == |neighborsOf(graph, node)|
             }
         }
         else{
-            var x: Node := pickMax(neighbors);
+            var x: Node :| x in neighbors;
             assert x in graph.0 by {
                 assert x in neighbors;
                 assert x in graph.0;
@@ -233,7 +258,7 @@ ensures |incidentEdges(graph, node)| == |neighborsOf(graph, node)|
     }
 }
 
-//All new nodes are contained by exactly one new edge, and thus, there are as many new nodes as edges
+//All new nodes when splitting a vertex are contained by exactly one new edge, and thus, there are as many new nodes as edges
 //Used locally
 lemma asManyNewNodesAsEdges(graph: Graph, v: Node, newNodes: set<Node>, setNewEdges: set<Edge>)
 requires isValidGraph(graph)
@@ -309,7 +334,7 @@ ensures |newNodes| == |setNewEdges|
             }
         
         }
-        sameCardinalThroughComprehension(newNodes, setNewEdges);
+        SameCardinalThroughComprehension(newNodes, setNewEdges);
     }
 }
 
@@ -317,6 +342,19 @@ ensures |newNodes| == |setNewEdges|
 //               Currently Unused               //
 //////////////////////////////////////////////////
 /*
+
+//Any edge from a valid graph contains two nodes
+lemma validEdgesHaveTwoComponents(graph: Graph, e: Edge, n: Node)
+requires isValidGraph(graph)
+requires e in graph.1
+requires n in e
+ensures exists n' :: e == {n, n'} && n' in graph.0
+{ 
+    cardinality2implies(e, n);
+    var n' :| n' in e && n' != n;
+    assert {n, n'} <= e;
+    submultisetAndSameCardinalityImpliesEqual({n, n'}, e);
+}
 
 //Returns he complementary Graph, vertices stay the same, but in r two nodes are connected iff they are not connected in graph
 function complement (graph:Graph) : (r:Graph)

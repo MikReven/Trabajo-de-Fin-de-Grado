@@ -11,7 +11,7 @@ include "../../Especificaciones/Clique/CliqueProperties.dfy"
     Functions:
         None
 
-    Lemmas:
+    Lemmas: 
         -ovCliqueRemoveVertex
         -isPartialSolutionWith
 

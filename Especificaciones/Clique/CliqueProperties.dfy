@@ -2,7 +2,7 @@ include "Clique.dfy"
 include "CliqueOpt.dfy"
 /*
     File explanation
-        The main goal of this file is to provide usefull lemmas to make reasonings in the Clique Problem
+        The main goal of this file is to provide usefull lemmas to make reasonings about the Clique Problem
     
     Predicates: 
         None

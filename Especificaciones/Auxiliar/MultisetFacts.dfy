@@ -458,6 +458,9 @@ ensures B <= A ==> (A == A - B + B)
 ensures A == A + B - B
 { }
 
+//Flattens a multisets of multisets to a multiset containing all elements in the union
+//Used in Envasado.dfy
+//Used in BinPacking2Aproximated.dfy by PartialSolutionIsAnalyzedFit, PartialSolutionIsAnalyzedNotFit, invariantLoop as it is used in the invariant
 ghost function Union<T>(I:multiset<multiset<T>>) : (S: multiset<T>)
 ensures forall a: multiset<T>, b: T | a in I && b in a :: b in S
 {

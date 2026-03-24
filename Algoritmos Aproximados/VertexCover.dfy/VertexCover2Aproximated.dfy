@@ -114,17 +114,48 @@ ensures forall e1, e2 | e1 in pickedEdges + {e} && e2 in pickedEdges + {e} && e1
     }
 }
 
+lemma invariantPickedEdgesHolds(graph: Graph, edgesRemaining: set<Edge>, pickedEdges: set<Edge>, e: Edge, I: set<Node>, n1: Node, n2: Node, 
+                     edgesRemaining': set<Edge>, pickedEdges': set<Edge>, I': set<Node>)
+
+requires invariantLoop(graph, I, edgesRemaining, pickedEdges)
+requires edgesRemaining != {} 
+requires e in edgesRemaining
+requires e == {n1, n2}
+requires n1 < n2
+requires edgesRemaining' == edgesRemaining - (incidentEdges(graph, n1) + incidentEdges(graph, n2))
+requires pickedEdges' == pickedEdges + {e}
+requires I' == I + {n1, n2}
+ensures forall e1, e2 | e1 in pickedEdges' && e2 in pickedEdges' && e1 != e2 :: e1 * e2 == {}
+{
+    assume false;
+    forall e1, e2 | e1 in pickedEdges' && e2 in pickedEdges' && e1 != e2 
+ ensures e1 * e2 == {}
+ {
+  if (e1 != e && e2 != e) { assert e1 in pickedEdges && e2 in pickedEdges;}
+  else if (e1 == e) {
+    assert e2 in pickedEdges;
+  }
+  else {assert e1 in pickedEdges;}
+
+ }
+}
+
 lemma pickedEdgesAreSubsetOfPartialSolution(graph: Graph, pickedEdges: set<Edge>, e: Edge, I: set<Node>, n1: Node, n2: Node, pickedEdges': set<Edge>, I': set<Node>)
 requires isValidGraph(graph) 
 requires I <= graph.0 
 requires pickedEdges <= graph.1 
 requires |I| == |pickedEdges| * 2
-requires (forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 && e in graph.1 && e in pickedEdges && e == {n1, n2} :: n1 in I && n2 in I)
+requires (forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 && n1 < n2 && e in graph.1 && e in pickedEdges && e == {n1, n2} :: n1 in I && n2 in I)
 requires pickedEdges' == pickedEdges + {e}
+requires n1 != n2
 requires I' == I + {n1, n2}
-ensures (forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 && e in graph.1 && e in pickedEdges' && e == {n1, n2} :: n1 in I + {n1, n2} && n2 in I + {n1 + n2})
+ensures (forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 && n1 < n2 && e in graph.1 && e in pickedEdges' && e == {n1, n2} :: n1 in I' && n2 in I')
 {
-    assume false;
+    forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 && n1 < n2 && e in graph.1 && e in pickedEdges' && e == {n1, n2} 
+    ensures n1 in I + {n1, n2} && n2 in I + {n1 + n2}
+    {
+        assume false;
+    }
 }
 
 lemma{:only} invariantsHold(graph: Graph, edgesRemaining: set<Edge>, pickedEdges: set<Edge>, e: Edge, I: set<Node>, n1: Node, n2: Node, 
@@ -133,6 +164,7 @@ requires invariantLoop(graph, I, edgesRemaining, pickedEdges)
 requires edgesRemaining != {} 
 requires e in edgesRemaining
 requires e == {n1, n2}
+requires n1 < n2
 requires edgesRemaining' == edgesRemaining - (incidentEdges(graph, n1) + incidentEdges(graph, n2))
 requires pickedEdges' == pickedEdges + {e}
 requires I' == I + {n1, n2}
@@ -160,46 +192,25 @@ ensures edgesRemaining' < edgesRemaining
         }
     }
     sizeOfPartialSolution(I, n1, n2, pickedEdges, e);
-    /*
-    assume forall e': Edge, n1': Node, n2': Node | n1' in graph.0 && n2' in graph.0 && e' in graph.1 && e' in pickedEdges' && e' == {n1', n2'} :: n1' in I' && n2' in I';
-    
-    assume invariantLoop(graph, I', edgesRemaining', pickedEdges') ==
-        isValidGraph(graph) &&
-        I' <= graph.0 && 
-        edgesRemaining' <= graph.1 &&
-        pickedEdges' <= graph.1 &&
-        edgesRemaining' * pickedEdges' == {} &&
-        (forall e: Edge | e in edgesRemaining' :: e * I' == {}) &&
-        (forall e: Edge | e in graph.1 - edgesRemaining' :: |I' * e| > 0) &&
-        (forall v: Node, e: Edge | v in graph.0 && e in graph.1 && v in I' && v in e :: e !in edgesRemaining') &&
-        |I'| == |pickedEdges'| * 2 &&
-        (forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 && e in graph.1 && e in pickedEdges' && e == {n1, n2} :: n1 in I' && n2 in I') &&
-        (forall e1, e2 | e1 in pickedEdges && e2 in pickedEdges && e1 != e2 :: e1 * e2 == {}); */   
-    //assume invariantLoop(graph, I', edgesRemaining', pickedEdges');
-    //assume false;
-    //pickedEdgesAreSubsetOfPartialSolution(graph, pickedEdges, e, I, n1, n2, pickedEdges', I');
-    
-    assert e !in pickedEdges by{
-        assert e in edgesRemaining && edgesRemaining * pickedEdges == {};
-        if e in pickedEdges{
-            assert e in pickedEdges * edgesRemaining;
-            assert {} == pickedEdges * edgesRemaining;
-            assert false;
-        }
-    }
-    
+    //(forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 &&  n1 < n2 && e in graph.1 && e in pickedEdges && e == {n1, n2} :: n1 in I && n2 in I)
+    pickedEdgesAreSubsetOfPartialSolution(graph, pickedEdges, e, I, n1, n2, pickedEdges', I');
+    //(forall e1, e2 | e1 in pickedEdges && e2 in pickedEdges && e1 != e2 :: e1 * e2 == {})
+    invariantPickedEdgesHolds(graph,edgesRemaining,pickedEdges,e,I,n1,n2,edgesRemaining',pickedEdges',I');
     assert isValidGraph(graph);
-    assert pickedEdges <= graph.1;  
-    assert e in edgesRemaining;
-    assert (forall e: Edge | e in edgesRemaining :: e * I == {}); 
-    assert forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 && e in graph.1 && e in pickedEdges && e == {n1, n2} :: n1 in I && n2 in I by{
-        assert invariantLoop(graph, I, edgesRemaining, pickedEdges);
-    }    
-    assert forall e1, e2 | e1 in pickedEdges && e2 in pickedEdges && e1 != e2 :: e1 * e2 == {};
-    pickedEdgesAreDisjoint(graph, pickedEdges, e, edgesRemaining, I);
-    //assume false;
-    assume invariantLoop(graph, I', edgesRemaining', pickedEdges');
-    
+    assert I' <= graph.0;
+    assert edgesRemaining' <= graph.1;
+    assert pickedEdges' <= graph.1;
+    assert edgesRemaining' * pickedEdges' == {};
+    assert (forall e: Edge | e in edgesRemaining' :: e * I' == {});
+    assert (forall e: Edge | e in graph.1 - edgesRemaining' :: |I' * e| > 0);
+    assert (forall v: Node, e: Edge | v in graph.0 && e in graph.1 && v in I' && v in e :: e !in edgesRemaining');
+    assert |I'| == |pickedEdges'| * 2;
+    assert (forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 && n1 < n2 && e in graph.1 && e in pickedEdges' && e == {n1, n2} :: n1 in I' && n2 in I');
+    assert (forall e1, e2 | e1 in pickedEdges' && e2 in pickedEdges' && e1 != e2 :: e1 * e2 == {});
+    assert invariantLoop(graph, I', edgesRemaining', pickedEdges');
+    assert edgesRemaining' < edgesRemaining;
+    //assert false;
+    assume false;
 }
 
 predicate invariantLoop(graph: Graph, I: set<Node>, edgesRemaining: set<Edge>, pickedEdges: set<Edge>){
@@ -212,8 +223,8 @@ predicate invariantLoop(graph: Graph, I: set<Node>, edgesRemaining: set<Edge>, p
     (forall e: Edge | e in graph.1 - edgesRemaining :: |I * e| > 0) &&
     (forall v: Node, e: Edge | v in graph.0 && e in graph.1 && v in I && v in e :: e !in edgesRemaining) &&
     |I| == |pickedEdges| * 2 &&
-    (forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 && e in graph.1 && e in pickedEdges && e == {n1, n2} :: n1 in I && n2 in I) &&
-    (forall e1, e2 | e1 in pickedEdges && e2 in pickedEdges && e1 != e2 :: e1 * e2 == {})/**/
+    (forall e: Edge, n1: Node, n2: Node | n1 in graph.0 && n2 in graph.0 &&  n1 < n2 && e in graph.1 && e in pickedEdges && e == {n1, n2} :: n1 in I && n2 in I) &&
+    (forall e1, e2 | e1 in pickedEdges && e2 in pickedEdges && e1 != e2 :: e1 * e2 == {})
 }
 
 method bodyLoop(graph: Graph, I: set<Node>, edgesRemaining: set<Edge>, pickedEdges: set<Edge>) 
@@ -224,8 +235,7 @@ ensures invariantLoop(graph, I', edgesRemaining', pickedEdges')
 ensures edgesRemaining' < edgesRemaining
 {
     var e := pick(edgesRemaining);
-    var n1 :| n1 in e;
-    var n2 :| n2 in e && n1 != n2;
+    var n1, n2 :| n1 in e && n2 in e && n1 < n2;
     
     pickedEdges' := pickedEdges + {e};
     I' := I + {n1, n2};  

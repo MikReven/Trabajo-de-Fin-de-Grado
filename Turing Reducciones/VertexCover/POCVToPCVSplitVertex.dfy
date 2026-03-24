@@ -1,8 +1,8 @@
 include "../../Especificaciones/VertexCover/VertexCoverOpt.dfy"
-include "../../Especificaciones/VertexCover/OptimalCoverPropertiesSplit.dfy"
 include "../../Especificaciones/VertexCover/VertexCoverProperties.dfy"
+include "SplitVertexAux.dfy"
 
-
+/*
 //We assume a polynomial algorithm for PVC
 method {:axiom} moptimalValueVertexCover (graph : Graph) returns (k: nat)
   requires isValidGraph(graph)
@@ -35,7 +35,7 @@ ensures vertexn < vertex //in order to prove termination
   var g'': Graph := (g.0 - {v}, g.1 - incidentEdges(g, v)); 
   validSubgraph(g,v,g'');
   assert isValidGraph(g');
-  var kg': nat := moptimalValueVertexCover(g');
+  var kg': nat := moptimalValueVertexCover(g'); 
 
   //Only two options are possible
   assert kg' == kg || kg < kg' by 
@@ -107,7 +107,7 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
     boundVertexCoverIsOptimal(graph,I,okg);
   }
 }
-
+*/
 /*
 I := {};
  var vertex := graph.0; 

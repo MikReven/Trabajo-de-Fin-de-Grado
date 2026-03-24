@@ -10,7 +10,7 @@ include "Clique.dfy"
             -isValidGraph
             From Clique.dfy
             -isClique
-*/
+*/ 
 
 //Decission problem: returns true if there exists a clique with size k or larger
 ghost predicate CliqueDecissionProblem(g: Graph, k: nat)
