@@ -129,7 +129,7 @@ ensures forall j | j >= |A| :: binPackingDecissionProblem(A,E,j)
 //Given a BinPacking, an upper bound of the sum of elements is the maximum weight of each bins thimes the number of bins in the given solution
 //Used locally by LowerBoundoptimalValueBinPacking
 //No bin has more than E weight, so the sum of all weights must be less than or equal to the number of bins times E
-lemma eachBinHasLesserThanEWeight(A: multiset<nat>, E: nat, I: multiset<multiset<nat>>)
+lemma EachBinHasLesserThanEWeight(A: multiset<nat>, E: nat, I: multiset<multiset<nat>>)
 requires isBinPacking(A, E, I)
 ensures GMultisetSumNat(I) <= E * |I|
 {
@@ -147,7 +147,7 @@ ensures GMultisetSumNat(I) <= E * |I|
       GSumNat(weights);
       maxWeight * |weights|; 
       maxWeight * |I|;
-      {lessThanWithMultiplication(maxWeight, |I|, E);}
+      {LessThanOrEqualMultiplication(maxWeight, E, |I|);}
       E * |I|;
     }
   }
@@ -161,7 +161,7 @@ requires optimalBinPacking(A,E,I)
 ensures GSumNat(A) <= E * |I|
 { 
   //assert forall m: multiset<nat> | m in I :: GSumNat(m) <= E;
-  eachBinHasLesserThanEWeight(A, E, I);
+  EachBinHasLesserThanEWeight(A, E, I);
   //assert GMultisetSumNat(I) <=  E * |I|; 
   GSumNatOfUnion(A, I);
   //assert GMultisetSumNat(I) == GSumNat(A);

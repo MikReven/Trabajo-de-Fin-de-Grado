@@ -55,9 +55,9 @@ include "BinPackingKAproximated.dfy"
             -IsSmallerThan
             -Distributivity
             -ProductSimplification
-            -MultiplyingByNaturals
+            -LessThanOrEqualMultiplication
             -CommutativeProduct
-            -DividingByNaturals
+            -LessThanDivision
             From SequenceFacts.dfy
             -SequenceInsertionToMultiset
             From EnvasadoProperties.dfy
@@ -260,14 +260,14 @@ ensures |I'| < |O| * 2
         |I'| * E;
         <= 
         totalWeight' * 2;
-        < {MultiplyingByNaturals(totalWeight', totalWeight, 2);}
+        < {LessThanOrEqualMultiplication(totalWeight', totalWeight, 2);}
         totalWeight * 2;
-        <= {MultiplyingByNaturals(totalWeight, |O| * E, 2);}
+        <= {LessThanOrEqualMultiplication(totalWeight, |O| * E, 2);}
         |O| * E * 2;
         == {CommutativeProduct(|O|, E, 2);}
         |O| * 2 * E;
     }
-    DividingByNaturals(|I'|, |O| * 2, E);
+    LessThanDivision(|I'|, |O| * 2, E);
     assert |I'| < |O| * 2;
 }
 
@@ -292,7 +292,7 @@ ensures isKAproximatedBinPacking(A, E, I, 2)
         ensures |I'| < |M| * 2
         {
             assert |O| <= |M|;
-            MultiplyingByNaturals(|O|, |M|, 2);
+            LessThanOrEqualMultiplication(|O|, |M|, 2);
         }
     }
 }

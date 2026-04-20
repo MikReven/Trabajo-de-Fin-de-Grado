@@ -17,7 +17,7 @@ include "../../Especificaciones/Clique/CliqueProperties.dfy"
             -isClique
             From CliqueOpt.dfy
             -CliqueDecissionProblem
-            -optimalValueClique
+            -optimalValueClique 
         Functions
             None
         Lemmas

@@ -130,10 +130,12 @@ ensures forall e: Edge | e in graph.1 :: v !in e <==> e in graph'.1
 //Given a graph and a vertex, splits the vertex to create various vertices that maintain the incident edges
 //Used in POCVToPCVSplitVertex
 //Used in SplitVertexAux
-function splitVertex(graph: Graph, v: Node): (r: Graph)
-requires isValidGraph(graph) 
+function{:only} splitVertex(graph: Graph, v: Node): (r: Graph)
+requires isValidGraph(graph)
 ensures isValidGraph(r)
 ensures forall n: Node | n in (r.0 - graph.0) :: |(set e: Edge | e in (r.1) && n in e :: e)| == 1
+ensures forall n: Node, m: Node | n in (r.0 - graph.0) && {n, m} in r.1 :: m in graph.0
+//ensures forall node | node in neighborsOf(graph, v) :: (exists neigh :: neigh in r.0 - graph.0 && {node, neigh} in r.1)
 {
     
     //If it belongs to the graph
@@ -189,6 +191,31 @@ ensures forall n: Node | n in (r.0 - graph.0) :: |(set e: Edge | e in (r.1) && n
             cardinalityUnion(nInOldEdges, nInNewEdges, setG);
         }
         
+        //Proof for forall node | node in neighborsOf(graph, v) :: (exists neigh :: neigh in r.0 - graph.0 && {node, neigh} in r.1)
+        forall node | node in neighborsOf(graph, v) 
+        ensures (exists neigh :: neigh in g.0 - graph.0 && {node, neigh} in g.1)
+        {
+            
+            assert exists edge :: edge in setNewEdges && node in edge by {
+                calc{
+                    |newNodes|;
+                    |edgesToChange|;
+                    |incidentEdges(graph, v)|;
+                    {aNeighborForEachIncidentEdge(graph, v);}
+                    |neighborsOf(graph, v)|;
+                }
+                assert |newNodes| == |neighborsOf(graph, v)|;
+                alwaysAnElementGreaterThanKElements(newNodes, numberOfLesser(neighborsOf(graph, v), node));
+                var node' :| node' in newNodes && numberOfLesser(neighborsOf(graph, v), node) == numberOfLesser(newNodes, node');
+                //assert forall node1: Node, node2: Node | node1 in newNodes && node2 in neighborsOf(graph, v) && numberOfLesser(newNodes, node1) == numberOfLesser(neighborsOf(graph, v), node2) :: {node1, node2} in setNewEdges;
+                assert numberOfLesser(newNodes, node') == numberOfLesser(neighborsOf(graph, v), node);
+            }
+            assert forall edge: Edge | edge in setNewEdges :: (exists newNode :: newNode in newNodes && newNode in edge);
+            var edge :| edge in setNewEdges && node in edge;
+            var node' :| node' in edge && node' != node;
+            cardinality2SetGivenItsElements(edge, node, node');
+        }
+        
         g
         
     //If the vertex does not belong to the graph, it remains unchanged
@@ -231,6 +258,19 @@ ensures forall m: Node | n in S :: {m, n} in g.1
     if exists m: Node :: m in S && {m, n} !in g.1 {
         assert forall node: Node | node in S :: {n, node} in g.1;
     }
+}
+
+//All adjacent nodes to n are connected to it by an edge
+//Used in SplitVertexAux by CommonOptimalVertexCover
+lemma connectedNodeIsNeighbor(g: Graph, n: Node, m: Node, edge: Edge)
+requires isValidGraph(g)
+requires n != m
+requires n in g.0 && m in g.0
+requires n in edge && m in edge
+requires edge in g.1
+ensures m in neighborsOf(g, n)
+{
+    cardinality2SetGivenItsElements(edge, n, m);
 }
 
 //There are as many incident edges as adjacent nodes 

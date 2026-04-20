@@ -1,4 +1,3 @@
-//Por terminar
 /*
     File explanation
         The main goal of this file is to provide functions, and lemmas that are useful when reasoning about sets.
@@ -19,11 +18,8 @@
         -
 
     Lemmas:
-        These lemmas represent properties that are derived from a graph being valid
-        -validSubgraph: The result of removing a vertex and its incident edges from a graph is another valid graph
-        -validEdgesHaveTwoComponents: Any edge from a valid graph contains two nodes
-        These lemmas relate the neighbors and incident edges of a vertex 
-        -neighborsAreConnected: All adjacent nodes to n are connected to it by an edge
+       General lemmas:
+        cardinality2SetGivenItsElements: Given a, b that belong to a set of cardinality 2, the set is {a, b}
 
     Methods:
         pick: Returns an element belonging to a given set
@@ -35,8 +31,8 @@
 //Returns an element belonging to a set
 //Used to iterate over sets
 method pick<T>(S:set<T>) returns (r:T)
-  requires S != {} //&& |S| > 0
-  ensures r in S
+requires S != {} 
+ensures r in S
 {
   var v :| v in S;
   return v;
@@ -68,24 +64,25 @@ ensures |A| == |B|
   }
 }
 
-//
-lemma SubsetTransitivity<T>(A: set<T>, B:set<T>, C: set<T>)
-requires A <= B && B <= C
-ensures A <= C
-{ }
-
-lemma subsetCardinality<T>(A: set<T>, B: set<T>)
+//If a set is a subset of anothar, its cardinality is less than or equal to the cardinality of the other set
+//Used locally by strictSubsetCardinality, cardinalityUnion
+//Used in VertexCoverProperties by translationVertexCover, containedOptimalVertexCover
+//Used in CliqueProperties by OptimalCliqueValueBounds
+//Used in SplitVertexAux by ComprehensionOfCardinalityOneImplication
+lemma SubsetCardinality<T>(A: set<T>, B: set<T>)
 requires A <= B
 ensures |A| <= |B|
 {
   if A == {} {} 
   else {
     ghost var x: T :| x in A;
-    subsetCardinality(A - {x}, B - {x}); 
+    SubsetCardinality(A - {x}, B - {x}); 
   } 
 }
 
-lemma strictSubsetCardinality<T>(A: set<T>, B: set<T>)
+//Same idea as above, but with strictness
+//Used locally by numberOfLesser
+lemma StrictSubsetCardinality<T>(A: set<T>, B: set<T>)
 requires A < B
 requires B != {}
 ensures |A| < |B|
@@ -93,11 +90,12 @@ ensures |A| < |B|
   if A == {} {} 
   else {
     ghost var x: T :| x in A;
-    strictSubsetCardinality(A - {x}, B - {x}); 
+    StrictSubsetCardinality(A - {x}, B - {x}); 
   } 
 }
 
 //If a set has greater cardinality than another, the first cannot be a subset of the second
+//Used locally by greaterCardinalityImpliesNotASubsetForAll
 lemma greaterCardinalityImpliesNotASubset(A: set<nat>, B: set<nat>)
   requires |A| > |B|
   ensures !(A <= B)
@@ -109,8 +107,8 @@ lemma greaterCardinalityImpliesNotASubset(A: set<nat>, B: set<nat>)
   else{ }
 }
 
-//A set cannot be a subset of any set whose cardinality is lesser
-//Used in CliqueProperties
+//Generalization of the lemma above
+//Used in CliqueProperties by UpperBoundClique
 lemma greaterCardinalityImpliesNotASubsetForAll(A: set<nat>)
   ensures forall B: set<nat> | |B| > |A| :: !(B <= A)
 { 
@@ -122,6 +120,8 @@ lemma greaterCardinalityImpliesNotASubsetForAll(A: set<nat>)
   }
 }
 
+//If a set has cardinality greater than 1, it contains at least a second element
+//Used in Graph by asManyNewNodesAsEdges
 lemma cardinality2implies<T>(A: set<T>, a: T)
 requires |A| > 1
 requires a in A 
@@ -134,38 +134,61 @@ ensures exists b: T :: b in A && b != a
   }
 }
 
+//Is a set is subset of another andd they have the same cardinality, they are equal
+//Used locally
+lemma SubsetAndSameCardinalityImpliesEqual<T>(A: set<T>, B: set<T>)
+requires A <= B 
+requires |A| == |B|
+ensures A == B
+{ 
+  assert forall x | x in A :: x in B;
+  forall x | x in B 
+  ensures x in A
+  {
+    if x !in A {
+      assert A < B;
+      StrictSubsetCardinality(A, B);
+      assert false;
+    }
+  }
+}
+
+//Given a, b that belong to a set of cardinality 2, the set is {a, b}
+//Used in SplitVertexAux by splitCoverToOriginalCover
+//Used in Graph by connectedNodeIsNeighbor
+lemma cardinality2SetGivenItsElements<T>(A: set<T>, a: T, b: T)
+requires |A| == 2
+requires a in A 
+requires b in A 
+requires a != b
+ensures A == {a, b}
+{ 
+  assert {a, b} <= A;
+  SubsetAndSameCardinalityImpliesEqual({a, b}, A);
+}
+
 //The cardinality of the union of two disjoint sets is the sum of their cardinalities
-//Used in VertexCover2Aproximated
+//Used in VertexCover2Aproximated by sizeOfPartialSolution
 lemma cardinalitySum<T>(A: set<T>, B: set<T>)
 requires A * B == {}
 ensures |A + B| == |A| + |B|
 { }
 
+//The cardinality of the union of two sets is greater than or equal to each of those sets' cardinalities
+//Used in Graph by splitVertex 
 lemma cardinalityUnion<T>(A: set<T>, B: set<T>, C: set<T>)
 requires C == A + B
 ensures |A| + |B| >= |C|
 ensures |C| >= |A|
 ensures |C| >= |B|
 { 
-  subsetCardinality(A, C);
-  subsetCardinality(B, C);
+  SubsetCardinality(A, C);
+  SubsetCardinality(B, C);
   assert |C| >= |A|;
   assert |C| >= |B|;
   assert |C| <= |A| + |B| by {
     assert |C| > |A| + |B| ==> exists t: T :: t in C && t !in A && t !in B; 
   }
-}
-
-lemma strictSubsetImpliesLesserCardinal<T>(A: set<T>, B: set<T>)
-requires A > B 
-ensures |A| > |B|
-{ 
-  assert exists a: T :: (a in A && a !in B);
-  var a: T :| (a in A && a !in B);
-  assert a in A - B;
-  assert A - B > {};
-  assert |A - B| >= 1;
-  assert |B - B| == 0;
 }
 
 lemma emptyOverpowersIntersection<T>(A: set<T>, B: set<T>)
@@ -225,6 +248,19 @@ lemma setBelongingToDifferenceForAll<T>(A: set<T>, b: T)
 requires b in A
 ensures forall n: T | n in A && n != b :: n in (A - {b})
 { }
+
+//Given two sets A, and C, if we replace an element from A that does not belong to C with one which does, 
+//the difference of the resulting set with C is a strict subset of A - C
+//Used in SplitVertexAux by splitCoverToOriginalCover
+lemma StrictSubsetOfDifference<T>(A: set<T>, B: set<T>, C: set<T>, t1: T, t2: T)
+requires t1 in A 
+requires t1 !in C
+requires B == A - {t1} + {t2}
+requires t2 in C
+ensures B - C < A - C
+{ 
+  assert t1 in A - C;
+}
 
 lemma setBelongingImplication<T>(A: set<T>, b: T)
 requires b in A
@@ -349,7 +385,7 @@ ensures y < |A|
   assert setLesser <= A;
   assert pickMax(A) !in setLesser;
   assert setLesser < A; 
-  strictSubsetCardinality(setLesser, A);
+  StrictSubsetCardinality(setLesser, A);
   |setLesser|
 }
 
@@ -392,6 +428,72 @@ ensures numberOfLesser(A, a) == k
   x
 }
 
+//TODO
+//Used by Graph in splitVertex 
+/*
+lemma{:only} numberOfLesserBijection(A: set<nat>, B: set<nat>, AB: set<set<nat>>)
+requires |A| == |B|
+requires A * B == {}
+requires forall a, b | a in A && b in B :: a > b
+requires AB == (set a, b | a in A && b in B && numberOfLesser(A, a) == numberOfLesser(B, b) :: {a, b})
+ensures |AB| == |A|
+ensures |AB| == |B|
+{
+  if A == {} {}
+  else{
+    var a :| a in A;
+    var b := pickFromOrder(B, numberOfLesser(A, a));
+    assert {a, b} in AB;
+    var A' := A - {a};
+    var B' := B - {b};
+    var AB' := AB - {{a, b}};
+    assert forall edge | edge in AB :: |edge| == 2; 
+    /*
+    forall x, y | x in A && x != a && y in B && y != b && numberOfLesser(A, a) == numberOfLesser(B, b)
+    ensures {x, y} in AB - {{a, b}}
+    {
+      assume false;
+    }
+    forall x, y | x in A && y in B && {x, y} in AB - {{a, b}}
+    ensures {x, y} in (set a, b | a in A - {a} && b in B - {b} && numberOfLesser(A - {a}, a) == numberOfLesser(B - {b}, b) :: {a, b})
+    {
+      assume false;
+    }
+    */
+    forall x, y | x in A' && y in B'
+    ensures x in A' && y in B' && numberOfLesser(A', x) == numberOfLesser(B', y) <==> {x, y} in AB'{
+      if x !in A' {
+        if x in A {
+          assume false;
+          assert x == a;
+          assert x !in A';
+          //since numberOfLesser is unique for each element in a set, there can only be one element in AB that contains x
+          assert forall edge | edge in AB && x in edge :: edge == {x, b} by {
+            if exists edge :: edge in AB && x in edge && edge != {x, b} {
+              var edge :| edge in AB && x in edge && edge != {x, b};
+              numberOfLesserEqualityForAll(B, b);
+              assert false;
+            }
+          }
+        }
+        else{
+          //assert x !in A;
+          //assert forall edge | edge in AB :: 
+          assume false;
+        }
+        //assert forall i, j | {i, j} in AB :: (i in A && j in B) || (i in B && j in A);
+        //assert AB' <= AB;
+
+      } 
+      else{
+        assume false;
+      }
+    }
+    numberOfLesserBijection(A - {a}, B - {b}, AB - {{a, b}});
+  }
+}
+*/
+
 lemma corollaryToMin(A: set<nat>, a: nat)
 requires a in A
 requires a == pickMin(A)
@@ -419,7 +521,7 @@ ensures numberOfLesser(A, x) > numberOfLesser(A, y)
   assert setA >= setB;
   assert y in setA && y !in setB;
   assert setA > setB;
-  strictSubsetImpliesLesserCardinal(setA, setB);
+  StrictSubsetCardinality(setB, setA);
   assert |setA| > |setB|;
 }
 
@@ -509,24 +611,6 @@ ghost function Union<T>(I:set<set<T>>) : set<T>
   else var i :| i in I; i + Union(I-{i})
 }
 
-//Is a set is subset of another andd they have the same cardinality, they are equal
-lemma subsetAndSameCardinalityImpliesEqual<T>(A: set<T>, B: set<T>)
-requires A <= B 
-requires |A| == |B|
-ensures A == B
-{ 
-  assert forall x | x in A :: x in B;
-  forall x | x in B 
-  ensures x in A
-  {
-    if x !in A {
-      assert A < B;
-      strictSubsetCardinality(A, B);
-      assert false;
-    }
-  }
-}
-
 lemma unionLemma(embeddedSet: set<set<nat>>)
 ensures forall S: set<nat> | S in embeddedSet :: S <= Union(embeddedSet)
 {}
@@ -572,6 +656,12 @@ ensures exists b: T :: b in B && b !in A
 lemma cardinalityOfSubsetDifference<T>(A: set<T>, B: set<T>)
 requires A >= B
 ensures |A - B| == |A| - |B|
+{ }
+
+//The relation of being a subset is transitive
+lemma SubsetTransitivity<T>(A: set<T>, B:set<T>, C: set<T>)
+requires A <= B && B <= C
+ensures A <= C
 { }
 
 

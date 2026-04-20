@@ -66,7 +66,7 @@ lemma UpperBoundClique(g: Graph)
     ensures forall I:set<Node> | |I| > |g.0| :: !isClique(g, I)
     ensures forall I:set<Node> | isClique(g, I) :: |I| <= |g.0|
 {
-    greaterCardinalityImpliesNotASubsetForAll(g.0);
+    greaterCardinalityImpliesNotASubsetForAll(g.0); 
 }
 
 //All graph contain a largest clique (could be non unique)
@@ -111,7 +111,7 @@ lemma OptimalCliqueValueBounds(g: Graph, k: nat)
         assert |I| > k;
         assert optimalValueClique(g, |I|);
         assert |I| != k;
-        subsetCardinality(I, g.0);
+        SubsetCardinality(I, g.0);
         assert false;
     }
 }

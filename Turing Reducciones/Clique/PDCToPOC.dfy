@@ -20,7 +20,7 @@ include "../../Especificaciones/Clique/CliqueProperties.dfy"
             -optimalClique
         Functions
             None
-        Lemmas
+        Lemmas 
             None
 */
 

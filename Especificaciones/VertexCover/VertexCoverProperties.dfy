@@ -3,7 +3,6 @@ include "VertexCoverOpt.dfy"
 
 //Optimal value vertex cover will never be strictly higher than |graph.0|
 //because vertexCoverDecissionProblem(graph, |graph.0|) always holds
-
 lemma boundVertexCover(graph:Graph, k:int)
 requires isValidGraph(graph) 
 ensures forall k | k >= |graph.0| :: vertexCoverDecissionProblem(graph,k)
@@ -50,6 +49,7 @@ ensures |I| <= |graph.0|
 ensures optimalValueVertexCover(graph,|I|)
 {  }
 
+//Used in SplitVertexAux by splitCoverIsLarger
 lemma translationVertexCover(graph: Graph, k: nat) 
 requires isValidGraph(graph)
 requires optimalValueVertexCover(graph, k)
@@ -60,7 +60,7 @@ ensures !exists I:set<Node> | I <= graph.0 && |I| < k  :: isVertexCover(I,graph)
     {
         ghost var I: set<Node> :| I <= graph.0 && |I| < k && isVertexCover(I,graph);
         assert vertexCoverDecissionProblem(graph, |I|);
-        subsetCardinality(I, graph.0);
+        SubsetCardinality(I, graph.0);
         assert false;
     }
 }
@@ -101,9 +101,9 @@ ensures k' <= k
   var S :| S <= graph.0 && isVertexCover(S, graph) && |S| <= k;
   var S' := S * graph'.0;
 
-  subsetCardinality(S',S);
+  SubsetCardinality(S',S);
   assert |S'| <= |S| <= k;
-  subsetCardinality(S',graph'.0);
+  SubsetCardinality(S',graph'.0);
   assert |S'| <= |graph'.0|;
 
   assert isVertexCover(S',graph');

@@ -25,7 +25,7 @@ include "POCToPCAux.dfy"
             From Graph.dfy
             -removeVertex
         Lemmas
-            From Graph.dfy
+            From Graph.dfy 
             -validSubgraph
             From CliqueProperties.dfy
             -UpperBoundClique

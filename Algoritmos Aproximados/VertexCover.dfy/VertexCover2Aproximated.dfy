@@ -1,7 +1,6 @@
 include "../../Especificaciones/VertexCover/VertexCoverOpt.dfy"
 include "../../Especificaciones/VertexCover/VertexCoverProperties.dfy"
 include "VertexCoverKAproximated.dfy"
-include "VertexCover2AproximatedAux.dfy"
 /*
     File explanation
         The main goal of this file is to provide a method that constructs s 2-Aproximated solution to the Vertex Cover Problem
@@ -50,7 +49,7 @@ include "VertexCover2AproximatedAux.dfy"
 
 //Encapsulates the properties to be maintained while iterating in vertexCover2Aproximated
 predicate invariantLoop(graph: Graph, I: set<Node>, edgesRemaining: set<Edge>, pickedEdges: set<Edge>){
-    isValidGraph(graph) &&
+    isValidGraph(graph) && 
     I <= graph.0 && 
     edgesRemaining <= graph.1 &&
     pickedEdges <= graph.1 &&

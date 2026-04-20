@@ -25,7 +25,7 @@ include "../../Especificaciones/Clique/CliqueProperties.dfy"
             -isSubGraph
             From Clique.dfy
             -isClique
-            From CliqueOpt.dfy
+            From CliqueOpt.dfy 
             -CliqueDecissionProblem
             -optimalClique
             -optimalValueClique

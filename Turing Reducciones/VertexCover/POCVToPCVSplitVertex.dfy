@@ -2,11 +2,40 @@ include "../../Especificaciones/VertexCover/VertexCoverOpt.dfy"
 include "../../Especificaciones/VertexCover/VertexCoverProperties.dfy"
 include "SplitVertexAux.dfy"
 
-/*
 //We assume a polynomial algorithm for PVC
 method {:axiom} moptimalValueVertexCover (graph : Graph) returns (k: nat)
   requires isValidGraph(graph)
   ensures optimalValueVertexCover(graph,k)
+
+ghost predicate invariantLoop(
+  graph: Graph, okg: nat,
+  vertex: set<Node>,//remaining vertex
+  I: set<Node>, //up to now vertex cover
+  g: Graph, kg: nat//current graph
+)
+requires isValidGraph(graph)
+{
+  isValidGraph(g) &&
+  vertex <= g.0 &&
+  //I is disjoint from vertex and from g
+  //Vertex in g either have not been visited, so they belong to vertex
+  //or have a non-covered edge  
+  I <= graph.0 - vertex && I + g.0 == graph.0 &&
+  I * g.0 == {} && I * vertex == {} &&
+
+  //the union of all the edges covered by I and those in g.1 are 
+  //the edges in the original graph
+  //So at the end, when g.1 is empty, all the edges in graph are covered by I
+
+  g.1 +  (set edge:Edge, node:Node | edge in graph.1 && node in I && node in edge :: edge) == graph.1 &&
+
+  //At the end kg = 0 and |I| = okg, so I is optimal
+  kg >= 0 && optimalValueVertexCover(g,kg) &&
+  kg + |I| == okg &&
+
+  (forall u, O | u in g.0 && u !in vertex &&  I <= O <= graph.0 && isVertexCover(O,graph) && |O| == okg :: u !in O) &&
+  (exists V : set<Node> :: V <= g.0 && V <= vertex && optimalVertexCover(g,V) && optimalVertexCover(graph, I + V))
+}
 
 method bodyLoop(
   ghost graph : Graph, ghost okg : nat,
@@ -40,9 +69,10 @@ ensures vertexn < vertex //in order to prove termination
   //Only two options are possible
   assert kg' == kg || kg < kg' by 
   {
-    splitVertexCover(g,v,kg,g',kg');
+    //assume false;
+    splitCoverIsLarger(g,v,kg,g',kg');
   } 
-  assume{:axiom} false;
+  //assume{:axiom} false;
   if kg < kg'  
     //We know that there exists an optimal cover consisting in v 
     // and and optimal cover for g' 
@@ -107,7 +137,7 @@ method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
     boundVertexCoverIsOptimal(graph,I,okg);
   }
 }
-*/
+
 /*
 I := {};
  var vertex := graph.0; 
