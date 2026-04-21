@@ -17,6 +17,7 @@ ensures k <= |graph.0|
 }
 
 //For every graph, there is an optimal vertex cover
+//Used in SplitVertexAux by donotIncludeVertex
 //Used by VertexCover2Aproximated to compare the aproximated solution to the optimal one (which must exist),
 //We create the set of solutions and another set with their cardinalities
 //since the set of the cardinalities has a minimum there must be a solution whose cardinality is minimal

@@ -130,7 +130,7 @@ ensures forall e: Edge | e in graph.1 :: v !in e <==> e in graph'.1
 //Given a graph and a vertex, splits the vertex to create various vertices that maintain the incident edges
 //Used in POCVToPCVSplitVertex
 //Used in SplitVertexAux
-function{:only} splitVertex(graph: Graph, v: Node): (r: Graph)
+function splitVertex(graph: Graph, v: Node): (r: Graph)
 requires isValidGraph(graph)
 ensures isValidGraph(r)
 ensures forall n: Node | n in (r.0 - graph.0) :: |(set e: Edge | e in (r.1) && n in e :: e)| == 1
@@ -207,7 +207,7 @@ ensures forall n: Node, m: Node | n in (r.0 - graph.0) && {n, m} in r.1 :: m in 
                 assert |newNodes| == |neighborsOf(graph, v)|;
                 alwaysAnElementGreaterThanKElements(newNodes, numberOfLesser(neighborsOf(graph, v), node));
                 var node' :| node' in newNodes && numberOfLesser(neighborsOf(graph, v), node) == numberOfLesser(newNodes, node');
-                //assert forall node1: Node, node2: Node | node1 in newNodes && node2 in neighborsOf(graph, v) && numberOfLesser(newNodes, node1) == numberOfLesser(neighborsOf(graph, v), node2) :: {node1, node2} in setNewEdges;
+                assert forall node1: Node, node2: Node | node1 in newNodes && node2 in neighborsOf(graph, v) && numberOfLesser(newNodes, node1) == numberOfLesser(neighborsOf(graph, v), node2) :: {node1, node2} in setNewEdges;
                 assert numberOfLesser(newNodes, node') == numberOfLesser(neighborsOf(graph, v), node);
             }
             assert forall edge: Edge | edge in setNewEdges :: (exists newNode :: newNode in newNodes && newNode in edge);

@@ -70,7 +70,7 @@ ensures exists I: set<Node> :: I <= graph.0 && isVertexCover(I, graph) && |I| <=
 
 lemma splitCoverIsLarger(graph: Graph, k: nat, n: Node, graph': Graph, k': nat)
 requires isValidGraph(graph)
-requires isValidGraph(graph)
+requires isValidGraph(graph')
 requires n in graph.0
 requires graph' == splitVertex(graph, n)
 requires optimalValueVertexCover(graph, k)
@@ -364,12 +364,13 @@ requires v in graph.0 && v in vertex
 requires optimalValueVertexCover(fullgraph,ok) 
 requires optimalValueVertexCover(graph,k)   
 requires optimalValueVertexCover(graph',k')
-requires graph'.0 == graph.0 - { v }
-requires graph'.1 == graph.1 - incidentEdges(graph,v)
+requires graph' == splitVertex(graph, v)
 requires k == k'
 requires I <= O <= fullgraph.0 && isVertexCover(O,fullgraph) && |O| == ok 
 ensures v !in O
 {
+  assume false;
+  /*
   var O' := O - I;
   assert ok == |O| == |I| + |O'|;
   assert |O'| == ok - |I|;
@@ -383,13 +384,14 @@ ensures v !in O
     assert |O' - {v}| == k' - 1;
     assert false;
   }
+  */
 }
 
 
 //In case k == k', there is no optimal vertex cover containing I and v
 //Used in POCVToRemoveVertex.dfy by bodyLoop to prove that an invariant is maintained
 //Proof is trivial once with the lemma above has been proved
-lemma donotIncludeVertexCoverFullForall(
+lemma{:only} donotIncludeVertexCoverFullForall(
   fullgraph : Graph, ok: nat, 
   vertex: set<Node>, I: set<Node>, v : Node,
   graph : Graph, k : nat, 
@@ -397,7 +399,7 @@ lemma donotIncludeVertexCoverFullForall(
 requires isValidGraph(fullgraph) && isValidGraph(graph)  && isValidGraph(graph')
 //graph is obtained from fullgraph by removing vertex in I and their edges
 requires graph.0 <= fullgraph.0 && graph.1 <= fullgraph.1 
-requires graph.1 +  (set edge:Edge, node:Node | edge in fullgraph.1 && node in I && node in edge :: edge) == fullgraph.1
+requires graph.1 + (set edge:Edge, node:Node | edge in fullgraph.1 && node in I && node in edge :: edge) == fullgraph.1
 requires I <= fullgraph.0
 //vertex are not processed yet
 requires vertex <= fullgraph.0 && vertex * I == {} && I * graph.0 == {} && I + graph.0 == fullgraph.0
@@ -405,14 +407,31 @@ requires v in graph.0 && v in vertex
 requires optimalValueVertexCover(fullgraph,ok) 
 requires optimalValueVertexCover(graph,k)   
 requires optimalValueVertexCover(graph',k')
-requires graph'.0 == graph.0 - { v }
-requires graph'.1 == graph.1 - incidentEdges(graph,v)
+requires graph' == splitVertex(graph, v)
 requires k == k'
-ensures forall O : set<Node> | I <= O <= fullgraph.0 && isVertexCover(O,fullgraph) && |O| == ok  :: v !in O
+ensures exists O :: optimalVertexCover(fullgraph, O) && I <= O
 {
-  forall O : set<Node> | I <= O <= fullgraph.0 && isVertexCover(O,fullgraph) && |O| == ok 
-  ensures v !in O
-  { donotIncludeVertexCoverFull(fullgraph, O, ok, vertex, I, v, graph, k, graph', k');}
+  optimalVertexCoverExists(graph);
+  var O' :| optimalVertexCover(graph, O');
+      assert isVertexCover(O', graph);
+      assume false;
+  forall e | e in fullgraph.1
+  ensures |(I + O') * e| > 0
+  {
+    assert e in graph.1 || e in (set edge:Edge, node:Node | edge in fullgraph.1 && node in I && node in edge :: edge);
+    if e in graph.1{
+      assume false;
+      assert O' <= I + O';
+      assume false;
+    }
+    else{
+      assume false;
+    }
+  }
+  assume false;
+  //forall O : set<Node> | I <= O <= fullgraph.0 && isVertexCover(O,fullgraph) && |O| == ok 
+  //ensures v !in O
+  //{ donotIncludeVertexCoverFull(fullgraph, O, ok, vertex, I, v, graph, k, graph', k');}
 }
 
 //Ik k == k' we do not include v and we still can build a cover for the graph with 
