@@ -1,6 +1,67 @@
 include "../../Especificaciones/VertexCover/VertexCoverOpt.dfy"
 include "../../Especificaciones/VertexCover/VertexCoverProperties.dfy"
 
+lemma IsASubsetIncreases(I: set<Node>, In: set<Node>, graph: Graph, vertex: set<Node>, vertexn: set<Node>, n: Node)
+requires isValidGraph(graph)
+requires I <= graph.0 - vertex
+requires vertex <= graph.0
+requires n in vertex
+requires In == I + {n}
+requires vertexn == vertex - {n}
+ensures In <= graph.0 - vertexn 
+{}
+
+lemma isAPartitionIncreases(I: set<Node>, In: set<Node>, graph: Graph, g: Graph, gn: Graph, n: Node)
+requires isValidGraph(graph)
+requires isValidGraph(g)
+requires I + g.0 == graph.0
+requires n in g.0
+requires In == I + {n}
+requires gn == removeVertex(g, n)
+ensures In + gn.0 == graph.0
+{}
+
+lemma EdgesPartition(I: set<Node>, In: set<Node>, graph: Graph, g: Graph, gn: Graph, n: Node)
+requires isValidGraph(graph)
+requires isValidGraph(g)
+requires n in g.0
+requires g.1 + (set edge:Edge, node:Node | edge in graph.1 && node in I && node in edge :: edge) == graph.1
+requires In == I + {n}
+requires gn == removeVertex(g, n)
+ensures gn.1 + (set edge:Edge, node:Node | edge in graph.1 && node in In && node in edge :: edge) == graph.1
+{}
+
+lemma PartialOptimalSolutionIncreases(I: set<Node>, In: set<Node>, graph: Graph, g: Graph, g' : Graph, gn: Graph, okg: nat, kg: nat, kg': nat, kgn: nat, n: Node)
+requires isValidGraph(graph)
+requires isValidGraph(g)
+requires g' == splitVertex(g, n)
+requires gn == removeVertex(g, n) 
+requires n in g.0
+requires n !in I
+requires optimalValueVertexCover(graph, okg)
+requires optimalValueVertexCover(g, kg)
+requires optimalValueVertexCover(g', kg')
+requires kg < kg'
+requires optimalValueVertexCover(gn, kgn)
+requires In == I + {n}
+requires kg + |I| == okg
+ensures kgn + |In| == okg
+{
+  translationVertexCover(g, kg);
+  forall O: set<Node> | optimalVertexCover(g, O)
+  ensures n in O
+  {
+    if n !in O {
+      assert neighborsOf(g, n) <= O;
+
+      assume false;
+    }
+    //assume false;
+  }
+  //assert v in 
+  assume kgn + 1 == kg;
+}
+
 lemma ComprehensionOfCardinalityOneImplication(graph: Graph, incidentEdge: set<Edge>, edge: Edge, v: Node, anotherEdge: Edge)
 requires isValidGraph(graph)
 requires v in graph.0
@@ -66,6 +127,18 @@ ensures exists I: set<Node> :: I <= graph.0 && isVertexCover(I, graph) && |I| <=
       splitCoverToOriginalCover(graph, n, graph', I'');
       var I :| I <= graph.0 && isVertexCover(I, graph) && |I| <= |I''|;
     }
+}
+
+lemma{:only} originalCoverToSplitCover(graph: Graph, n: Node, graph': Graph, I: set<Node>)
+requires isValidGraph(graph)
+requires graph' == splitVertex(graph, n)
+requires optimalVertexCover(graph, I)
+requires neighborsOf(graph, n) <= I
+ensures optimalVertexCover(graph', I)
+{
+  assert n !in I by{
+    assume false;
+  }
 }
 
 lemma splitCoverIsLarger(graph: Graph, k: nat, n: Node, graph': Graph, k': nat)
@@ -139,25 +212,6 @@ ensures vertexCoverDecissionProblem(graph, |I'|)
   }
 }
 
-lemma splitHasGreaterOrEqualCover(g: Graph, g': Graph, v: Node, k: nat, k': nat)
-    requires isValidGraph(g)
-    requires isValidGraph(g')
-    requires splitVertex(g, v) == g'
-    requires optimalValueVertexCover(g, k)
-    requires optimalValueVertexCover(g', k')
-    ensures k' >= k
-{
-    //assert forall I: set<Node> | I <= g.0 && optimalVertexCover(g, I) :: v in I || v !in I;
-    if exists I: set<Node> | I <= g.0 && optimalVertexCover(g, I) :: v !in I {
-        assert exists I: set<Node> :: I <= g.0 && optimalVertexCover(g, I) && v !in I;
-        var I: set<Node> :| I <= g.0 && optimalVertexCover(g, I) && v !in I;
-        //assert isVertexCover(I, g');
-        assume false;
-    }
-    else{
-        assume false; 
-    }
-}
 //An edge of fullgraph whose extremes v1, v2 belong to graph'.0 must be in graph'.1
 //because graph is disjoint from I and v1 != v and v2 != v
 //Used locally by includeVertexCoverExists
@@ -391,6 +445,7 @@ ensures v !in O
 //In case k == k', there is no optimal vertex cover containing I and v
 //Used in POCVToRemoveVertex.dfy by bodyLoop to prove that an invariant is maintained
 //Proof is trivial once with the lemma above has been proved
+/*
 lemma{:only} donotIncludeVertexCoverFullForall(
   fullgraph : Graph, ok: nat, 
   vertex: set<Node>, I: set<Node>, v : Node,
@@ -432,7 +487,7 @@ ensures exists O :: optimalVertexCover(fullgraph, O) && I <= O
   //forall O : set<Node> | I <= O <= fullgraph.0 && isVertexCover(O,fullgraph) && |O| == ok 
   //ensures v !in O
   //{ donotIncludeVertexCoverFull(fullgraph, O, ok, vertex, I, v, graph, k, graph', k');}
-}
+}*/
 
 //Ik k == k' we do not include v and we still can build a cover for the graph with 
 //the rest of non-processed yet vertex

@@ -16,6 +16,7 @@ ghost predicate invariantLoop(
 requires isValidGraph(graph)
 {
   isValidGraph(g) &&
+  isSubGraph(g, graph) &&
   vertex <= g.0 &&
   //I is disjoint from vertex and from g
   //Vertex in g either have not been visited, so they belong to vertex
@@ -37,7 +38,7 @@ requires isValidGraph(graph)
   (exists V : set<Node> :: V <= g.0 && V <= vertex && optimalVertexCover(g,V) && optimalVertexCover(graph, I + V))
 }
 
-method bodyLoop(
+method{:only} bodyLoop(
   ghost graph : Graph, ghost okg : nat,
   vertex : set<Node>,//remaining vertex
   I : set<Node>, //up to now vertex cover
@@ -61,7 +62,7 @@ ensures vertexn < vertex //in order to prove termination
 
   //Remove vertex v
   var g': Graph := splitVertex(g, v);
-  var g'': Graph := (g.0 - {v}, g.1 - incidentEdges(g, v)); 
+  var g'': Graph := removeVertex(g, v); 
   validSubgraph(g,v,g'');
   assert isValidGraph(g');
   var kg': nat := moptimalValueVertexCover(g'); 
@@ -73,14 +74,28 @@ ensures vertexn < vertex //in order to prove termination
     //We know that there exists an optimal cover consisting in v 
     // and and optimal cover for g' 
     { 
-      assume false;
-      includeVertexCoverExists(graph,okg,vertex,I,v,g,kg,g'',kg');
+      //includeVertexCoverExists(graph,okg,vertex,I,v,g,kg,g'',kg');
       //ghost var S':set<Node> :| S' <= g'.0 && S' <= vertex - {v} && optimalVertexCover(g',S') && optimalVertexCover(g, S' + {v}) && optimalVertexCover(graph, I + {v} + S');
       //includeVertexAndEdgesProperty(graph,I,v,g,g');
 
       In := I + {v};
-      gn := removeVertex(g, v);
-      kgn := kg';  
+      gn := g'';
+      kgn := moptimalValueVertexCover(gn);  
+      assert isValidGraph(gn);
+      IsASubsetIncreases(I, In, graph, vertex, vertexn, v);
+      isAPartitionIncreases(I, In, graph, g, gn, v);
+      //assume false;
+      assert In <= graph.0 - vertexn && In + gn.0 == graph.0;
+      assert In * gn.0 == {} && In * vertexn == {};
+      EdgesPartition(I, In, graph, g, gn, v);
+      assert gn.1 + (set edge:Edge, node:Node | edge in graph.1 && node in In && node in edge :: edge) == graph.1;
+      //assume false;
+      assert kgn >= 0 && optimalValueVertexCover(gn,kgn);
+      assume kgn + 1 == kg; 
+      assert kgn + |In| == okg;
+      //donotIncludeVertexCoverExists(graph,okg,vertex,I,v,g,kg,g',kg');
+      assume exists O :: optimalVertexCover(gn, O) && In <= O;
+      assume (exists V : set<Node> :: V <= gn.0 && V <= vertexn && optimalVertexCover(gn,V) && optimalVertexCover(graph, In + V));
       /* assert S' <= gn.0 && S' <= vertexn && optimalVertexCover(gn,S')&& optimalVertexCover(graph, In + S');
       forall u, O | u in gn.0 && u !in vertexn &&  In <= O <= graph.0 && isVertexCover(O,graph) && |O| == okg 
       ensures u !in O
@@ -90,21 +105,24 @@ ensures vertexn < vertex //in order to prove termination
       
     }
     else { //kg == kg'
+      //assume false;
       //donotIncludeVertexCoverFullForall(graph,okg,vertex,I,v,g,kg,g'',kg');
       //donotIncludeVertexCoverExists(graph,okg,vertex,I,v,g,kg,g'',kg');
-      In := I;
-      gn := g;
-      kgn := kg;
-      //assert isValidGraph(gn);
-      //assert vertexn <= gn.0;
-      //assert In <= graph.0 - vertexn && In + gn.0 == graph.0;
-      //assert In * gn.0 == {} && In * vertexn == {};
-      //assert gn.1 + (set edge:Edge, node:Node | edge in graph.1 && node in In && node in edge :: edge) == graph.1;
-      //assert kgn >= 0 && optimalValueVertexCover(gn,kgn);
-      //assert kgn + |In| == okg;
-      //donotIncludeVertexCoverExists(graph,okg,vertex,I,v,g,kg,g',kg');
-      assume (exists V : set<Node> :: V <= gn.0 && V <= vertexn && optimalVertexCover(gn,V) && optimalVertexCover(graph, In + V));
+      In := I + neighborsOf(g, v);
+      vertexn := vertexn - neighborsOf(g, v);
+      gn := removeVertices(g, neighborsOf(g, v));
+      kgn := moptimalValueVertexCover(gn);
+      assert isValidGraph(gn);
+      assert vertexn <= gn.0;
+      assume In <= graph.0 - vertexn && In + gn.0 == graph.0;
+      assert In * gn.0 == {} && In * vertexn == {};
+      assume gn.1 + (set edge:Edge, node:Node | edge in graph.1 && node in In && node in edge :: edge) == graph.1;
       //assume false;
+      assume kgn >= 0 && optimalValueVertexCover(gn,kgn);
+      assume kgn + |In| == okg;
+      //donotIncludeVertexCoverExists(graph,okg,vertex,I,v,g,kg,g',kg');
+      assume exists O :: optimalVertexCover(gn, O) && In <= O;
+      assume (exists V : set<Node> :: V <= gn.0 && V <= vertexn && optimalVertexCover(gn,V) && optimalVertexCover(graph, In + V));
     }
 }
 

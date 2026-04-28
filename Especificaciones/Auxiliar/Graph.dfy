@@ -13,6 +13,7 @@ include "SetFacts.dfy"
 
     Functions:
         -incidentEdges: Returns the set of Edges that contain a given vertex from a given graph
+        -incidentEdgesSetNodes: Returns the set of Edges that contain any vertex from a given set of vertices from a given graph
         -neighborsOf: Returns the set of vertices that are connected to a given vertex in a given graph by a edges
         -removeVertex: Returns the graph that results from removing the given vertex and its incident edges from a graph
         -splitVertex: Given a vertex and a graph, "splits" the node, meaning that the vertex is remove, and for each of its neighbors, 
@@ -88,6 +89,19 @@ ensures forall e: Edge | e in graph.1 && node in e :: e in S
     (set edge: Edge | edge in graph.1 && node in edge :: edge)
 }
 
+//Returns the set of Edges that contain any vertex from a given set of vertices from a given graph
+//Used in POCToPCVSplitVertex
+function incidentEdgesSetNodes(graph: Graph, nodes: set<Node>) : (S: set<Edge>)
+requires isValidGraph(graph)
+requires nodes <= graph.0
+ensures forall e: Edge | e in S :: |e| == 2
+ensures forall e: Edge, node: Node | e in S && node in nodes :: exists n: Node :: n in graph.0 && n in e && n != node
+//ensures forall e: Edge, node: Node | e in graph.1  && node in nodes :: e in S <==> node in e
+ensures forall e: Edge, node: Node | e in graph.1  && node in nodes && node in e :: e in S
+{
+    (set edge: Edge, node: Node | edge in graph.1 && node in nodes && node in edge :: edge)
+}
+
 //Returns the set of edges incident on the vertices a given edge connects
 //Used in VertexCover2Aproximated
 function incidentEdgesToEdge(graph: Graph, e: Edge) : (S: set<Edge>)
@@ -124,6 +138,21 @@ ensures forall e: Edge | e in graph.1 :: v in e <==> e !in graph'.1
 ensures forall e: Edge | e in graph.1 :: v !in e <==> e in graph'.1
 {
     (graph.0 - {v}, graph.1 - incidentEdges(graph, v))
+}
+
+//Returns a graph without the vertex v and the edges incident on it
+//Used locally
+//Used in POCToPC
+//Used in POCToPCAux
+//Used in POCVToPCVRemoveVertex
+function removeVertices(graph: Graph, nodes: set<Node>): (graph': Graph) 
+requires isValidGraph(graph)
+requires nodes <= graph.0
+ensures isValidGraph(graph')
+ensures forall e: Edge | e in graph.1 :: e * nodes != {} <==> e !in graph'.1
+ensures forall e: Edge | e in graph.1 :: e * nodes == {} <==> e in graph'.1
+{
+    (graph.0 - nodes, graph.1 - incidentEdgesSetNodes(graph, nodes))
 }
 
 
