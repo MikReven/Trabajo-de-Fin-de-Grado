@@ -150,3 +150,24 @@ requires I <= graph.0
 requires graph.1 == (set edge:Edge, node:Node | edge in graph.1 && node in I && node in edge :: edge)
 ensures isVertexCover(I,graph)
 { }
+
+lemma optimalCoverHasOptimalSize(graph: Graph, I: set<Node>, k: nat)
+requires isValidGraph(graph)
+requires I <= graph.0
+requires optimalVertexCover(graph, I)
+requires optimalValueVertexCover(graph, k)
+ensures |I| == k
+{
+    assert vertexCoverDecissionProblem(graph, |I|);
+}
+
+lemma coverOfOptimalSizeIsOptimal(graph: Graph, I: set<Node>, k: nat)
+requires isValidGraph(graph)
+requires I <= graph.0
+requires isVertexCover(I, graph)
+requires optimalValueVertexCover(graph, k)
+requires |I| == k
+ensures optimalVertexCover(graph, I)
+{
+    translationVertexCover(graph, k);
+}

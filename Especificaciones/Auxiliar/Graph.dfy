@@ -25,6 +25,9 @@ include "SetFacts.dfy"
         -validEdgesHaveTwoComponents: Any edge from a valid graph contains two nodes
         These lemmas relate the neighbors and incident edges of a vertex 
         -neighborsAreConnected: All adjacent nodes to n are connected to it by an edge
+        -edgeIncidentContainsANeighbor: All edges incident on n contain one of its neighbors
+        -allRemovedEdgesAreIncident: After removeing a vertex from a graph, all removed edges contain the removed vertex
+        -incidentEdgesSetNodesCovered: All edges incident on at least one of a set of nodes is covered by at least one of those nodes
 
     Methods:
         None
@@ -122,9 +125,19 @@ ensures forall e: Edge | e in S :: |e| == 2
 function neighborsOf(graph: Graph, v: Node) : (S: set<Node>)
 requires isValidGraph(graph)
 ensures forall n: Node | n in S :: n in graph.0 && n != v
+ensures S <= graph.0
 {
     (set node: Node | node in graph.0  && {v, node} in graph.1 :: node)
 }
+
+//After removeing a vertex from a graph, all removed edges contain the removed vertex
+//Used in SplitVertexAux
+lemma allRemovedEdgesAreIncident(graph : Graph, graph': Graph, v: Node)
+requires isValidGraph(graph)
+requires v in graph.0
+requires graph' == removeVertex(graph, v)
+ensures forall edge | edge in graph.1 - graph'.1 :: v in edge
+{}
 
 //Returns a graph without the vertex v and the edges incident on it
 //Used locally
@@ -149,12 +162,106 @@ function removeVertices(graph: Graph, nodes: set<Node>): (graph': Graph)
 requires isValidGraph(graph)
 requires nodes <= graph.0
 ensures isValidGraph(graph')
+ensures graph.1 - graph'.1 == incidentEdgesSetNodes(graph, nodes)
+ensures isSubGraph(graph', graph)
 ensures forall e: Edge | e in graph.1 :: e * nodes != {} <==> e !in graph'.1
 ensures forall e: Edge | e in graph.1 :: e * nodes == {} <==> e in graph'.1
 {
     (graph.0 - nodes, graph.1 - incidentEdgesSetNodes(graph, nodes))
 }
 
+lemma splitVertexIsValidGraph(graph: Graph, v: Node, graph': Graph, edgesToChange: set<Edge>, newNodes: set<Node>, setNewEdges: set<Edge>)
+requires isValidGraph(graph)
+requires edgesToChange == incidentEdges(graph, v)
+requires newNodes == addMultipleGreater(graph.0, |edgesToChange|) 
+requires setNewEdges == (set node1: Node, node2: Node | node1 in newNodes && node2 in neighborsOf(graph, v) && numberOfLesser(newNodes, node1) == numberOfLesser(neighborsOf(graph, v), node2) :: {node1, node2})
+requires graph' == ((graph.0 - {v} + newNodes), (graph.1 - edgesToChange + setNewEdges))
+ensures isValidGraph(graph')
+{
+    assert forall e | e in setNewEdges :: |e| == 2;
+    assert forall e | e in setNewEdges :: (exists a, b :: a in newNodes && b in (graph.0 - {v}) && a != b && e == {a, b});
+    assert newNodes <= graph'.0;
+    assert isValidGraph((graph.0 - {v}, graph.1 - incidentEdges(graph, v)));
+    assert graph'.1 == graph.1 - incidentEdges(graph, v) + setNewEdges;
+    assert forall e: Edge | e in graph.1 :: (|e| == 2 && exists u,v :: u in graph.0 && v in graph.0 && u != v && e == {u,v});
+}
+
+lemma allNewEdgesHaveDegree1(graph: Graph, v: Node, graph': Graph, edgesToChange: set<Edge>, newNodes: set<Node>, setNewEdges: set<Edge>)
+requires isValidGraph(graph)
+requires edgesToChange == incidentEdges(graph, v)
+requires newNodes == addMultipleGreater(graph.0, |edgesToChange|) 
+requires setNewEdges == (set node1: Node, node2: Node | node1 in newNodes && node2 in neighborsOf(graph, v) && numberOfLesser(newNodes, node1) == numberOfLesser(neighborsOf(graph, v), node2) :: {node1, node2})
+requires graph' == ((graph.0 - {v} + newNodes), (graph.1 - edgesToChange + setNewEdges))
+ensures forall n: Node | n in (graph'.0 - graph.0) :: |(set e: Edge | e in (graph'.1) && n in e :: e)| == 1
+{
+    forall n: Node | n in (graph'.0 - graph.0) 
+    ensures |(set e: Edge | e in graph'.1 && n in e :: e)| == 1
+    {    
+        //assert newNodes * graph.0 == {};
+        ghost var incidents: set<Edge> := incidentEdges(graph, v);
+        //assert (g.0 - graph.0) == newNodes;
+        //assert newNodes * graph.0 == {}; 
+        assert forall node: Node, e: Edge | e in graph.1 && node in e :: node in graph.0; 
+        //assert forall e: Edge | e in graph.1 :: n !in e;
+        //assert (set e: Edge | e in (graph.1 - incidents) && n in e :: e) <= graph.1;
+        //assert (set e: Edge | e in (graph.1 - incidents) && n in e :: e) == {};
+        //assert |(set e: Edge | e in (graph.1 - incidents) && n in e :: e)| == 0;
+        asManyNewNodesAsEdges(graph, v, newNodes, setNewEdges); 
+        //assert |(set e: Edge | e in setNewEdges && n in e :: e)| == 1;
+        //assert g.1 == graph.1 - incidentEdges(graph, v) + setNewEdges;
+        ghost var setG := (set e: Edge | e in ((graph.1 - incidents) + setNewEdges) && n in e :: e);
+        ghost var nInNewEdges: set<Edge> := (set e: Edge | e in setNewEdges && n in e :: e);
+        ghost var nInOldEdges: set<Edge> := (set e: Edge | e in (graph.1 - incidents) && n in e :: e);
+        calc =={
+            setG; 
+            (set e: Edge | (e in ((graph.1 - incidents) + setNewEdges)) && n in e :: e);
+            {SetComprehensionUnion((graph.1 - incidents),setNewEdges,n);} 
+            (set e: Edge | e in (graph.1 - incidents) && n in e :: e) + 
+            (set e: Edge | e in setNewEdges && n in e :: e);                
+            nInOldEdges + nInNewEdges;
+        }
+        assert setG == nInOldEdges + nInNewEdges;
+        cardinalityUnion(nInOldEdges, nInNewEdges, setG);
+    }
+}
+
+lemma newNodeAndEdgeForEachNeighbor(graph: Graph, v: Node, graph': Graph, edgesToChange: set<Edge>, newNodes: set<Node>, setNewEdges: set<Edge>)
+requires isValidGraph(graph)
+requires edgesToChange == incidentEdges(graph, v)
+requires newNodes == addMultipleGreater(graph.0, |edgesToChange|) 
+requires setNewEdges == (set node1: Node, node2: Node | node1 in newNodes && node2 in neighborsOf(graph, v) && numberOfLesser(newNodes, node1) == numberOfLesser(neighborsOf(graph, v), node2) :: {node1, node2})
+requires graph' == ((graph.0 - {v} + newNodes), (graph.1 - edgesToChange + setNewEdges))
+ensures forall node | node in neighborsOf(graph, v) :: (exists edge :: edge in graph'.1 - graph.1 && node in edge)
+{
+    forall node | node in neighborsOf(graph, v) 
+    ensures (exists edge :: edge in graph'.1 - graph.1 && node in edge)
+    {
+        assert exists edge :: edge in setNewEdges && node in edge by {
+            calc{
+                |newNodes|;
+                |edgesToChange|;
+                |incidentEdges(graph, v)|;
+                {aNeighborForEachIncidentEdge(graph, v);}
+                |neighborsOf(graph, v)|;
+            }
+            assert |newNodes| == |neighborsOf(graph, v)|;
+            alwaysAnElementGreaterThanKElements(newNodes, numberOfLesser(neighborsOf(graph, v), node));
+            var node' :| node' in newNodes && numberOfLesser(neighborsOf(graph, v), node) == numberOfLesser(newNodes, node');
+            assert forall node1: Node, node2: Node | node1 in newNodes && node2 in neighborsOf(graph, v) && numberOfLesser(newNodes, node1) == numberOfLesser(neighborsOf(graph, v), node2) :: {node1, node2} in setNewEdges;
+            assert numberOfLesser(newNodes, node') == numberOfLesser(neighborsOf(graph, v), node);
+            assert node' in newNodes;
+            assert node in neighborsOf(graph, v);
+            assert {node', node} in setNewEdges;
+        }
+        //var edge :| edge in setNewEdges && node in edge;
+        //assume false; 
+        /*
+        forall edge: Edge | edge in setNewEdges  (exists newNode :: newNode in newNodes && newNode in edge);
+        var edge :| edge in setNewEdges && node in edge;
+        var node' :| node' in edge && node' != node;
+        cardinality2SetGivenItsElements(edge, node, node');*/
+    }
+}
 
 //Given a graph and a vertex, splits the vertex to create various vertices that maintain the incident edges
 //Used in POCVToPCVSplitVertex
@@ -164,7 +271,8 @@ requires isValidGraph(graph)
 ensures isValidGraph(r)
 ensures forall n: Node | n in (r.0 - graph.0) :: |(set e: Edge | e in (r.1) && n in e :: e)| == 1
 ensures forall n: Node, m: Node | n in (r.0 - graph.0) && {n, m} in r.1 :: m in graph.0
-//ensures forall node | node in neighborsOf(graph, v) :: (exists neigh :: neigh in r.0 - graph.0 && {node, neigh} in r.1)
+//ensures forall n: Node | n in neighborsOf(graph, v) :: (exists e :: e in r.1 - graph.1 && n in e)
+ensures forall node | node in neighborsOf(graph, v) :: (exists edge :: edge in r.1 - graph.1 && node in edge)
 {
     
     //If it belongs to the graph
@@ -180,70 +288,15 @@ ensures forall n: Node, m: Node | n in (r.0 - graph.0) && {n, m} in r.1 :: m in 
         var g := ((graph.0 - {v} + newNodes), (graph.1 - edgesToChange + setNewEdges));
 
         //Proof for isValidGraph(r)
-        assert isValidGraph(g) by {
-            assert forall e | e in setNewEdges :: |e| == 2;
-            assert forall e | e in setNewEdges :: (exists a, b :: a in newNodes && b in (graph.0 - {v}) && a != b && e == {a, b});
-            assert newNodes <= g.0;
-            assert isValidGraph((graph.0 - {v}, graph.1 - incidentEdges(graph, v)));
-            assert g.1 == graph.1 - incidentEdges(graph, v) + setNewEdges;
-            assert forall e: Edge | e in graph.1 :: (|e| == 2 && exists u,v :: u in graph.0 && v in graph.0 && u != v && e == {u,v});
-        }
+        //splitVertexIsValidGraph()
+        splitVertexIsValidGraph(graph, v, g, edgesToChange, newNodes, setNewEdges);
         
         //Proof for forall n: Node | n in (r.0 - graph.0) :: |(set e: Edge | e in (r.1) && n in e :: e)| == 1
-        forall n: Node | n in (g.0 - graph.0) 
-        ensures |(set e: Edge | e in g.1 && n in e :: e)| == 1
-        {    
-            //assert newNodes * graph.0 == {};
-            ghost var incidents: set<Edge> := incidentEdges(graph, v);
-            //assert (g.0 - graph.0) == newNodes;
-            //assert newNodes * graph.0 == {}; 
-            assert forall node: Node, e: Edge | e in graph.1 && node in e :: node in graph.0; 
-            //assert forall e: Edge | e in graph.1 :: n !in e;
-            //assert (set e: Edge | e in (graph.1 - incidents) && n in e :: e) <= graph.1;
-            //assert (set e: Edge | e in (graph.1 - incidents) && n in e :: e) == {};
-            //assert |(set e: Edge | e in (graph.1 - incidents) && n in e :: e)| == 0;
-            asManyNewNodesAsEdges(graph, v, newNodes, setNewEdges); 
-            //assert |(set e: Edge | e in setNewEdges && n in e :: e)| == 1;
-            //assert g.1 == graph.1 - incidentEdges(graph, v) + setNewEdges;
-            ghost var setG := (set e: Edge | e in ((graph.1 - incidents) + setNewEdges) && n in e :: e);
-            ghost var nInNewEdges: set<Edge> := (set e: Edge | e in setNewEdges && n in e :: e);
-            ghost var nInOldEdges: set<Edge> := (set e: Edge | e in (graph.1 - incidents) && n in e :: e);
-            calc =={
-                setG; 
-                (set e: Edge | (e in ((graph.1 - incidents) + setNewEdges)) && n in e :: e);
-                {SetComprehensionUnion((graph.1 - incidents),setNewEdges,n);} 
-                (set e: Edge | e in (graph.1 - incidents) && n in e :: e) + 
-                (set e: Edge | e in setNewEdges && n in e :: e);                
-                nInOldEdges + nInNewEdges;
-            }
-            assert setG == nInOldEdges + nInNewEdges;
-            cardinalityUnion(nInOldEdges, nInNewEdges, setG);
-        }
+        allNewEdgesHaveDegree1(graph, v, g, edgesToChange, newNodes, setNewEdges);
+        //assume false;
         
         //Proof for forall node | node in neighborsOf(graph, v) :: (exists neigh :: neigh in r.0 - graph.0 && {node, neigh} in r.1)
-        forall node | node in neighborsOf(graph, v) 
-        ensures (exists neigh :: neigh in g.0 - graph.0 && {node, neigh} in g.1)
-        {
-            
-            assert exists edge :: edge in setNewEdges && node in edge by {
-                calc{
-                    |newNodes|;
-                    |edgesToChange|;
-                    |incidentEdges(graph, v)|;
-                    {aNeighborForEachIncidentEdge(graph, v);}
-                    |neighborsOf(graph, v)|;
-                }
-                assert |newNodes| == |neighborsOf(graph, v)|;
-                alwaysAnElementGreaterThanKElements(newNodes, numberOfLesser(neighborsOf(graph, v), node));
-                var node' :| node' in newNodes && numberOfLesser(neighborsOf(graph, v), node) == numberOfLesser(newNodes, node');
-                assert forall node1: Node, node2: Node | node1 in newNodes && node2 in neighborsOf(graph, v) && numberOfLesser(newNodes, node1) == numberOfLesser(neighborsOf(graph, v), node2) :: {node1, node2} in setNewEdges;
-                assert numberOfLesser(newNodes, node') == numberOfLesser(neighborsOf(graph, v), node);
-            }
-            assert forall edge: Edge | edge in setNewEdges :: (exists newNode :: newNode in newNodes && newNode in edge);
-            var edge :| edge in setNewEdges && node in edge;
-            var node' :| node' in edge && node' != node;
-            cardinality2SetGivenItsElements(edge, node, node');
-        }
+        newNodeAndEdgeForEachNeighbor(graph, v, g, edgesToChange, newNodes, setNewEdges);
         
         g
         
@@ -300,6 +353,27 @@ requires edge in g.1
 ensures m in neighborsOf(g, n)
 {
     cardinality2SetGivenItsElements(edge, n, m);
+}
+
+//All edges incident on at least one of a set of nodes is covered by at least one of those nodes
+//Used in SplitVertexAux by remainingPlusPartialIsTotalAux
+lemma incidentEdgesSetNodesCovered(graph: Graph, nodes: set<Node>)
+requires isValidGraph(graph)
+requires nodes <= graph.0
+ensures forall edge | edge in incidentEdgesSetNodes(graph, nodes) :: nodes * edge > {}
+{ }
+
+//All edges incident on n contain one of its neighbors
+//Used in SplitVertexAux by originalCoverToSplitCover
+lemma edgeIncidentContainsANeighbor(g: Graph, n: Node, e: Edge)
+requires isValidGraph(g)
+requires n in g.0 
+requires e in g.1
+requires n in e
+ensures e * neighborsOf(g, n) != {}
+{
+    var m :| m in e && m != n;
+    cardinality2SetGivenItsElements(e, n, m);
 }
 
 //There are as many incident edges as adjacent nodes 

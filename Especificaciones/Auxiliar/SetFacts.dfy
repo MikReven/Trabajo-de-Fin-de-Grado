@@ -196,6 +196,17 @@ requires A == {}
 ensures A * B == {}
 { }
 
+lemma nonEmptyIntersectionAfterUnion<T>(A: set<T>, B: set<T>, C :set<T>)
+requires A * B > {}
+ensures (C + A) * B > {}
+ensures (A + C) * B > {}
+{ } 
+
+lemma belongingToDifferenceImpliesNotBelongingToSecondSet<T>(A: set<T>, B: set<T>, t: T)
+requires t in A - B 
+ensures t !in B 
+{ }
+
 lemma emptyNeutralUnion<T>(A: set<T>, B: set<T>)
 requires A == {}
 ensures A + B == B
@@ -236,8 +247,17 @@ ensures (A + {v} ) + (B - {v}) == A + B
 lemma UnionPlusLessSet<T>(A: set<T>, B:set<T>, C:set<T>)
 requires A * B == {}
 requires C <= A  && C * B == {}
-ensures (A - C ) + (B + C) == A + B
+ensures (A - C) + (B + C) == A + B
 {}
+
+lemma UnionShiftedSubset<T>(A: set<T>, B: set<T>, B': set<T>, C: set<T>, C': set<T>, D: set<T>)
+requires A == B + C 
+requires B' == B + D 
+requires C' == C - D
+requires D <= C 
+requires B * C == {}
+ensures A == B' + C'
+{ }
 
 lemma DifferenceOfDifference<T>(A: set<T>, B: set<T>, C: set<T>)
 requires C <= A
@@ -261,6 +281,26 @@ ensures B - C < A - C
 { 
   assert t1 in A - C;
 }
+
+//Given two sets A, and C, if we replace an element from A that does not belong to C with one which does, 
+//the difference of the resulting set with C is a strict subset of A - C
+//Used in SplitVertexAux by splitCoverToOriginalCover
+lemma SubsetOfDifferenceGeneralization<T>(A: set<T>, B: set<T>, C: set<T>, B': set<T>, C': set<T>, D: set<T>)
+requires B <= A - C 
+requires D <= C
+requires D <= A
+requires B' == B + D 
+requires C' == C - D
+ensures B' <= A - C'
+{ }
+
+lemma SubsetOfDifferenceSubset<T>(A: set<T>, B: set<T>, C: set<T>, C': set<T>, D: set<T>)
+requires B <= A - C 
+requires D <= C
+requires D <= A
+requires C' == C - D
+ensures B <= A - C'
+{ }
 
 lemma setBelongingImplication<T>(A: set<T>, b: T)
 requires b in A
