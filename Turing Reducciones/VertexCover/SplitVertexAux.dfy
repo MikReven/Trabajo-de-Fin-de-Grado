@@ -318,25 +318,38 @@ requires In + gn.0 == graph.0
 ensures In <= graph.0 - vertexn && In + gn.0 == graph.0
 { }
 
-lemma{:only} neighborsInVertexIncreases(g: Graph, n: Node, vertex: set<Node>, gn: Graph, vertexn: set<Node>)
+lemma neighborsInVertexRemains(g: Graph, n: Node, vertex: set<Node>, gn: Graph, vertexn: set<Node>)
 requires isValidGraph(g)
 requires n in g.0
 requires n in vertex
 requires gn == removeVertices(g, neighborsOf(g, n))
-requires vertexn == vertexn - neighborsOf(g, n)
+requires vertexn == vertex - {n} - neighborsOf(g, n)
 requires forall node | node in g.0 :: neighborsOf(g, node) <= vertex
 ensures forall node | node in gn.0 :: neighborsOf(gn, node) <= vertexn
 { 
-  forall node: Node | node in gn.0 
-  ensures neighborsOf(gn, node) <= vertexn
+  forall node1: Node | node1 in gn.0  
+  ensures neighborsOf(gn, node1) <= vertexn
   {
-    if n in neighborsOf(g, node){
-      assume false;
-    }
+    if neighborsOf(gn, node1) == {} {}
     else{
-      assert neighborsOf(g, node) <= vertex;
-      assume false;
-    }
+      forall node2 | node2 in neighborsOf(gn, node1)
+      ensures node2 in vertexn
+      {
+        assert node2 in vertex;
+        assert node2 in gn.0;
+        assert node2 !in neighborsOf(g, n);
+        setBelongingToDifference(vertex, neighborsOf(g, n), node2);
+        assert node2 in vertex - neighborsOf(g, n);
+        assert node2 != n by {
+          assert neighborsOf(gn, n) == {};
+          neighborsAreSymmetric(gn, node1, node2);
+          assert node1 in neighborsOf(gn, node2);
+        }
+        assert node2 in (vertex - neighborsOf(g, n)) - {n};
+        assert (vertex - neighborsOf(g, n)) - {n} == (vertex - {n}) - neighborsOf(g, n);
+        assert (vertex - {n}) - neighborsOf(g, n) == vertexn;
+      }
+    }   
   }
 }
 

@@ -231,7 +231,6 @@ lemma setDifference<T>(A: set<T>, B: set<T>, C: set<T>, D: set<T>)
 }
 
 lemma setBelongingToDifference<T>(A: set<T>, B: set<T>, t: T)
-requires B <= A
 requires t in A 
 requires t !in B 
 ensures t in (A - B)

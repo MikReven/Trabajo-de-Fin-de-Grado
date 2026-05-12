@@ -2,7 +2,7 @@ include "SetFacts.dfy"
 /*
     File explanation
         The main goal of this file is to provide predicates, functions, and lemmas that are useful when reasoning about graphs, 
-        as well as a data structure to represent them, a tuple consisting of a set of vertices and a set of edges, 
+        as well as a data structure to represent them: a tuple consisting of a set of vertices and a set of edges, 
         with each edge is a set of vertices.
         This structure alone is too lax, so we define a predicate, isValidGraph,  to define what are valid graphs, since without it we could have
         edges that connect more than two vertices or edges that connect to vertices that do not exist.   
@@ -314,6 +314,20 @@ requires graph'.0 == graph.0 - { v }
 requires graph'.1 == graph.1 - incidentEdges(graph,v)
 ensures isValidGraph(graph')
 {}
+
+
+//If a node v is a neighbor of w, w is a neighbor of v
+//Used in SplitVertexAux by neighborsInVertexIncreases 
+lemma neighborsAreSymmetric(g: Graph, v: Node, w: Node)
+requires isValidGraph(g)
+requires v in g.0
+requires w in g.0
+requires w in neighborsOf(g, v)
+ensures v in neighborsOf(g, w)
+{
+    assert {v, w} in g.1;   
+    connectedNodeIsNeighbor(g, w, v, {v, w});
+}
 
 //All adjacent nodes to node n belong to some edge incident on n
 //Used locally 

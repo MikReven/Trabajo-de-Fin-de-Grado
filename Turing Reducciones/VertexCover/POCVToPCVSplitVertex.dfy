@@ -40,7 +40,7 @@ requires isValidGraph(graph)
   //(exists V : set<Node> :: V <= g.0 && V <= vertex) //&& optimalVertexCover(g,V) && optimalVertexCover(graph, I + V))
 }
 
-method{:only} bodyLoop(
+method bodyLoop(
   ghost graph : Graph, ghost okg : nat,
   vertex : set<Node>,//remaining vertex
   I : set<Node>, //up to now vertex cover
@@ -121,7 +121,8 @@ ensures vertexn < vertex //in order to prove termination
       assert In <= graph.0 - vertexn && In + gn.0 == graph.0;
       assert In * gn.0 == {} && In * vertexn == {};
       
-      assume (forall node | node in gn.0 :: neighborsOf(gn, node) <= vertexn);
+      neighborsInVertexRemains(g, v, vertex, gn, vertexn);
+      assert (forall node | node in gn.0 :: neighborsOf(gn, node) <= vertexn);
       partialSolutionsCoversOtherEdges(graph, g, v, I, gn, In);
       partialSolutionsCoversOtherEdges2(graph, g, v, I, gn, In); 
       //assume false;
