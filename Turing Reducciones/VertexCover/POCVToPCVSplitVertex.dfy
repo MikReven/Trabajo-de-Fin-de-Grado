@@ -1,6 +1,64 @@
 include "../../Especificaciones/VertexCover/VertexCoverOpt.dfy"
 include "../../Especificaciones/VertexCover/VertexCoverProperties.dfy"
 include "SplitVertexAux.dfy"
+/*
+    File explanation
+        The main goal of this file is to provide a method that Turing Reduces the optimal solution version to the optimal value version of of the Vertex Cover Problem.
+        To do this we assume a method that solves the optimal value version and use it in a method that computes the optimal solution of a Vertex in a given graph
+        There are two files that provide such method, each in a different manner. 
+        This is an unorthodox method, in which to know whether or not to include a vertex in the partial solution, 
+        we split the graph at that vertex, then decide whether we should include the vertex or each of its neighbors.
+        The general idea remains the same, iterating through each vertex, and applying a test to decide whether to include it in the optimal cover or not.
+
+    Predicates
+        -invariantLoop: Encapsultaes the properties to be maintained while iterating in the mOptimalVertexCover method
+    Methods:
+        -moptimalValueVertexCover: Polynomial algorithm for PVC we assume exists 
+        -bodyLoop: Encapsulates the operations to be done each iteration in the mOptimalVertexCover method
+        -mOptimalVertexCover: Polynomial algorithm for PDVC using assuming moptimalVertexCover is polynomial
+
+    Imported Elements
+        Predicates
+            From Graph.dfy
+            -isValidGraph
+            -isSubGraph
+            From VertexCover.dfy
+            -isVertexCover
+            FromVertexCoverOpt.dfy
+            -optimalValueVertexCover
+            -optimalVertexCover
+        Functions
+            From Graph.dfy
+            -incidentEdges
+            -neighborsOf
+            -removeVertex
+            -removeVertices
+            -splitVertex
+        Lemmas
+            From Graph.dfy
+            -validSubgraph
+            From VertexCoverProperties.dfy
+            -translationVertexCover
+            -setOfIncidentEdges
+            -OptimalVertexCoverNoEdges
+            -boundVertexCoverIsOptimal
+            From SplitVertexAux.dfy
+            -splitCoverIsLarger
+            -IsASubsetIncreases
+            -isAPartitionIncreases
+            -EdgesPartitionIncreases
+            -PartialOptimalSolutionIncreases
+            -isASubsetRemains
+            -isAPartitionRemains
+            -neighborsInVertexRemains
+            -partialSolutionsCoversOtherEdges
+            -partialSolutionsCoversOtherEdges2
+            -remainingPlusPartialIsTotal
+
+        Methods
+            From SetFacts.dfy
+            -pick
+*/
 
 //We assume a polynomial algorithm for PVC
 method {:axiom} moptimalValueVertexCover (graph : Graph) returns (k: nat)
@@ -117,7 +175,6 @@ ensures vertexn < vertex //in order to prove termination
       
       isASubsetRemains(graph, g, v, I, vertex, In, vertexn);
       isAPartitionRemains(graph, g, v, I, gn, In);
-      partialSolutionIsDisjoint(graph, g, v, vertex, I, gn, vertexn, In);
       assert In <= graph.0 - vertexn && In + gn.0 == graph.0;
       assert In * gn.0 == {} && In * vertexn == {};
       
@@ -144,7 +201,7 @@ ensures vertexn < vertex //in order to prove termination
 }
 
 //We implement a polynomial algorithm for PDVC using moptimalVertexCover
-method mOptimalVertexCover (graph:Graph) returns (I:set<Node>)
+method mOptimalVertexCover(graph:Graph) returns (I:set<Node>)
   requires isValidGraph(graph)
   ensures optimalVertexCover(graph, I)
 {

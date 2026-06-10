@@ -3,7 +3,8 @@ include "../Auxiliar/MultisetFacts.dfy"
 /*
     File explanation
 
-    This file defines a predicate specifying what it means to be a solution to the BinPacking Problem
+    This file defines a predicate specifying what it means to be a solution to the BinPacking Problem, as well as an algorithm to check if
+    a potential solution is a valid solution.
     A solution to the BinPacking Problem is a partition such that the sum of weights on each submultiset is no greater than E 
     This file also contains a specification of a generalized version (isBinPackingGeneralization), where not all bins have the same capacity and
     a verification method to prove that the BinPacking problem is in NP
@@ -17,7 +18,7 @@ include "../Auxiliar/MultisetFacts.dfy"
         -FSumNat
       Lemmas
         From MultisetFacts.dfy
-        -UnionOne
+        -UnionIsCompositional
         From Sum.dfy
         -FSumNatComputaGSumNat
       Methods
@@ -61,7 +62,7 @@ ensures b ==  (|I| <= k
     b1 := b1 && e1 <= A && FSumNat(e1) <= E;
     
     union := union + e1;
-    UnionOne(I-bins,e1);
+    UnionIsCompositional(I-bins,e1);
   }
   assert b1 == forall e | e in I :: (e <= A && GSumNat(e) <= E);
   assert b1 ==> bins == multiset{} && I-bins == I && union == Union(I);

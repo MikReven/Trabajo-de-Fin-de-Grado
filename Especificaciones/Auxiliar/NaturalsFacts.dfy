@@ -1,6 +1,6 @@
 /*
     File explanation
-        The main goal of this file is to provide lemmas about operations with natural numbers that, although trivially true, need explicit invoking  in order for some properties to verify 
+        The main goal of this file is to provide lemmas about operations with whole numbers that, although trivially true, need explicit invoking  in order for some properties to verify 
     
     Predicates: 
         None
@@ -10,6 +10,13 @@
 
     Lemmas:
         -LessThanOrEqualMultiplication: If a number is greater or equal than another, the result of multiplying the first by a thrid number is greater or equal than the result of multiplying the other by that same third number
+        -LessThanDivision: Same idea as the lemma above, but now the implication goes in the other direction, for it to hold, the third number must be greater than 0
+        -CommutativeProduct: The product is commutative
+        -Distributivity: It is possible to use the distributivity property to simplify additions and multiplications
+        -ProductSimplification: It is possible to use common factor to simplify additions and multiplications
+        -IsSmallerThan: The result of a substraction of naturals is a smaller number when the substracted element is not 0
+        -AdditionCommutativity: The order of addition and substraction does not affect the result with integers
+        -AdittionSubstitution: Substitution of a substraction in an addition does not change its result
 
     Methods:
         None
@@ -65,6 +72,19 @@ lemma IsSmallerThan(a: nat, b: nat, c: nat)
 requires a == b - c 
 requires c > 0
 ensures a < b  
+{ }
+
+//The order of addition and substraction does not affect the result with integers
+//Used in Sum  by GSumNatPartes2Calc2
+lemma AdditionCommutativity(a: int, b: int, c: int)
+ensures a - b + c == a + c - b
+{ }
+
+//Substitution of a substraction in an addition does not change its result
+//Used in Sum by GSumNatPartes2Calc2
+lemma AdittionSubstitution(a: nat, b: nat,  c: nat, d: nat)
+requires b - c == d 
+ensures a + b - c == a + d
 { }
 
 //////////////////////////////////////////////////

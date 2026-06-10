@@ -46,7 +46,7 @@ include "BinPacking2AproximatedAux.dfy"
             -GSumIntElemIn
             -GSumPositiveIntNat
             From multisetFacts
-            -UnionOne
+            -UnionIsCompositional
             -SubMultisetUnionDifference
             -DifferenceOfDifference
             From BinPacking2AproximatedAux.dfy
@@ -107,16 +107,16 @@ ensures Union(multiset(bins')) == A - iterateMultiset'
         {assert multiset(bins') == I'';}
         Union(I'');
         {
-            UnionOne(I'', bins'[idx]);
+            UnionIsCompositional(I'', bins'[idx]);
             assert I'' - multiset{bins'[idx]} == I';
         }
         Union(I') + bins'[idx];
-        {UnionOne(I, bins[idx]);}
+        {UnionIsCompositional(I, bins[idx]);}
         Union(I) - bins[idx] + bins'[idx];
         analyzed - bins[idx] + bins'[idx];
         {
             //assert bins[idx] in I;
-            UnionOne(I, bins[idx]);
+            UnionIsCompositional(I, bins[idx]);
             //assert bins[idx] <= Union(I);
             SubMultisetUnionDifference(analyzed, bins[idx], bins'[idx]);
         }
@@ -142,7 +142,7 @@ ensures A - iterateMultiset' == Union(multiset(bins'))
     var analyzed := A - iterateMultiset;
     calc{
         Union(multiset(bins'));
-        { UnionOne(multiset(bins'), multiset{currElement}); }
+        { UnionIsCompositional(multiset(bins'), multiset{currElement}); }
         multiset{currElement} + Union(multiset(bins') - multiset{multiset{currElement}});
         { assert multiset(bins) == multiset(bins') - multiset{multiset{currElement}}; }
         multiset{currElement} + Union(multiset(bins));
@@ -263,15 +263,14 @@ ghost predicate invariantLoop(A: multiset<nat>, E: nat, bins:seq<multiset<nat>>,
     If we did find a bin that satisfy the aforementioned condition, currElement is added and we update its capacity
     If we did not find a bins, we create a new bin that only holds currElement and we apppend its capacity to the sequence of capacities
     In any case all other bins remain completely unchanged 
-    */            
-method binPacking2AproximatedGeneralBodyLoop(A: multiset<nat>, E: nat,bins:seq<multiset<nat>>, capacity: seq<nat>,iterateMultiset:multiset<nat>) returns (newbins:seq<multiset<nat>>, newcapacity: seq<nat>, newiterateMultiset:multiset<nat>)
+    */           
+method{:only} binPacking2AproximatedGeneralBodyLoop(A: multiset<nat>, E: nat,bins:seq<multiset<nat>>, capacity: seq<nat>,iterateMultiset:multiset<nat>) returns (newbins:seq<multiset<nat>>, newcapacity: seq<nat>, newiterateMultiset:multiset<nat>)
 requires forall a: nat | a in A :: 0 < a <= E
 requires invariantLoop(A,E,bins,capacity,iterateMultiset)
 requires iterateMultiset != multiset{}
 ensures invariantLoop(A,E,newbins,newcapacity,newiterateMultiset)
 ensures newiterateMultiset < iterateMultiset
 {       
-    //assume false;
     var j := 0;
     var currElement: nat := pickMultiset(iterateMultiset);
 
@@ -285,6 +284,7 @@ ensures newiterateMultiset < iterateMultiset
     //These invariants do not need proof to verify
     //Current element did not fit in any of the existing bins
     if (j == |bins|) {
+        //assume false;
         newbins := bins + [multiset{currElement}];
         newcapacity := capacity + [currElement];
         newiterateMultiset := iterateMultiset - multiset{currElement};
@@ -296,12 +296,7 @@ ensures newiterateMultiset < iterateMultiset
         //Proof for forall i: nat | 0 <= i < |bins| :: bins[i] <= A - iterateMultiset 
         SubmultisetIfNotFit(bins, newbins, currElement, A, iterateMultiset, newiterateMultiset);
         //assert forall i: nat | 0 <= i < |newbins| :: newbins[i] <= A-newiterateMultiset;
-        //assume false;
         //Proof for (allMoreThanHalfFullSeq(E, bins) || oneLessThanHalfFullSeq(E, bins))
-        assert newbins == bins + [multiset{currElement}];
-        assert currElement <= E;
-        assert allMoreThanHalfFullSeq(E, bins) || oneLessThanHalfFullSeq(E, bins);
-        assert forall i: nat | 0 <= i < |bins| :: GSumNat(bins[i]) + currElement > E;
         AtMostOneLessThanHalfFullNotFit(bins, newbins, currElement, E);   
         //Termination function does decrease
         assert newiterateMultiset < iterateMultiset;

@@ -1,6 +1,22 @@
 include "../Auxiliar/Graph.dfy"
 include "../Auxiliar/SetFacts.dfy"
+/*
+    File explanation
 
+    This file defines a predicate specifying what it means to be a solution to the Vertex Cover Problem, as well as an algorithm to check if
+    a potential solution is a valid solution.
+    A solution to the Vertex Cover Problem is a subset of its vertices such that every edge contains at least one of the vertices in the solution
+    
+
+    Imported elements
+      Predicates
+        From Graph
+        -isValidGraph
+      Methods
+        From Set
+        -pick
+
+*/
 
 ghost predicate isVertexCover(I:set<Node>, graph:Graph)
 requires isValidGraph(graph)

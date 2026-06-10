@@ -19,19 +19,25 @@ include "RemoveVertexAux.dfy"
         Predicates
             From Graph.dfy
             -isValidGraph
+            -isSubGraph
             From VertexCover.dfy
             -isVertexCover
-            FromVertexCoverOpt.dfy
+            From VertexCoverOpt.dfy
+            -vertexCoverDecissionProblem
             -optimalValueVertexCover
             -optimalVertexCover
         Functions
             From Graph.dfy
             -incidentEdges
         Lemmas
+            From SetFacts
+            -setOfIncidentEdges
             From Graph.dfy
             -validSubgraph
-            From VertexCover.dfy
+            From VertexCoverProperties.dfy
             -translationVertexCover
+            -OptimalVertexCoverNoEdges
+            -boundVertexCoverIsOptimal
             From RemoveVertexAux.dfy
             -remainingEdgesImpliesNonEmptyVertex
             -delVertexCover
@@ -39,9 +45,6 @@ include "RemoveVertexAux.dfy"
             -includeVertexAndEdgesProperty
             -donotIncludeVertexCoverFullForall
             -donotIncludeVertexCoverExists
-            -setOfIncidentEdges
-            -OptimalVertexCoverNoEdges
-            -boundVertexCoverIsOptimal
         Methods
             From SetFacts.dfy
             -pick

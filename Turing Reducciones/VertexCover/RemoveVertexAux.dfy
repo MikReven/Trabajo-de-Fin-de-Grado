@@ -26,31 +26,13 @@ include "../../Especificaciones/VertexCover/VertexCoverProperties.dfy"
             None
 */
 
-//An edge of fullgraph whose extremes v1, v2 belong to graph'.0 must be in graph'.1
-//because graph is disjoint from I and v1 != v and v2 != v
-//Used locally by includeVertexCoverExists
-lemma subgraphEdges(
-  fullgraph : Graph,
-  I: set<Node>, v : Node,
-  graph : Graph, 
-  graph' : Graph,
-  v1: Node, v2: Node)
-requires isValidGraph(fullgraph) && isValidGraph(graph)  && isValidGraph(graph')
-requires graph.1 +  (set edge:Edge, node:Node | edge in fullgraph.1 && node in I && node in edge :: edge) == fullgraph.1
-requires v in graph.0
-requires I <= fullgraph.0
-requires I * graph.0 == {} && I + graph.0 == fullgraph.0
-requires graph'.0 == graph.0 - { v }
-requires graph'.1 == graph.1 - incidentEdges(graph,v) && {v1,v2} in fullgraph.1
-requires v1 in graph'.0 && v2 in graph'.0
-requires v1 != v && v2 != v && v1 !in I && v2 !in I
-ensures {v1,v2} in graph'.1
-{}
-
-//If an optimal vertex cover that includes all nodes adjacent to the removed node in the graph after removing said node exists, 
-//all of its edges are already covered, thus, the optimal value of the cover does not change
-//Used locally by delVertexCoverCase
-//Straightforward proof
+//If the optimal vertex cover of a graph after removing a vertex covers all edges that contain the removed edge in the original graph, 
+//its size must be equal to the optimal value
+//All edges must contain or not contain the removed node
+  //If They contain it, we know that it is covered from the precondition
+  //They do not, they belong to the graph after removing the edge and must be covered by the optimal vertex cover, 
+  //otherwise it would no be a vertex cover
+//Used locally
 lemma delVertexCoverCase1(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat, S':set<Node>)
 requires isValidGraph(graph)  && isValidGraph(graph')
 requires v in graph.0
@@ -87,11 +69,11 @@ ensures k' == k
     assert k == k';
 }
 
-//If an optimal vertex cover that does not include all nodes adjacent to the removed node in the graph after removing said node exists, 
-//at least one of its edges are yet to be covered, thus, the optimal vertex cover for the original graph must include an additional vertex, the removed one
-//the optimal solution for the subgraph could be expanded to a vertex cover by including each uncovered neighbor of the removed node, but this will sometimes result in a suboptimal solution
+//If the optimal vertex cover for the graph after removing the vertex v does not include all nodes adjacent to the removed node in the graph after removing said node, 
+//at least one of its edges are yet to be covered, thus, the optimal vertex cover for the original graph must include an additional vertex, such as the removed vertex
+//To obtain a vertex cover whose size decreases by exactly one 
 //It is also possible that another optimal vertex cover exists that does include all of the removed vertex's neighbors, in which case the optimal value remains unchanged
-//Used locally by delVertexCoverCase
+//Used locally 
 lemma delVertexCoverCase2(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat, S':set<Node>)
 requires isValidGraph(graph)  && isValidGraph(graph')
 requires v in graph.0
@@ -135,6 +117,7 @@ ensures k == k' || k' + 1 == k
 //When removing a vertex from a graph, the optimal vertex cover value may decrease by one or stay the same 
 //Used in POCVToPCVRemoveVertex.dfy to divide the proof into the two cases possible
 //Proof uses the two lemmas above
+//Used in POCVToPCVRemoveVertex by bodyLoop
 lemma delVertexCover(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat)
 requires isValidGraph(graph)  && isValidGraph(graph')
 requires v in graph.0
@@ -163,12 +146,15 @@ ensures k == k' || k == k' + 1
   }
 }
 
-//Given a full graph, fullgraph, a partial solution, I, and the graph whose nodes are those of the fullgraph that do not belong to the partial solution and the edges that have yet to be covered, graph,
-//And a complete solution that has been obtained by expanding the partial solution, it holds that
-//The vertices that are in the complete solution but not in the partial one define a vertex cover over graph
-//And the size of a vertex cover for fullgraph is the size of an optimal vertex cover for graph plus the size of the partial solution
+//Given a full graph, a partial optimal solution, and the graph whose nodes are those that are connected to edges yet to be covered by the partial solution,
+//and a complete solution that has been obtained by expanding the partial solution, it holds that
+//  The vertices that are in the complete solution but not in the partial one define a vertex cover over the subgraph
+//  The size of an optimal vertex cover for the full graph is the size of an optimal vertex cover for the subgraph plus the size of the partial solution
+//  The optimal solution minus the partial solution defines an optimal vertex cover for the subgraph
+//The optimal solution minus the partial solution must cover the subgraph, otherwise the optimal solution would not be a solution
+//Since the partial solution is a subset of the complete optimal solution, it must follow that the size of the optimal solution for the subgraph plus the size of the partial
+//optimal solution equals the size of the original optimal solution
 //Used locally by donotIncludeVertexCoverFull
-//A vertex cover of graph of size k exists, and the union of of this cover with I is vertex cover of fullgraph, and the size of the union is k + |I|
 lemma compoundVertexCover(
   fullgraph : Graph, O : set<Node>, ok: nat, 
   I: set<Node>, 
@@ -212,9 +198,9 @@ ensures isVertexCover(O-I,graph) && ok == k + |I|
 
 
 
-//In case k == k', there is no optimal vertex cover containing I and v
-//Used locally by donotIncludeVertexCoverFullForall
-//If the opposite ere true, we could remove v from the optimal solution and get a solution of size k' < k for graph'
+//In case k == k', given any optimal solution, it cannot be a superset of I and contain v
+//If the opposite were true, we could remove v from the optimal solution and get a solution of size k' < k for graph'
+//Used locally 
 lemma donotIncludeVertexCoverFull(
   fullgraph : Graph, O : set<Node>, ok: nat, 
   vertex: set<Node>, I: set<Node>, v : Node,
@@ -254,9 +240,9 @@ ensures v !in O
 }
 
 
-//In case k == k', there is no optimal vertex cover containing I and v
-//Used in POCVToRemoveVertex.dfy by bodyLoop to prove that an invariant is maintained
+//In case k == k', there is no optimal vertex cover that is a superset of I and contain v
 //Proof is trivial once with the lemma above has been proved
+//Used in POCVToPCVRemoveVertex by bodyLoop
 lemma donotIncludeVertexCoverFullForall(
   fullgraph : Graph, ok: nat, 
   vertex: set<Node>, I: set<Node>, v : Node,
@@ -283,8 +269,10 @@ ensures forall O : set<Node> | I <= O <= fullgraph.0 && isVertexCover(O,fullgrap
   { donotIncludeVertexCoverFull(fullgraph, O, ok, vertex, I, v, graph, k, graph', k');}
 }
 
-//Ik k == k' we do not include v and we still can build a cover for the graph with 
-//the rest of non-processed yet vertex
+//If k == k' we can build an optimal vertex cover for the current graph that does not include and verifies that 
+//its union with the partial optimal solution is an optimal solution for the full graph
+//If the optimal solution included v, k' must be strictly lower than k, which is false
+//Used in POCVToPCVRemoveVertex by bodyLoop
 lemma donotIncludeVertexCoverExists(
   fullgraph : Graph, ok: nat, 
   vertex: set<Node>, I: set<Node>, v : Node,
@@ -302,9 +290,10 @@ requires optimalValueVertexCover(graph',k')
 requires graph'.0 == graph.0 - { v }
 requires graph'.1 == graph.1 - incidentEdges(graph,v)
 requires k == k'
-requires exists V : set<Node> :: V <= graph.0 && V <= vertex && optimalVertexCover(graph,V) && optimalVertexCover(fullgraph, I + V)
+requires exists V : set<Node> :: V <= graph.0 && V <= vertex && optimalVertexCover(graph, V) && optimalVertexCover(fullgraph, I + V)
 ensures exists V' :: V' <= graph.0 && V' <= vertex - {v} && optimalVertexCover(graph,V') && optimalVertexCover(fullgraph, I + V')
-{ translationVertexCover(graph,k);
+{ 
+  translationVertexCover(graph,k);
   var V :| V <= graph.0 && V <= vertex && optimalVertexCover(graph,V) && optimalVertexCover(fullgraph, I + V);
   if (v !in V) { assert V <= vertex - {v}; }
   else { 
@@ -320,6 +309,7 @@ ensures exists V' :: V' <= graph.0 && V' <= vertex - {v} && optimalVertexCover(g
 }
 
 //If there are edges in graph.1 then vertex must be non-empty as those edges have not been covered yet
+//Used in POCVToPCVRemoveVertex by bodyLoop
 lemma remainingEdgesImpliesNonEmptyVertex(
   fullgraph : Graph, ok: nat, 
   vertex: set<Node>, I: set<Node>, 
@@ -339,6 +329,8 @@ ensures graph.1 != {} ==> vertex != {}
 
 
 //If k == k' + 1 there exists some optimal vertex cover containing v 
+//The optimal vertex cover for the current graph is the union of any optimal vertex cover for the graph after removing v from it with the set that contains v
+//Used locally
 lemma includeVertexCover(graph : Graph,v : Node, k : nat, graph' : Graph, k' : nat)
 requires isValidGraph(graph)  && isValidGraph(graph')
 requires v in graph.0
@@ -357,11 +349,31 @@ ensures exists S, S' :: S == S' + {v} && optimalVertexCover(graph,S) && optimalV
   boundVertexCoverIsOptimal(graph,S,k);
 }
 
+//An edge of fullgraph whose vertices v1, v2 belong to graph'.0 must be in graph'.1
+//Used locally
+lemma subgraphEdges(
+  fullgraph : Graph,
+  I: set<Node>, v : Node,
+  graph : Graph, 
+  graph' : Graph,
+  v1: Node, v2: Node)
+requires isValidGraph(fullgraph) && isValidGraph(graph)  && isValidGraph(graph')
+requires graph.1 +  (set edge:Edge, node:Node | edge in fullgraph.1 && node in I && node in edge :: edge) == fullgraph.1
+requires v in graph.0
+requires I <= fullgraph.0
+requires I * graph.0 == {} && I + graph.0 == fullgraph.0
+requires graph'.0 == graph.0 - { v }
+requires graph'.1 == graph.1 - incidentEdges(graph,v) && {v1,v2} in fullgraph.1
+requires v1 in graph'.0 && v2 in graph'.0
+requires v1 != v && v2 != v && v1 !in I && v2 !in I
+ensures {v1,v2} in graph'.1
+{}
 
 //If k == k' + 1 we choose v to be part of the vertex cover 
 //As we know that we can build a cover S' for the remaining graph graph' with vertex 
 // from the set of non-processed yet set of vertex
 // I + S' + {v} will be an optimal vertex cover for the full graph
+//Used in POCVToPCVRemoveVertex by bodyLoop
 lemma includeVertexCoverExists(
   fullgraph : Graph, ok: nat, 
   vertex: set<Node>, I: set<Node>, v : Node,
@@ -385,14 +397,14 @@ requires forall u, O | u in graph.0 && u !in vertex &&  I <= O <= fullgraph.0 &&
 requires exists S ::  S <= graph.0 && S <= vertex && optimalVertexCover(graph,S) && optimalVertexCover(fullgraph, I + S)
 ensures exists S' ::  S' <= graph'.0 && S' <= vertex - {v} && optimalVertexCover(graph',S') && optimalVertexCover(graph, S' + {v}) && optimalVertexCover(fullgraph, I + {v} + S')
 {
-// The size of the optimal vertex cover containing I should be |I| + k
- assert ok == |I| + k by{
-  var S :| S <= graph.0 && S <= vertex && optimalVertexCover(graph,S) && optimalVertexCover(fullgraph, I + S);
-  boundoptimalVertexCover(fullgraph,I + S);
-  boundoptimalVertexCover(graph,S);
-  assert I * S == {};
-  assert |S| == k && |I + S| == |I| + k == ok;
- }
+  // The size of the optimal vertex cover containing I should be |I| + k
+  assert ok == |I| + k by {
+    var S :| S <= graph.0 && S <= vertex && optimalVertexCover(graph,S) && optimalVertexCover(fullgraph, I + S);
+    boundoptimalVertexCover(fullgraph,I + S);
+    boundoptimalVertexCover(graph,S);
+    assert I * S == {};
+    assert |S| == k && |I + S| == |I| + k == ok;
+  }  
 
  //We know that there exists S' that covers graph' with cardinal k'
  includeVertexCover(graph,v,k,graph',k');
@@ -402,7 +414,7 @@ ensures exists S' ::  S' <= graph'.0 && S' <= vertex - {v} && optimalVertexCover
  assert isVertexCover(S',graph');
 
  
- //lets build O
+ //let us build O
  var O := I + {v} + S';
  
  //Check that O is an optimal vertex cover containing I and v
@@ -457,6 +469,10 @@ ensures exists S' ::  S' <= graph'.0 && S' <= vertex - {v} && optimalVertexCover
  }
 }
 
+//All of the original graph's vertex are part of the partial optimal solution or are vertices of the new graph
+//All of the original graph's edges are either covered by the partial optimal solution or belong to the current graph
+//To prove this we need only perform some set operations
+//Used in POCVToPCVRemoveVertex
 lemma includeVertexAndEdgesProperty(
   fullgraph : Graph, 
   I: set<Node>, v : Node,

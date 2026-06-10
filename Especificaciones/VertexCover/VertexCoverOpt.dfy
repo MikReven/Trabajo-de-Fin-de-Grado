@@ -1,4 +1,16 @@
 include "VertexCover.dfy"
+/*
+    File explanation
+
+    This file defines predicates specifying what it means to be a solution to  different versions of the Vertex Cover Problem
+
+    Imported elements
+        Predicates 
+            From Graph
+            -isValidGraph
+            From VertexCover
+            -isVertexCover
+*/
 
 ghost predicate vertexCoverDecissionProblem(graph:Graph, k:int)
 requires isValidGraph(graph)

@@ -47,6 +47,7 @@ include "SetFacts.dfy"
             -numberOfLesserEquality
             -cardinality2implies
             -sameCardinalThroughComprehension
+            -alwaysAnElementGreaterThanKElements
 */
 
 //Definition of Graph, Edge, and Node types
@@ -170,6 +171,11 @@ ensures forall e: Edge | e in graph.1 :: e * nodes == {} <==> e in graph'.1
     (graph.0 - nodes, graph.1 - incidentEdgesSetNodes(graph, nodes))
 }
 
+//Lemmas that prove splitVertex's postconditions
+
+//The return value of splitVertex is always a valid graph
+//True by construction
+//Used locally
 lemma splitVertexIsValidGraph(graph: Graph, v: Node, graph': Graph, edgesToChange: set<Edge>, newNodes: set<Node>, setNewEdges: set<Edge>)
 requires isValidGraph(graph)
 requires edgesToChange == incidentEdges(graph, v)
@@ -186,6 +192,9 @@ ensures isValidGraph(graph')
     assert forall e: Edge | e in graph.1 :: (|e| == 2 && exists u,v :: u in graph.0 && v in graph.0 && u != v && e == {u,v});
 }
 
+//All new edges have degree 1
+//True by construction
+//Used locally
 lemma allNewEdgesHaveDegree1(graph: Graph, v: Node, graph': Graph, edgesToChange: set<Edge>, newNodes: set<Node>, setNewEdges: set<Edge>)
 requires isValidGraph(graph)
 requires edgesToChange == incidentEdges(graph, v)
@@ -225,6 +234,9 @@ ensures forall n: Node | n in (graph'.0 - graph.0) :: |(set e: Edge | e in (grap
     }
 }
 
+//For each neighbor that the vertex that was split had, the new graph has a new node and a new edge
+//True by construction
+//Used locally
 lemma newNodeAndEdgeForEachNeighbor(graph: Graph, v: Node, graph': Graph, edgesToChange: set<Edge>, newNodes: set<Node>, setNewEdges: set<Edge>)
 requires isValidGraph(graph)
 requires edgesToChange == incidentEdges(graph, v)
@@ -253,15 +265,10 @@ ensures forall node | node in neighborsOf(graph, v) :: (exists edge :: edge in g
             assert node in neighborsOf(graph, v);
             assert {node', node} in setNewEdges;
         }
-        //var edge :| edge in setNewEdges && node in edge;
-        //assume false; 
-        /*
-        forall edge: Edge | edge in setNewEdges  (exists newNode :: newNode in newNodes && newNode in edge);
-        var edge :| edge in setNewEdges && node in edge;
-        var node' :| node' in edge && node' != node;
-        cardinality2SetGivenItsElements(edge, node, node');*/
     }
 }
+
+//End of lemmas to prove splitVertex's postconditions
 
 //Given a graph and a vertex, splits the vertex to create various vertices that maintain the incident edges
 //Used in POCVToPCVSplitVertex
@@ -525,7 +532,7 @@ ensures exists n' :: e == {n, n'} && n' in graph.0
     cardinality2implies(e, n);
     var n' :| n' in e && n' != n;
     assert {n, n'} <= e;
-    submultisetAndSameCardinalityImpliesEqual({n, n'}, e);
+    subsetAndSameCardinalityImpliesEqual({n, n'}, e);
 }
 
 //Returns he complementary Graph, vertices stay the same, but in r two nodes are connected iff they are not connected in graph

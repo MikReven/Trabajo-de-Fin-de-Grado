@@ -2,7 +2,7 @@ include "EnvasadoOpt.dfy"
 include "../Auxiliar/NaturalsFacts.dfy"
 /*
     File explanation
-        The main goal of this file is to provide usefull lemmas to make reasonings in the Clique Problem
+        The main goal of this file is to provide usefull lemmas to make reasonings in the Bin Packing  Problem
     
     Predicates: 
         None
@@ -43,8 +43,6 @@ include "../Auxiliar/NaturalsFacts.dfy"
             From Sum.dfy
             -SumNatCardinality1
             -GSumNatElemIn
-            -GSumNatPartes2
-            -SumNatGreaterThanOneElement
             -SumNatsEquivalence
 */
 
@@ -111,7 +109,7 @@ ensures forall j | j >= |A| :: binPackingDecissionProblem(A,E,j)
       assert binPackingDecissionProblem(A - multiset{a},E,|A| - 1);
       var I:multiset<multiset<nat>> :| |I| <= (|A| - 1) && isBinPacking(A - multiset{a},E,I);
       var I' := I + multiset{multiset{a}};
-      Union3(I, I', multiset{a});
+      UnionIsCompositionalAddition(I, I', multiset{a});
       assert Union(I') == A; 
       forall x | x in I' 
       ensures x <= A && GSumNat(x) <= E
