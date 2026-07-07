@@ -13,7 +13,7 @@ include "Clique.dfy"
 */ 
  
 //Decission problem: returns true if there exists a clique with size k or larger
-ghost predicate CliqueDecissionProblem(g: Graph, k: nat)
+ghost predicate CliqueDecisionProblem(g: Graph, k: nat)
     requires isValidGraph(g)
 {
     exists I: set<Node> :: isClique(g, I) && |I| >= k
@@ -23,8 +23,8 @@ ghost predicate CliqueDecissionProblem(g: Graph, k: nat)
 ghost predicate optimalValueClique(g: Graph, k: nat)
     requires isValidGraph(g)
 {
-    CliqueDecissionProblem(g, k) 
-   && forall x: nat | CliqueDecissionProblem(g, x) :: x <= k
+    CliqueDecisionProblem(g, k) 
+   && forall x: nat | CliqueDecisionProblem(g, x) :: x <= k
 }
 
 //Optimal clique problem: returns true if I is one of the largest clique possible (there could be more than one)

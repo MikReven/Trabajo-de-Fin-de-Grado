@@ -26,7 +26,7 @@ include "../../Especificaciones/Clique/CliqueProperties.dfy"
             From Clique.dfy
             -isClique
             From CliqueOpt.dfy 
-            -CliqueDecissionProblem
+            -CliqueDecisionProblem
             -optimalClique
             -optimalValueClique
         Functions
@@ -57,7 +57,7 @@ ensures kg' == kg || kg == kg' + 1
 {
     if kg' > kg {
         ghost var I: set<Node> :| I <= g'.0 && isClique(g', I) && |I| >= kg';
-        assert CliqueDecissionProblem(g, |I|);
+        assert CliqueDecisionProblem(g, |I|);
         assert false;
     }
     assert kg >= kg';

@@ -16,7 +16,7 @@ include "../../Especificaciones/Clique/CliqueProperties.dfy"
             From Clique.dfy
             -isClique
             From CliqueOpt.dfy
-            -CliqueDecissionProblem
+            -CliqueDecisionProblem
             -optimalClique
         Functions
             None
@@ -30,11 +30,10 @@ method {:axiom} mOptimalClique (graph : Graph) returns (I: set<Node>)
   ensures optimalClique(graph, I)
 
 //We implement a polynomial algorithm for PDC using mOptimalClique
-method mDecissionClique (graph : Graph, k: nat) returns (b: bool)
+method mDecisionClique (graph : Graph, k: nat) returns (b: bool)
   requires isValidGraph(graph)
-  ensures b == CliqueDecissionProblem(graph,k)
+  ensures b == CliqueDecisionProblem(graph,k)
 {
   var optClique: set<Node> := mOptimalClique(graph);
-  assert isClique(graph, optClique);
   b := (|optClique| >= k);
 }

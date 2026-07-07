@@ -32,7 +32,7 @@ include "CliqueOpt.dfy"
             From Clique.dfy
             -isClique
             From CliqueOpt.dfy
-            -CliqueDecissionProblem
+            -CliqueDecisionProblem
             -optimalValueClique
             -optimalClique
         Functions
@@ -105,8 +105,8 @@ lemma OptimalCliqueValueBounds(g: Graph, k: nat)
     if exists I:set<Node> :: I <= g.0 && |I| > k && isClique(g, I)
     {
         ghost var I: set<Node> :| I <= g.0 && |I| > k && isClique(g, I);
-        assert CliqueDecissionProblem(g, |I|);
-        assert CliqueDecissionProblem(g, k);
+        assert CliqueDecisionProblem(g, |I|);
+        assert CliqueDecisionProblem(g, k);
         assert optimalValueClique(g, k);
         assert |I| > k;
         assert optimalValueClique(g, |I|);

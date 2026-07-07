@@ -106,6 +106,7 @@ ensures |A| == |B|
 lemma SubsetCardinality<T>(A: set<T>, B: set<T>)
 requires A <= B
 ensures |A| <= |B|
+decreases |A|
 {
   if A == {} {} 
   else {

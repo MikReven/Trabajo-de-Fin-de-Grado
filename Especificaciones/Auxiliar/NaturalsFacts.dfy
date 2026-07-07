@@ -51,7 +51,7 @@ ensures a < b
 //The product is commutative
 //Used in BinPacking2AproximatedAux by AtMostOneLessThanHalfImplies2AproximatedCalc
 lemma CommutativeProduct(a: nat, b: nat, c: nat)
-ensures a * b * c == a * c *b
+ensures a * b * c == a * c * b
 { }
 
 //It is possible to use the distributivity property to simplify additions and multiplications
