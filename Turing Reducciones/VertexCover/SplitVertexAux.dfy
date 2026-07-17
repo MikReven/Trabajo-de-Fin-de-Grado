@@ -76,8 +76,8 @@ requires splitVertex(graph, v) == graph'
 requires I' <= graph'.0
 requires I' <= graph.0
 requires isVertexCover(I', graph')
-ensures exists I'' :: I'' <= graph.0 && I'' <= graph'.0 && isVertexCover(I'', graph) && |I'| == |I''| && vertexCoverDecissionProblem(graph, |I'|)
-ensures vertexCoverDecissionProblem(graph, |I'|)
+ensures exists I'' :: I'' <= graph.0 && I'' <= graph'.0 && isVertexCover(I'', graph) && |I'| == |I''| && vertexCoverDecisionProblem(graph, |I'|)
+ensures vertexCoverDecisionProblem(graph, |I'|)
 {
   assert forall n | n in neighborsOf(graph, v) :: n in I';
   assert forall edge | edge in graph.1 && v !in edge :: |I' * edge| > 0 by {
@@ -110,9 +110,9 @@ ensures exists I: set<Node> :: I <= graph.0 && I <= graph'.0 && isVertexCover(I,
 {
     if I' <= graph.0 {
       CommonOptimalVertexCover(graph, graph', n, I');
-      //assert exists I'' :: I'' <= graph.0 && isVertexCover(I'', graph) && I'' <= graph'.0 && vertexCoverDecissionProblem(graph, |I'|) && |I'| == |I'|;
-      //assert exists I'' :: I'' <= graph.0 && I'' <= graph'.0 && isVertexCover(I'', graph) && vertexCoverDecissionProblem(graph, |I'|);
-      var I :| I <= graph.0 && I <= graph'.0 && isVertexCover(I, graph) && |I'| == |I| && vertexCoverDecissionProblem(graph, |I'|);
+      //assert exists I'' :: I'' <= graph.0 && isVertexCover(I'', graph) && I'' <= graph'.0 && vertexCoverDecisionProblem(graph, |I'|) && |I'| == |I'|;
+      //assert exists I'' :: I'' <= graph.0 && I'' <= graph'.0 && isVertexCover(I'', graph) && vertexCoverDecisionProblem(graph, |I'|);
+      var I :| I <= graph.0 && I <= graph'.0 && isVertexCover(I, graph) && |I'| == |I| && vertexCoverDecisionProblem(graph, |I'|);
       assert I <= graph.0;
       assert I <= graph'.0;
       assert isVertexCover(I, graph);

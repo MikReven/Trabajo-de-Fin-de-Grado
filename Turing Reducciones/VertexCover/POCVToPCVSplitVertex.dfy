@@ -141,26 +141,26 @@ ensures vertexn < vertex //in order to prove termination
       gn := g'';
       kgn := moptimalValueVertexCover(gn);  
 
-      assert isValidGraph(gn);
+      //assert isValidGraph(gn);
       assert isSubGraph(gn, graph);
-      assert vertex <= g.0;
+      //assert vertex <= g.0;
 
       IsASubsetIncreases(I, In, graph, vertex, vertexn, v);
       isAPartitionIncreases(I, In, graph, g, gn, v);
-      assert In <= graph.0 - vertexn && In + gn.0 == graph.0;
-      assert In * gn.0 == {} && In * vertexn == {};
-      assert (forall node | node in g.0 :: neighborsOf(g, node) <= vertex);
+      //assert In <= graph.0 - vertexn && In + gn.0 == graph.0;
+      //assert In * gn.0 == {} && In * vertexn == {};
+      //assert (forall node | node in g.0 :: neighborsOf(g, node) <= vertex);
       EdgesPartitionIncreases(I, In, graph, g, gn, v);
       //assert gn.1 + (set edge:Edge, node:Node | edge in graph.1 && node in In && node in edge :: edge) == graph.1;
       //assert kgn >= 0 && optimalValueVertexCover(gn,kgn);
       PartialOptimalSolutionIncreases(I, In, graph, g, g', gn, okg, kg, kg', kgn, v);
       //assert kgn + |In| == okg;
       //assume invariantLoop(graph, okg, vertex, In, gn, kgn);
-      assert vertexn < vertex by {   
+      /*assert vertexn < vertex by {   
         assert v in vertex;
         assert vertexn == vertex - {v};
         assert vertexn < vertex; 
-      }
+      }*/
     }
     else { //kg == kg'
       //assume false;
@@ -169,34 +169,34 @@ ensures vertexn < vertex //in order to prove termination
       gn := removeVertices(g, neighborsOf(g, v));
       kgn := moptimalValueVertexCover(gn);
 
-      assert isValidGraph(gn);
-      assert isSubGraph(gn, graph);
-      assert vertexn <= g.0;
+      //assert isValidGraph(gn);
+      //assert isSubGraph(gn, graph);
+      //assert vertexn <= g.0;
       
       isASubsetRemains(graph, g, v, I, vertex, In, vertexn);
       isAPartitionRemains(graph, g, v, I, gn, In);
-      assert In <= graph.0 - vertexn && In + gn.0 == graph.0;
-      assert In * gn.0 == {} && In * vertexn == {};
+      //assert In <= graph.0 - vertexn && In + gn.0 == graph.0;
+      //assert In * gn.0 == {} && In * vertexn == {};
       
       neighborsInVertexRemains(g, v, vertex, gn, vertexn);
-      assert (forall node | node in gn.0 :: neighborsOf(gn, node) <= vertexn);
+      //assert (forall node | node in gn.0 :: neighborsOf(gn, node) <= vertexn);
       partialSolutionsCoversOtherEdges(graph, g, v, I, gn, In);
       partialSolutionsCoversOtherEdges2(graph, g, v, I, gn, In); 
       //assume false;
-      assert gn.1 + (set edge:Edge, node:Node | edge in graph.1 && node in In && node in edge :: edge) == graph.1;
-      assert (forall edge | edge in graph.1 - g.1 :: |I * edge| > 0);
+      //assert gn.1 + (set edge:Edge, node:Node | edge in graph.1 && node in In && node in edge :: edge) == graph.1;
+      //assert (forall edge | edge in graph.1 - g.1 :: |I * edge| > 0);
       
-      assert kgn >= 0 && optimalValueVertexCover(gn,kgn);
+      //assert kgn >= 0 && optimalValueVertexCover(gn,kgn);
 
       remainingPlusPartialIsTotal(graph, okg, g, g', v, kg, I, gn, In, kgn);
-      assert kgn + |In| == okg;
+      //assert kgn + |In| == okg;
 
-      assert vertexn < vertex by { 
+      /*assert vertexn < vertex by { 
         assert v in vertex; 
         var vertex' := vertex - {v};
         assert vertexn == vertex' - neighborsOf(g, v);
         assert vertexn < vertex; 
-      }
+      }*/
     } 
 }
 

@@ -50,24 +50,23 @@ requires isValidGraph(graph)
   //g is a valid subgraph of graph
   isValidGraph(g) &&
   isSubGraph(g, graph) &&
-  //g has at leat okg vertices
+  //g has at leat kg vertices
   |g.0| >= kg && 
   //all vertices in the partial solution have been analyzed and are thus not in vertex
   I == g.0 - vertex &&
   //I is a partial solution
-  (forall i: Node | i in I :: (forall G: Graph | isValidGraph(G) && isSubGraph(G, g) && optimalValueClique(G, kg) :: (forall S: set<Node> | S <= G.0 && optimalClique(G, S) :: i in S)))  &&
+  (forall i: Node, G: Graph, S: set<Node> | i in I && isValidGraph(G) && isSubGraph(G, g) && optimalValueClique(G, kg) && S <= G.0 && optimalClique(G, S) ::  i in S)  &&
   optimalValueClique(g, kg)  
 
   //The following invariants, although true, are not needed for the method to verify, but they can be useful to better understande the code
   //g contains an optimal clique for graph
-  //kg == okg 
-  //while g has more than okg vertices, vertex is not empty
-  //(|g.0| > okg ==> vertex != {}) 
+  //while g has more than kg vertices, vertex is not empty
+  //(|g.0| > kg ==> vertex != {}) 
   //the partial solution is subset of the vertices in g
   //I <= g.0 
   //vertices that have not been analyzed are a subset of the vertices in g
   //vertex <= g.0 
-  //I con be extended to form an optimal clique for graph
+  //I can be extended to form an optimal clique for graph
   //(exists S: set<Node> :: S <= g.0 && optimalClique(graph, S) && I <= S)
 }
 
@@ -85,19 +84,19 @@ method {:axiom} moptimalValueClique (graph : Graph) returns (k: nat)
   We iterate over each vertex in the graph and compute the optimal value of a Clique in the Graph that we obtain after removing the vertex.
   If the value does not change, the graph still contains at least one optimal clique, and we remove the vertex from the graph
   If the value decreases, the vertex was necessary to form optimal cliques, every optimal clique must contain it
-  We finish when we have ha clique whose cardinality equals th eoptimal value of the initial grpah
+  We finish when we have a clique whose cardinality equals the optimal value of the initial grpah
   */
 method mOptimalClique (graph:Graph) returns (I:set<Node>)
   requires isValidGraph(graph)
   ensures optimalClique(graph, I)
 {
   I := {};
-  //this is the initial set of vertex
+  //this is the initial set of verteces
   //used to traverse the graph vertices
   var vertex := graph.0; 
   //Current graph, it contains nodes that have not been analyzed and nodes which have been analyzed to belong to an optimal Clique for graph
   var g := graph; 
-  //Optimal Clique value for the current graph
+  //Optimal Clique value for the original graph
   var kg := moptimalValueClique(g);
 
   //A clique for graph cannot contain more than |graph.0| vertices

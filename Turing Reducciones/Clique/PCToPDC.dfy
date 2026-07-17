@@ -32,34 +32,27 @@ method {:axiom} mCliqueDecisionProblem (graph : Graph, k : nat) returns (b : boo
   ensures b == CliqueDecisionProblem(graph, k)
 
 //We implement a polynomial algorithm for PC using mCliqueDecisionProblem
-//We iterate over the possible sizes of a Clique, and we check if a clique of that size exists, we stop once we value such that no clique of that size exist in the graph
+//We iterate over the possible sizes of a Clique, and we check if a clique of that size exists, we stop once we find a value such that no clique of that size exist in the graph
 method mOptimalValueClique (graph : Graph) returns (k : nat)
-  requires isValidGraph(graph)
-  ensures optimalValueClique(graph,k)
+requires isValidGraph(graph)
+ensures optimalValueClique(graph,k)
 {
-  //If the graph is empty, the largest clique is an empty set
-  if graph.0 == {} {
-    k := 0;
-    assert isClique(graph, {});
+  //We iterate from 0 to the number of vertices looking for the largest Clique we can find
+  var idx: nat := 0;
+  var notDone: bool := true;
+  LowerBoundClique(graph);
+  UpperBoundClique(graph);
+  while notDone
+  decreases |graph.0| - idx + 2
+  invariant 0 <= idx <= |graph.0| + 2
+  invariant (idx == |graph.0| + 2) ==> !notDone
+  invariant notDone ==> forall a: nat | 0 <= a < idx :: CliqueDecisionProblem(graph, a)
+  invariant !notDone ==> forall a: nat | idx  - 1 <= a <= |graph.0| :: !CliqueDecisionProblem(graph, a) 
+  invariant !notDone ==> forall a: nat | 0 <= a < idx - 1 :: CliqueDecisionProblem(graph, a)
+  invariant !notDone ==> idx >= 2
+  {
+      notDone := mCliqueDecisionProblem(graph, idx);
+      idx := idx + 1;
   }
-  else{
-    //We iterate from 0 to the number of vertices looking for the largest Clique we can find
-    var idx: nat := 1;
-    var notDone: bool := true;
-    LowerBoundClique(graph);
-    UpperBoundClique(graph);
-    while notDone
-        decreases |graph.0| - idx + 2
-        invariant 1 <= idx <= |graph.0| + 2
-        invariant (idx == |graph.0| + 2) ==> !notDone
-        invariant notDone ==> forall a: nat | 0 <= a < idx :: CliqueDecisionProblem(graph, a)
-        invariant !notDone ==> forall a: nat | idx  - 1 <= a <= |graph.0| :: !CliqueDecisionProblem(graph, a) 
-        invariant !notDone ==> forall a: nat | 0 <= a < idx - 1 :: CliqueDecisionProblem(graph, a)
-        invariant !notDone ==> idx >= 2
-    {
-        notDone := mCliqueDecisionProblem(graph, idx);
-        idx := idx + 1;
-    }
-    k := idx - 2;
-  }
+  k := idx - 2;
 }

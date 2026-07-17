@@ -110,7 +110,7 @@ decreases |A|
 {
   if A == {} {} 
   else {
-    ghost var x: T :| x in A;
+    var x: T :| x in A;
     SubsetCardinality(A - {x}, B - {x}); 
   } 
 }

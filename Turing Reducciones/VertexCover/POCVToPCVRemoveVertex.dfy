@@ -78,7 +78,7 @@ ensures vertexn < vertex //in order to prove termination
   vertexn := vertex - {v};  
 
   //Remove vertex v
-  var g' := (g.0 - {v}, g.1 - incidentEdges(g, v)); 
+  var g' := removeVertex(g, v); 
   validSubgraph(g,v,g');
   var kg': nat := moptimalValueVertexCover(g');
 
@@ -129,7 +129,7 @@ requires isValidGraph(graph)
   //Vertex in g either have not been visited, so they belong to vertex
   //or have a non-covered edge  
   I <= graph.0 - vertex && I + g.0 == graph.0 &&
-  I * g.0 == {} && I * vertex == {} &&
+  I * g.0 == {} && //I * vertex == {} &&
 
   //the union of all the edges covered by I and those in g.1 are 
   //the edges in the original graph

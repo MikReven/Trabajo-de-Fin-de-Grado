@@ -36,7 +36,7 @@ include "VertexCoverOpt.dfy"
             From Vertex Cover 
             -isVertexCover
             From VertexCoverOpt
-            -vertexCoverDecissionProblem
+            -vertexCoverDecisionProblem
             -optimalValueVertexCover
             -optimalVertexCover
         Functions
@@ -53,12 +53,12 @@ include "VertexCoverOpt.dfy"
 */
 
 //Optimal value vertex cover will never be strictly higher than |graph.0|
-//because vertexCoverDecissionProblem(graph, |graph.0|) always holds
+//because vertexCoverDecisionProblem(graph, |graph.0|) always holds
 //Used in POCVToPCVRemoveVertex by mOptimalVertexCover
 //Used in POCVToPCVSplitVertex by mOptimalVertexCover
 lemma boundVertexCover(graph:Graph, k:int)
 requires isValidGraph(graph) 
-ensures forall k | k >= |graph.0| :: vertexCoverDecissionProblem(graph,k)
+ensures forall k | k >= |graph.0| :: vertexCoverDecisionProblem(graph,k)
 { }
 
 //The optimal value for a vertex cover is no larger than the number of the graph's vertices
@@ -68,7 +68,7 @@ requires isValidGraph(graph)
 requires optimalValueVertexCover(graph,k)
 ensures k <= |graph.0|
 { 
-    assert vertexCoverDecissionProblem(graph,|graph.0|);
+    assert vertexCoverDecisionProblem(graph,|graph.0|);
 }
 
 //For every graph, there is an optimal vertex cover
@@ -116,7 +116,7 @@ ensures !exists I:set<Node> | I <= graph.0 && |I| < k  :: isVertexCover(I,graph)
     if exists I:set<Node> :: I <= graph.0 && |I| < k && isVertexCover(I,graph)
     {
         ghost var I: set<Node> :| I <= graph.0 && |I| < k && isVertexCover(I,graph);
-        assert vertexCoverDecissionProblem(graph, |I|);
+        assert vertexCoverDecisionProblem(graph, |I|);
         SubsetCardinality(I, graph.0);
         assert false;
     }
@@ -145,7 +145,7 @@ ensures v1 in I || v2 in I
 lemma biggerOptimalVertexCover(graph : Graph, k : nat, k':nat)
 requires isValidGraph(graph) 
 requires optimalValueVertexCover(graph,k)
-requires  vertexCoverDecissionProblem(graph, k') && k' <= |graph.0|
+requires  vertexCoverDecisionProblem(graph, k') && k' <= |graph.0|
 ensures k' >= k
 { }
 
@@ -190,7 +190,7 @@ ensures optimalVertexCover(graph,I)
    var S :| S <= graph.0 && isVertexCover(S, graph) && |S| < |I|;
    boundoptimalValueVertexCover(graph,k);
    assert |S| < |I| <= k <= |graph.0|;
-   assert vertexCoverDecissionProblem(graph,|S|);
+   assert vertexCoverDecisionProblem(graph,|S|);
    assert !optimalValueVertexCover(graph,k);
    assert false;
  }
@@ -228,7 +228,7 @@ requires optimalVertexCover(graph, I)
 requires optimalValueVertexCover(graph, k)
 ensures |I| == k
 {
-    assert vertexCoverDecissionProblem(graph, |I|);
+    assert vertexCoverDecisionProblem(graph, |I|);
 }
 
 //A cover whose size is optimal is an optimal cover
