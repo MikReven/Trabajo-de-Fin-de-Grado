@@ -27,7 +27,7 @@ include "../../Especificaciones/VertexCover/VertexCoverOpt.dfy"
 //We iterate from 0 to the number of vertices looking for the smallest Vertex Cover we can find
 method {:axiom} mVertexCoverDecissionProblem (graph : Graph, k : int) returns (b : bool)
   requires isValidGraph(graph)
-  ensures b == vertexCoverDecissionProblem(graph, k)
+  ensures b == vertexCoverDecisionProblem(graph, k)
 
 //We implement a polynomial algorithm for PCV using mVertexCoverDecissionProblem
 method mOptimalValueVertexCover (graph : Graph) returns (k : nat)
@@ -39,8 +39,8 @@ ensures optimalValueVertexCover(graph,k)
   while !done
   decreases |graph.0| - idx + 1
   invariant idx <= |graph.0| + 1
-  invariant (idx > 0 && vertexCoverDecissionProblem(graph, idx - 1)) <==> done 
-  invariant forall x : nat | x < idx - 1 :: !(vertexCoverDecissionProblem(graph, x)) 
+  invariant (idx > 0 && vertexCoverDecisionProblem(graph, idx - 1)) <==> done 
+  invariant forall x : nat | x < idx - 1 :: !(vertexCoverDecisionProblem(graph, x)) 
   {
       done := mVertexCoverDecissionProblem(graph, idx);
       idx := idx + 1;

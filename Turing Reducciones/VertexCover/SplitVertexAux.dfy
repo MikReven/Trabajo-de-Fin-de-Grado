@@ -204,21 +204,22 @@ requires optimalValueVertexCover(graph', k')
 ensures k' >= k
 {
     if k' < k {
-        translationVertexCover(graph', k');
-        var I' :| optimalVertexCover(graph', I');
-        assert optimalVertexCover(graph', I') ==> 
-          (I' <= graph'.0 && 
-          isVertexCover(I', graph') && 
-          forall S: set<Node> | S <= graph'.0 && isVertexCover(S, graph') :: |S| >= |I'|);
-        assert I' <= graph'.0;
-        splitCoverToOriginalCover(graph, n, graph', I');
-        var I: set<Node> :| I <= graph.0 && isVertexCover(I, graph) && |I| <= k';
-        calc <={
-            k;
-            {translationVertexCover(graph, k);}
-            |I|;
-            k';
-        }
+      translationVertexCover(graph', k');
+      var I' :| optimalVertexCover(graph', I');
+      assert optimalVertexCover(graph', I') ==> 
+        (I' <= graph'.0 && 
+        isVertexCover(I', graph') && 
+        forall S: set<Node> | S <= graph'.0 && isVertexCover(S, graph') :: |S| >= |I'|);
+      assert I' <= graph'.0;
+      splitCoverToOriginalCover(graph, n, graph', I');
+      var I: set<Node> :| I <= graph.0 && isVertexCover(I, graph) && |I| <= k';
+      calc <={
+          k;
+          {translationVertexCover(graph, k);}
+          |I|;
+          k';
+      }
+      assert false;
     }
 }
 
@@ -652,7 +653,6 @@ ensures kgn + |In| == okg
     var O :| O <= g.0 && O <= g'.0 && isVertexCover(O, g) && |O| <= |O'|;
 
     translationVertexCover(g, kg);
-    translationVertexCover(g', kg);
     coverOfOptimalSizeIsOptimal(g, O, kg);
   }
 

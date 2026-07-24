@@ -297,7 +297,6 @@ ensures exists V' :: V' <= graph.0 && V' <= vertex - {v} && optimalVertexCover(g
   var V :| V <= graph.0 && V <= vertex && optimalVertexCover(graph,V) && optimalVertexCover(fullgraph, I + V);
   if (v !in V) { assert V <= vertex - {v}; }
   else { 
-    
     //this is not possible
     var V' := V - {v};
     assert isVertexCover(V',graph');
@@ -487,7 +486,7 @@ requires I * graph.0 == {}
 requires I + graph.0 == fullgraph.0
 requires graph'.0 == graph.0 - { v }
 requires graph'.1 == graph.1 - incidentEdges(graph,v)
-ensures graph'.1 +  (set edge:Edge, node:Node | edge in fullgraph.1 && node in I + {v} && node in edge :: edge) == fullgraph.1
+ensures graph'.1 + (set edge:Edge, node:Node | edge in fullgraph.1 && node in I + {v} && node in edge :: edge) == fullgraph.1
 ensures (I + {v}) + graph'.0 == fullgraph.0
 {
   calc == 

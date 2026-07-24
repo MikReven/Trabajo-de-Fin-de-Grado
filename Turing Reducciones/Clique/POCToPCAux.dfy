@@ -109,13 +109,13 @@ ensures forall S: set<Node> | S <= g.0 && optimalClique(g, S) :: v in S
 //Used in POCToPC.dfy by mOptimalClique to prove the vertex must be included in the partial solution
 //Proof by reductio ad absurdum
 lemma isPartialSolutionWith(g: Graph, g': Graph, v: Node, kg: nat, kg': nat)
-    requires isValidGraph(g)
-    requires isValidGraph(g')
-    requires g' == removeVertex(g, v)
-    requires optimalValueClique(g, kg)
-    requires optimalValueClique(g', kg')
-    requires kg' + 1 == kg
-    ensures forall G: Graph | isValidGraph(G) && isSubGraph(G, g) && optimalValueClique(G, kg) :: (forall S: set<Node> | S <= G.0 && optimalClique(G, S) :: v in S)
+requires isValidGraph(g)
+requires isValidGraph(g')
+requires g' == removeVertex(g, v)
+requires optimalValueClique(g, kg)
+requires optimalValueClique(g', kg')
+requires kg' + 1 == kg
+ensures forall G: Graph | isValidGraph(G) && isSubGraph(G, g) && optimalValueClique(G, kg) :: (forall S: set<Node> | S <= G.0 && optimalClique(G, S) :: v in S)
 {
     //if there exists a subgraph whose optimal clique does not include v
     if exists G: Graph :: isValidGraph(G) && isSubGraph(G, g) && optimalValueClique(G, kg) && (exists S: set<Node> :: S <= G.0 && optimalClique(G, S) && v !in S)
