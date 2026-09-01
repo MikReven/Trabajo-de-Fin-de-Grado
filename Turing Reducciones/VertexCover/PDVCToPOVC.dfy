@@ -31,7 +31,7 @@ method mDecisionVertexCover (graph:Graph, k:int) returns (b:bool)
   requires isValidGraph(graph)
   ensures b == vertexCoverDecisionProblem(graph,k)
 {
-  var I := mOptimalVertexCover(graph);
+  var O := mOptimalVertexCover(graph);
   //assert I <= graph.0 && isVertexCover(I,graph);
-  b := |I| <= k;
+  b := |O| <= k;
 }

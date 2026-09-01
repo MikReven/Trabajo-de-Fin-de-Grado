@@ -124,7 +124,7 @@ ensures forall G: Graph | isValidGraph(G) && isSubGraph(G, g) && optimalValueCli
         var G: Graph :| isValidGraph(G) && isSubGraph(G, g) && optimalValueClique(G, kg) && (exists S: set<Node> :: S <= G.0 && optimalClique(G, S) && v !in S);
         //instantiate the clique
         var S: set<Node> :| S <= G.0 && optimalClique(G, S) && v !in S; 
-        //that clique must actually contain v, since it would be an optimal clique in g
+        //that clique must actually contain v, since it would be an optimal clique 
         OptimalCliquesSizeIsOptimalValue(G, S);
         assert |S| == kg;
         CliqueInSubgraph(g, G, |S|, S);

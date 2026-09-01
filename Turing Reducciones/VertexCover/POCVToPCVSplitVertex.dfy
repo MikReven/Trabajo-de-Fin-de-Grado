@@ -123,7 +123,7 @@ ensures vertexn < vertex //in order to prove termination
   vertexn := vertex - {v};  
   assert vertexn < vertex;
 
-  //Remove vertex v
+  //Split vertex v
   var g': Graph := splitVertex(g, v);
   var g'': Graph := removeVertex(g, v); 
   validSubgraph(g,v,g'');

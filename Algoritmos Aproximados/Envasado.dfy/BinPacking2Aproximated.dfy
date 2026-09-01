@@ -9,14 +9,14 @@ include "BinPacking2AproximatedAux.dfy"
         There are also some proofs of lemmas that will be used in said method to prove that invariants are kept.
     
     Predicates: 
-        -invariantLoop: Encapsulates the properties to be maintained through each iteration during the binPacking2AproximatedGeneral method
+        -invariantLoop: Encapsulates the properties to be maintained through each iteration during the binPacking2Aproximated method
 
     Functions:
         None
 
     Methods
-        -binPacking2AproximatedGeneralBodyLoop: Performs the operations in each iteration of the loop of binPacking2AproximatedGeneral
-        -binPacking2AproximatedGeneral: Method that constructs a 2-Aproximated to the BinPacking Problem
+        -binPacking2AproximatedBodyLoop: Performs the operations in each iteration of the loop of binPacking2Aproximated
+        -binPacking2Aproximated: Method that constructs a 2-Aproximated to the BinPacking Problem
 
     Lemmas:
         During each iteration, one of two possible things can happen, for each loop invariant there are two versions, one for each possibility
@@ -56,139 +56,139 @@ include "BinPacking2AproximatedAux.dfy"
 
 //After putting currElement in bin i, the capacities of all packs is still valid
 //After adding an element to a multiset, its sum of element grows by exactly the weight of the new element
-lemma ValidCapacityFit(bins: seq<multiset<nat>>, bins': seq<multiset<nat>>, capacity: seq<nat>, capacity': seq<nat>, E: nat, currElement: nat, idx: nat)
+lemma ValidCapacityFit(bins: seq<multiset<nat>>, binsn: seq<multiset<nat>>, capacity: seq<nat>, capacityn: seq<nat>, E: nat, currElement: nat, idx: nat)
 requires 0 <= idx < |bins|
 requires |bins| == |capacity|
 requires capacity[idx] + currElement <= E
 requires forall i: nat | 0 <= i < |bins| :: GSumNat(bins[i]) == capacity[i] && 0 < capacity[i] <= E
-requires bins' == bins[idx := (bins[idx] + multiset{currElement})]
-requires capacity' == capacity[idx := capacity[idx] + currElement]
+requires binsn == bins[idx := (bins[idx] + multiset{currElement})]
+requires capacityn == capacity[idx := capacity[idx] + currElement]
 requires currElement > 0
-ensures forall i: nat | 0 <= i < |bins'| :: GSumNat(bins'[i]) == capacity'[i] && 0 < capacity'[i] <= E
+ensures forall i: nat | 0 <= i < |binsn| :: GSumNat(binsn[i]) == capacityn[i] && 0 < capacityn[i] <= E
 {
-    GSumIntElemIn(bins'[idx], currElement);
-    assert bins'[idx] - multiset{currElement} == bins[idx];
-    GSumPositiveIntNat(bins'[idx]);
+    GSumIntElemIn(binsn[idx], currElement);
+    assert binsn[idx] - multiset{currElement} == bins[idx];
+    GSumPositiveIntNat(binsn[idx]);
     GSumPositiveIntNat(bins[idx]);
 }
 
 //After putting currElement in bin i, the capacities of all packs is still valid
 //We now have a new element in the sequence, which is a unitary set, so its sum of elements equals the weight of said element
-lemma ValidCapacityNotFit(bins: seq<multiset<nat>>, bins': seq<multiset<nat>>, capacity: seq<nat>, capacity': seq<nat>, E: nat, currElement: nat)
+lemma ValidCapacityNotFit(bins: seq<multiset<nat>>, binsn: seq<multiset<nat>>, capacity: seq<nat>, capacityn: seq<nat>, E: nat, currElement: nat)
 requires |bins| == |capacity|
 requires 0 < currElement <= E
 requires forall i: nat | 0 <= i < |bins| :: GSumNat(bins[i]) == capacity[i] && 0 < capacity[i] <= E
-requires bins' == bins + [multiset{currElement}]
-requires capacity' == capacity + [currElement]
-ensures forall i: nat | 0 <= i < |bins'| :: GSumNat(bins'[i]) == capacity'[i] && 0 < capacity'[i] <= E
+requires binsn == bins + [multiset{currElement}]
+requires capacityn == capacity + [currElement]
+ensures forall i: nat | 0 <= i < |binsn| :: GSumNat(binsn[i]) == capacityn[i] && 0 < capacityn[i] <= E
 { }
 
 //If the current element fit in one of the existing bins, it holds that the set of elements in the partial solution and the set of analyzed elements are the same
 //Proof follows from properties of union and difference operators with submultisets
-lemma PartialSolutionIsAnalyzedFit(bins: seq<multiset<nat>>, bins': seq<multiset<nat>>, currElement: nat, idx: nat, 
-                                   A: multiset<nat>, iterateMultiset: multiset<nat>, iterateMultiset': multiset<nat>)
+lemma PartialSolutionIsAnalyzedFit(bins: seq<multiset<nat>>, binsn: seq<multiset<nat>>, currElement: nat, idx: nat, 
+                                   A: multiset<nat>, iterateMultiset: multiset<nat>, iterateMultisetn: multiset<nat>)
 requires currElement in iterateMultiset
-requires iterateMultiset' <= A 
+requires iterateMultisetn <= A 
 requires iterateMultiset <= A
 requires 0 <= idx < |bins|
-requires iterateMultiset' == iterateMultiset - multiset{currElement}
-requires bins' == bins[idx := (bins[idx] + multiset{currElement})]
+requires iterateMultisetn == iterateMultiset - multiset{currElement}
+requires binsn == bins[idx := (bins[idx] + multiset{currElement})]
 requires Union(multiset(bins)) == A - iterateMultiset
-ensures Union(multiset(bins')) == A - iterateMultiset'
+ensures Union(multiset(binsn)) == A - iterateMultisetn
 {
     var I: multiset<multiset<nat>> := multiset(bins);
     var I': multiset<multiset<nat>> := I - multiset{bins[idx]};
     var I'': multiset<multiset<nat>> := I' + multiset{bins[idx] + multiset{currElement}};
     var analyzed := A - iterateMultiset;
-    var analyzed' := A - iterateMultiset';
+    var analyzed' := A - iterateMultisetn;
     
     calc{
-        Union(multiset(bins'));
-        {assert multiset(bins') == I'';}
+        Union(multiset(binsn));
+        {assert multiset(binsn) == I'';}
         Union(I'');
         {
-            UnionIsCompositional(I'', bins'[idx]);
-            assert I'' - multiset{bins'[idx]} == I';
+            UnionIsCompositional(I'', binsn[idx]);
+            assert I'' - multiset{binsn[idx]} == I';
         }
-        Union(I') + bins'[idx];
+        Union(I') + binsn[idx];
         {UnionIsCompositional(I, bins[idx]);}
-        Union(I) - bins[idx] + bins'[idx];
-        analyzed - bins[idx] + bins'[idx];
+        Union(I) - bins[idx] + binsn[idx];
+        analyzed - bins[idx] + binsn[idx];
         {
             //assert bins[idx] in I;
             UnionIsCompositional(I, bins[idx]);
             //assert bins[idx] <= Union(I);
-            SubMultisetUnionDifference(analyzed, bins[idx], bins'[idx]);
+            SubMultisetUnionDifference(analyzed, bins[idx], binsn[idx]);
         }
         analyzed + multiset{currElement};
         A - iterateMultiset + multiset{currElement};
-        {DifferenceOfDifference(A, iterateMultiset', iterateMultiset, currElement);}
-        A - iterateMultiset';
+        {DifferenceOfDifference(A, iterateMultisetn, iterateMultiset, currElement);}
+        A - iterateMultisetn;
     }
 }
 
 //If the current element did not fit in one of the existing bins, it holds that the set of elements in the partial solution and the set of analyzed elements are the same
 //Proof follows from properties of union and difference operators with submultisets
-lemma PartialSolutionIsAnalyzedNotFit(bins: seq<multiset<nat>>, bins': seq<multiset<nat>>, currElement: nat, 
-                                      A: multiset<nat>, iterateMultiset: multiset<nat>, iterateMultiset': multiset<nat>)
-requires bins' == bins + [multiset{currElement}]
+lemma PartialSolutionIsAnalyzedNotFit(bins: seq<multiset<nat>>, binsn: seq<multiset<nat>>, currElement: nat, 
+                                      A: multiset<nat>, iterateMultiset: multiset<nat>, iterateMultisetn: multiset<nat>)
+requires binsn == bins + [multiset{currElement}]
 requires currElement in iterateMultiset
-requires iterateMultiset' <= A 
+requires iterateMultisetn <= A 
 requires iterateMultiset <= A
-requires iterateMultiset' == iterateMultiset - multiset{currElement}
+requires iterateMultisetn == iterateMultiset - multiset{currElement}
 requires Union(multiset(bins)) == A - iterateMultiset
-ensures A - iterateMultiset' == Union(multiset(bins'))
+ensures A - iterateMultisetn == Union(multiset(binsn))
 { 
     var analyzed := A - iterateMultiset;
     calc{
-        Union(multiset(bins'));
-        { UnionIsCompositional(multiset(bins'), multiset{currElement}); }
-        multiset{currElement} + Union(multiset(bins') - multiset{multiset{currElement}});
-        { assert multiset(bins) == multiset(bins') - multiset{multiset{currElement}}; }
+        Union(multiset(binsn));
+        { UnionIsCompositional(multiset(binsn), multiset{currElement}); }
+        multiset{currElement} + Union(multiset(binsn) - multiset{multiset{currElement}});
+        { assert multiset(bins) == multiset(binsn) - multiset{multiset{currElement}}; }
         multiset{currElement} + Union(multiset(bins));
         multiset{currElement} + analyzed;
         analyzed + multiset{currElement};
         A - iterateMultiset + multiset{currElement};
-        {DifferenceOfDifference(A, iterateMultiset', iterateMultiset, currElement);}
-        A - iterateMultiset';
+        {DifferenceOfDifference(A, iterateMultisetn, iterateMultiset, currElement);}
+        A - iterateMultisetn;
     }
 }
 
 //After adding the current element to an existing bin, each bin is a subset of the set of analyzed nodes
 //Proof follows from properties of union and difference operators with submultisets
-lemma SubmultisetIfFit(bins: seq<multiset<nat>>, bins': seq<multiset<nat>>, currElement: nat, idx: nat, A: multiset<nat>, iterateMultiset: multiset<nat>, iterateMultiset': multiset<nat>)
+lemma SubmultisetIfFit(bins: seq<multiset<nat>>, binsn: seq<multiset<nat>>, currElement: nat, idx: nat, A: multiset<nat>, iterateMultiset: multiset<nat>, iterateMultisetn: multiset<nat>)
 requires 0 <= idx < |bins|
-requires bins' == bins[idx := (bins[idx] + multiset{currElement})]
+requires binsn == bins[idx := (bins[idx] + multiset{currElement})]
 requires forall i: nat | 0 <= i < |bins| :: bins[i] <= A-iterateMultiset
 requires iterateMultiset <= A
-requires iterateMultiset' <= A
+requires iterateMultisetn <= A
 requires currElement in iterateMultiset 
-requires iterateMultiset' == iterateMultiset - multiset{currElement}
-ensures forall i: nat | 0 <= i < |bins'| :: bins'[i] <= A-iterateMultiset'
+requires iterateMultisetn == iterateMultiset - multiset{currElement}
+ensures forall i: nat | 0 <= i < |binsn| :: binsn[i] <= A-iterateMultisetn
 { 
     calc{
-        A - iterateMultiset';
+        A - iterateMultisetn;
         A - (iterateMultiset - multiset{currElement});
-        {DifferenceOfDifference(A, iterateMultiset', iterateMultiset, currElement);}
+        {DifferenceOfDifference(A, iterateMultisetn, iterateMultiset, currElement);}
         A - iterateMultiset + multiset{currElement};
     }
 }
 
 //After adding the current element to an existing bin, each bin is a subset of the set of analyzed nodes
 //Proof follows from properties of union and difference operators with submultisets
-lemma SubmultisetIfNotFit(bins: seq<multiset<nat>>, bins': seq<multiset<nat>>, currElement: nat, A: multiset<nat>, iterateMultiset: multiset<nat>, iterateMultiset': multiset<nat>)
-requires bins' == bins + [multiset{currElement}]
+lemma SubmultisetIfNotFit(bins: seq<multiset<nat>>, binsn: seq<multiset<nat>>, currElement: nat, A: multiset<nat>, iterateMultiset: multiset<nat>, iterateMultisetn: multiset<nat>)
+requires binsn == bins + [multiset{currElement}]
 requires forall i: nat | 0 <= i < |bins| :: bins[i] <= A-iterateMultiset
 requires iterateMultiset <= A
-requires iterateMultiset' <= A
+requires iterateMultisetn <= A
 requires currElement in iterateMultiset 
-requires iterateMultiset' == iterateMultiset - multiset{currElement}
-ensures forall i: nat | 0 <= i < |bins'| :: bins'[i] <= A-iterateMultiset'
+requires iterateMultisetn == iterateMultiset - multiset{currElement}
+ensures forall i: nat | 0 <= i < |binsn| :: binsn[i] <= A-iterateMultisetn
 { 
     calc{
-        A - iterateMultiset';
+        A - iterateMultisetn;
         A - (iterateMultiset - multiset{currElement});
-        {DifferenceOfDifference(A, iterateMultiset', iterateMultiset, currElement);}
+        {DifferenceOfDifference(A, iterateMultisetn, iterateMultiset, currElement);}
         A - iterateMultiset + multiset{currElement};
     }
 }
@@ -197,65 +197,43 @@ ensures forall i: nat | 0 <= i < |bins'| :: bins'[i] <= A-iterateMultiset'
 //Although this lemma verifies by itself, we believe it to be non trivial
 //If the currElement * 2 > E, the number of bins that are not more than half full has not changed
 //In the other case, all other bins must have been more than half full, thus only only one is not more than half full
-lemma AtMostOneLessThanHalfFullNotFit(bins: seq<multiset<nat>>, bins': seq<multiset<nat>>, currElement: nat, E: nat)
-requires bins' == bins + [multiset{currElement}]
+lemma AtMostOneLessThanHalfFullNotFit(bins: seq<multiset<nat>>, binsn: seq<multiset<nat>>, currElement: nat, E: nat)
+requires binsn == bins + [multiset{currElement}]
 requires currElement <= E
 requires allMoreThanHalfFullSeq(E, bins) || oneLessThanHalfFullSeq(E, bins)
 requires forall i: nat | 0 <= i < |bins| :: GSumNat(bins[i]) + currElement > E
-ensures allMoreThanHalfFullSeq(E, bins') || oneLessThanHalfFullSeq(E, bins')
+ensures allMoreThanHalfFullSeq(E, binsn) || oneLessThanHalfFullSeq(E, binsn)
 { }
 
 //If the current element could not fit in an of the existing bins, after creating a new bin to put it in, at most one bin is half or less full
 //It is not possible for currElement * 2 > E and allMoreThanHalfFullSeq(E, bins) to hold at one, since it would imply that at least one bin holds more than E weight
 //In any other case, the weight of all bins has increased or stayed the same without becoming invalid, thus, the number of bins that are not more than half full cannot have increased 
-lemma AtMostOneLessThanHalfFullFit(E: nat, bins: seq<multiset<nat>>, bins': seq<multiset<nat>>, idx: nat, currElement: nat)
+lemma AtMostOneLessThanHalfFullFit(E: nat, bins: seq<multiset<nat>>, binsn: seq<multiset<nat>>, idx: nat, currElement: nat)
 requires 0 <= idx < |bins|
-requires bins' == bins[idx := (bins[idx] + multiset{currElement})]
-requires forall i: nat | 0 <= i < |bins'| :: GSumNat(bins'[i]) <= E
+requires binsn == bins[idx := (bins[idx] + multiset{currElement})]
+requires forall i: nat | 0 <= i < |binsn| :: GSumNat(binsn[i]) <= E
 requires forall i: nat | 0 <= i < |bins| :: GSumNat(bins[i]) <= E
 requires allMoreThanHalfFullSeq(E, bins) || oneLessThanHalfFullSeq(E, bins)
-ensures allMoreThanHalfFullSeq(E, bins') || oneLessThanHalfFullSeq(E, bins')
-{
-    if currElement * 2 > E && allMoreThanHalfFullSeq(E, bins){
-        assert GSumNat(bins[idx]) * 2 > E; 
-        assert currElement * 2 > E;
-        assert currElement + GSumNat(bins[idx]) > E;
-        GSumIntElemIn(bins'[idx], currElement);
-        calc{
-            GSumNat(bins'[idx]);
-            {GSumPositiveIntNat(bins'[idx]);}
-            GSumInt(bins'[idx]);
-            {GSumIntElemIn(bins'[idx], currElement);}
-            currElement + GSumInt(bins'[idx] - multiset{currElement});
-            {
-                GSumPositiveIntNat(bins[idx]);
-                assert bins'[idx] - multiset{currElement} == bins[idx];   
-            }
-            currElement + GSumNat(bins[idx]);
-        }
-        assert GSumNat(bins'[idx]) > E;
-        assert false;
-    }
-    else{
-        GSumIntElemIn(bins'[idx], currElement);
-        assert bins'[idx] - multiset{currElement} == bins[idx];
-        GSumPositiveIntNat(bins'[idx]);
-        GSumPositiveIntNat(bins[idx]);
-    }
+ensures allMoreThanHalfFullSeq(E, binsn) || oneLessThanHalfFullSeq(E, binsn)
+{ 
+    GSumIntElemIn(binsn[idx], currElement);
+    assert binsn[idx] - multiset{currElement} == bins[idx];
+    GSumPositiveIntNat(binsn[idx]);
+    GSumPositiveIntNat(bins[idx]);
 }
 
-//Encapsulates the properties to be maintained through each iteration during the binPacking2AproximatedGeneral method
+//Encapsulates the properties to be maintained through each iteration during the binPacking2Aproximated method
 ghost predicate invariantLoop(A: multiset<nat>, E: nat, bins:seq<multiset<nat>>, capacity: seq<nat>, iterateMultiset:multiset<nat>)
 { 
     0 <= |bins| == |capacity| &&
     iterateMultiset <= A &&
-    (forall i: nat | 0 <= i < |bins| :: bins[i] <= A && GSumNat(bins[i]) == capacity[i] && 0 < capacity[i] <= E) &&
+    (forall i: nat | 0 <= i < |bins| ::  GSumNat(bins[i]) == capacity[i] && 0 < capacity[i] <= E) &&
     A-iterateMultiset == Union(multiset(bins)) &&
     (forall i: nat | 0 <= i < |bins| :: bins[i] <= A - iterateMultiset) &&
     (allMoreThanHalfFullSeq(E, bins) || oneLessThanHalfFullSeq(E, bins))
 }
 
-//Performs the operations in each iteration of the loop of binPacking2AproximatedGeneral
+//Performs the operations in each iteration of the loop of binPacking2Aproximated
 //Procedure
     /*
     We will use what is called the first fit method
@@ -264,12 +242,12 @@ ghost predicate invariantLoop(A: multiset<nat>, E: nat, bins:seq<multiset<nat>>,
     If we did not find a bins, we create a new bin that only holds currElement and we apppend its capacity to the sequence of capacities
     In any case all other bins remain completely unchanged 
     */           
-method{:only} binPacking2AproximatedGeneralBodyLoop(A: multiset<nat>, E: nat,bins:seq<multiset<nat>>, capacity: seq<nat>,iterateMultiset:multiset<nat>) returns (newbins:seq<multiset<nat>>, newcapacity: seq<nat>, newiterateMultiset:multiset<nat>)
+method binPacking2AproximatedBodyLoop(A: multiset<nat>, E: nat,bins:seq<multiset<nat>>, capacity: seq<nat>,iterateMultiset:multiset<nat>) returns (binsn:seq<multiset<nat>>, capacityn: seq<nat>, iterateMultisetn:multiset<nat>)
 requires forall a: nat | a in A :: 0 < a <= E
 requires invariantLoop(A,E,bins,capacity,iterateMultiset)
 requires iterateMultiset != multiset{}
-ensures invariantLoop(A,E,newbins,newcapacity,newiterateMultiset)
-ensures newiterateMultiset < iterateMultiset
+ensures invariantLoop(A,E,binsn,capacityn,iterateMultisetn)
+ensures iterateMultisetn < iterateMultiset
 {       
     var j := 0;
     var currElement: nat := pickMultiset(iterateMultiset);
@@ -284,41 +262,39 @@ ensures newiterateMultiset < iterateMultiset
     //These invariants do not need proof to verify
     //Current element did not fit in any of the existing bins
     if (j == |bins|) {
-        //assume false;
-        newbins := bins + [multiset{currElement}];
-        newcapacity := capacity + [currElement];
-        newiterateMultiset := iterateMultiset - multiset{currElement};
+        binsn := bins + [multiset{currElement}];
+        capacityn := capacity + [currElement];
+        iterateMultisetn := iterateMultiset - multiset{currElement};
 
         //Proof for (forall i: nat | 0 <= i < |bins| :: bins[i] <= A && GSumNat(bins[i]) == capacity[i] && capacity[i] <= E)
-        ValidCapacityNotFit(bins, newbins, capacity, newcapacity, E, currElement);
+        ValidCapacityNotFit(bins, binsn, capacity, capacityn, E, currElement);
         //Proof for A-iterateMultiset == Union(multiset(bins)) 
-        PartialSolutionIsAnalyzedNotFit(bins, newbins, currElement, A, iterateMultiset, newiterateMultiset);
+        PartialSolutionIsAnalyzedNotFit(bins, binsn, currElement, A, iterateMultiset, iterateMultisetn);
         //Proof for forall i: nat | 0 <= i < |bins| :: bins[i] <= A - iterateMultiset 
-        SubmultisetIfNotFit(bins, newbins, currElement, A, iterateMultiset, newiterateMultiset);
-        //assert forall i: nat | 0 <= i < |newbins| :: newbins[i] <= A-newiterateMultiset;
+        SubmultisetIfNotFit(bins, binsn, currElement, A, iterateMultiset, iterateMultisetn);
+        //assert forall i: nat | 0 <= i < |binsn| :: binsn[i] <= A-iterateMultisetn;
         //Proof for (allMoreThanHalfFullSeq(E, bins) || oneLessThanHalfFullSeq(E, bins))
-        AtMostOneLessThanHalfFullNotFit(bins, newbins, currElement, E);   
+        AtMostOneLessThanHalfFullNotFit(bins, binsn, currElement, E);   
         //Termination function does decrease
-        assert newiterateMultiset < iterateMultiset;
+        assert iterateMultisetn < iterateMultiset;
     }
     //Current element did fit in an existing bin
     else {
-        //assume false;
-        newbins := bins[j := (bins[j] + multiset{currElement})];
-        newcapacity := capacity[j := capacity[j] + currElement];
-        newiterateMultiset := iterateMultiset - multiset{currElement};
+        binsn := bins[j := (bins[j] + multiset{currElement})];
+        capacityn := capacity[j := capacity[j] + currElement];
+        iterateMultisetn := iterateMultiset - multiset{currElement};
 
         //Lemmas to prove invariants
         //Proof for valid capacities after putting currElement in pack i
-        ValidCapacityFit(bins, newbins, capacity, newcapacity, E, currElement, j);
+        ValidCapacityFit(bins, binsn, capacity, capacityn, E, currElement, j);
         //Proof for A-iterateMultiset == Union(multiset(bins))
-        PartialSolutionIsAnalyzedFit(bins, newbins, currElement, j, A, iterateMultiset, newiterateMultiset);
+        PartialSolutionIsAnalyzedFit(bins, binsn, currElement, j, A, iterateMultiset, iterateMultisetn);
         //Proof for forall i: nat | 0 <= i < |bins| :: bins[i] <= A - iterateMultiset 
-        SubmultisetIfFit(bins, newbins, currElement, j, A, iterateMultiset, newiterateMultiset);
+        SubmultisetIfFit(bins, binsn, currElement, j, A, iterateMultiset, iterateMultisetn);
         //Proof for (allMoreThanHalfFullSeq(E, bins) || oneLessThanHalfFullSeq(E, bins))
-        AtMostOneLessThanHalfFullFit(E, bins, newbins, j, currElement);  
+        AtMostOneLessThanHalfFullFit(E, bins, binsn, j, currElement);  
         //Termination function does decrease
-        assert newiterateMultiset < iterateMultiset;
+        assert iterateMultisetn < iterateMultiset;
     }
 }
 
@@ -330,7 +306,7 @@ ensures newiterateMultiset < iterateMultiset
     After we are done iterating we need only prove that the multiset corresponding to the sequence used while iterating satisfies the posconditions
     No other operations are required
     */
-method binPacking2AproximatedGeneral(A: multiset<nat>, E: nat) returns (I: multiset<multiset<nat>>)
+method binPacking2Aproximated(A: multiset<nat>, E: nat) returns (I: multiset<multiset<nat>>)
 requires forall a: nat | a in A :: 0 < a <= E
 requires E > 0
 ensures isKAproximatedBinPacking(A, E, I, 2)
@@ -348,7 +324,7 @@ ensures isKAproximatedBinPacking(A, E, I, 2)
     //invariant allMoreThanHalfFull(E, multiset(bins)) || oneLessThanHalfFull(E, multiset(bins))
     //at most  one bin is less than half full
     {
-        bins,capacity,iterateMultiset := binPacking2AproximatedGeneralBodyLoop(A,E,bins,capacity,iterateMultiset);
+        bins,capacity,iterateMultiset := binPacking2AproximatedBodyLoop(A,E,bins,capacity,iterateMultiset);
     }
     //As the sequence verifies all the coditions necessary to be a BinPacking, so does the corresponding multiset
     I := multiset(bins);

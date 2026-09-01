@@ -34,6 +34,6 @@ method mDecisionClique (graph : Graph, k: nat) returns (b: bool)
   requires isValidGraph(graph)
   ensures b == CliqueDecisionProblem(graph,k)
 {
-  var optClique: set<Node> := mOptimalClique(graph);
-  b := (|optClique| >= k);
+  var O: set<Node> := mOptimalClique(graph);
+  b := (|O| >= k);
 }

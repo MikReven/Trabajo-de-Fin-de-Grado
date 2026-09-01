@@ -18,7 +18,7 @@ requires isValidGraph(graph)
   exists I:set<Node> | I <= graph.0 && |I| <= k  :: isVertexCover(I,graph)  
 }
 
-//predicado de PCV
+//PCV predicate
 ghost predicate optimalValueVertexCover (graph : Graph, k : nat) 
     requires isValidGraph(graph)
 {     
